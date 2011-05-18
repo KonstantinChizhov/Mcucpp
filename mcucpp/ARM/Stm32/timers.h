@@ -2,6 +2,7 @@
 
 #include "ioreg.h"
 #include "stm32f10x.h"
+#include "clock.h"
 
 #define DECLARE_STM32_BASIC_TIMER(NUMBER, CLASS_NAME, ClockEnableReg, ClockEnableMask)\
 namespace Private{\
@@ -53,11 +54,6 @@ namespace Private{\
 
 namespace Timers
 {
-	namespace Private
-	{
-		IO_REG_WRAPPER(RCC->APB2ENR,	ClockEnableReg2, uint32_t);
-		IO_REG_WRAPPER(RCC->APB1ENR,	ClockEnableReg1, uint32_t);
-	}
 	
 template<
 	class Cr1, 
@@ -103,7 +99,8 @@ template<
 			DownMode	= TIM_CR1_DIR,
 			CenterAligned1	= TIM_CR1_CMS_0,
 			CenterAligned2	= TIM_CR1_CMS_1,
-			CenterAligned3	= TIM_CR1_CMS
+			CenterAligned3	= TIM_CR1_CMS,
+						OnePulseUp      = TIM_CR1_OPM
 		};
 		
 		enum TimerDir
@@ -116,6 +113,11 @@ template<
 		{
 			MainClock = 0
 		};
+				
+				static void Enable()
+				{
+					ClockEnReg::Or(ClockEnMask);
+				}
 		
 		static void Set(DataT val)
 		{
@@ -130,17 +132,19 @@ template<
 		static void SetPeriod(DataT val)
 		{
 			Arr::Set(val);
-			Egr::Or(TIM_EGR_UG);
+			//Egr::Or(TIM_EGR_UG);
 		}
 
 		static void Stop()
 		{
-		
+				Cr1::Set(0);
+						Cr2::Set(0);
+						Cnt::Set(0);
 		}
 
 		static void Clear()
 		{
-			
+			Cnt::Set(0);
 		}
 		
 		static TimerDir Direction()
@@ -150,10 +154,9 @@ template<
 
 		static void Start(ClockDivider divider, TimerMode mode = NormalMode, ClockSrc clockSrc = MainClock)
 		{
-			ClockEnReg::Or(ClockEnMask);
 			Cr2::Set(0);
 			Psc::Set(0);
-			SetPeriod(MaxValue);
+			//SetPeriod(MaxValue);
 			Cr1::Set(TIM_CR1_CEN | divider | mode);
 		}
 
@@ -164,12 +167,12 @@ template<
 
 		static bool IsInterrupt()
 		{
-			return 0;
+			return Sr::Get() & TIM_SR_UIF;
 		}
 		
 		static void ClearInterruptFlag()
 		{
-			
+			Sr::And(~TIM_SR_UIF);
 		}
 		
 		static void SetMode(TimerMode mode)
@@ -182,19 +185,19 @@ template<
 	};
 	
 #ifdef USE_TIM1
-	DECLARE_STM32_BASIC_TIMER(1, Timer1, Private::ClockEnableReg2, RCC_APB2ENR_TIM1EN)
+	DECLARE_STM32_BASIC_TIMER(1, Timer1, Clock::PeriphClockEnable2, RCC_APB2ENR_TIM1EN)
 #endif
 
 #ifdef USE_TIM2
-	DECLARE_STM32_BASIC_TIMER(2, Timer2, Private::ClockEnableReg2, 1 << 0)
+	DECLARE_STM32_BASIC_TIMER(2, Timer2, Clock::PeriphClockEnable1, RCC_APB1ENR_TIM2EN)
 #endif
 
 #ifdef USE_TIM3
-	DECLARE_STM32_BASIC_TIMER(3, Timer3, Private::ClockEnableReg2, 1 << 1)
+	DECLARE_STM32_BASIC_TIMER(3, Timer3, Clock::PeriphClockEnable1, RCC_APB1ENR_TIM3EN)
 #endif
 
 #ifdef USE_TIM4
-	DECLARE_STM32_BASIC_TIMER(4, Timer4, Private::ClockEnableReg2, 1 << 2)
+	DECLARE_STM32_BASIC_TIMER(4, Timer4, Clock::PeriphClockEnable1, RCC_APB1ENR_TIM4EN)
 #endif
 
 // #ifdef USE_TIM5

@@ -12,3 +12,10 @@
 		static void AndOr(DataT andMask, DataT orMask){REG_NAME = (REG_NAME & andMask) | orMask;}\
 	}
 
+
+#define IO_STRUCT_WRAPPER(STRUCT_PTR, CLASS_NAME, STRUCT_TYPE) \
+	struct CLASS_NAME\
+	{\
+		typedef STRUCT_TYPE DataT;\
+		STRUCT_TYPE* operator->(){return ((STRUCT_TYPE *)(STRUCT_PTR));}\
+	}
