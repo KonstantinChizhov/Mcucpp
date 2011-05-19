@@ -10,6 +10,10 @@
 		static void And(DataT value){REG_NAME &= value;}\
 		static void Xor(DataT value){REG_NAME ^= value;}\
 		static void AndOr(DataT andMask, DataT orMask){REG_NAME = (REG_NAME & andMask) | orMask;}\
+		template<int Bit>\
+		static bool BitIsSet(){return REG_NAME & (1 << Bit);}\
+		template<int Bit>\
+		static bool BitIsClear(){return !(REG_NAME & (1 << Bit));}\
 	}
 
 

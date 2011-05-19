@@ -19,8 +19,9 @@ ISR(USART_RXC_vect)
 
 int main()
 {
-	usart::Init(115200);
+	usart::Init<115200>();
 	uint8_t c;
+	sei();
 	while(1)
 	{	
 		// echo recived data back
