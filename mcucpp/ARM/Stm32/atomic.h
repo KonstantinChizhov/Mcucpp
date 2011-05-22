@@ -9,7 +9,7 @@ namespace Atomic
 		DisableInterrupts()
 		{
 			_sreg = __get_PRIMASK();
-			__disable_irq()
+			__disable_irq();
 		}
 		~DisableInterrupts()
 		{
@@ -23,6 +23,7 @@ namespace Atomic
 
 #define ATOMIC if(Atomic::DisableInterrupts di = Atomic::DisableInterrupts()){}else
 
+// TODO: reimplement it with LDREX/STREX
 #define DECLARE_OP(OPERATION, OP_NAME) \
 	template<class T, class T2>\
 	T FetchAnd ## OP_NAME (volatile T * ptr, T2 value)\
@@ -50,7 +51,7 @@ namespace Atomic
 	DECLARE_OP(|, Or)
 	DECLARE_OP(&, And)
 	DECLARE_OP(^, Xor)
-
+	
 	template<class T, class T2>
 	bool CompareExchange(T * ptr, T2 oldValue, T2 newValue)
 	{
