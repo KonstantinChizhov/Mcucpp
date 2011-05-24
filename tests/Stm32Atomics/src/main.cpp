@@ -15,33 +15,11 @@ using namespace IO;
 typedef IO::Pc8 led;
 typedef IO::Pc9 led2;
 
-uint32_t value = 0;
+volatile uint32_t value = 0;
 
 void Foo()
 {
 	Atomic::FetchAndAdd(&value, 5);
-}
-
-extern "C"
-{
-	void *_sbrk(intptr_t increment)
-	{}
-	
-	void _exit(int status)
-	{
-	
-	}
-	
-	int _kill(int pid, int sig)
-	{
-		return 0;
-	}
-	
-	
-	int _getpid(void)
-	{
-		return 0;
-	}
 }
 
 int main()
