@@ -27,7 +27,7 @@ class Spi
 			SPSR &= ~(1 << SPI2X);
 			
 		SPCR = (SPCR & ~ClockDividerMask) | 1<<SPE | 1<<MSTR |
-				(divider & ClockDividerMask);		
+				(divider & ClockDividerMask);
 	}
 
 	static uint8_t ReadWrite(uint8_t outValue)

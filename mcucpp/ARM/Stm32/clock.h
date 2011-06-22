@@ -3,22 +3,28 @@
 #include "ioreg.h"
 #include "stm32f10x.h"
 
+#ifndef F_CPU
+#error F_CPU must be defined to proper cpu frequency
+#endif
+
 namespace Clock
 {
 	class SysClock
 	{
 	public:
-		static unsigned FCore()
+		static unsigned long FCore()
 		{
 			// TODO: implement this
 			return 8000000;
 		}
 		
-		static unsigned FPeriph()
+		static unsigned long FPeriph()
 		{
 			// TODO: implement this
 			return 8000000;
 		}
+		
+		static const unsigned long CpuFreq = F_CPU;
 	};
 	
 	IO_REG_WRAPPER(RCC->APB2ENR, PeriphClockEnable2, uint32_t);

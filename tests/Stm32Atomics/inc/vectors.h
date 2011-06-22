@@ -76,7 +76,24 @@ void USART3_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("Default
 void EXTI15_10_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
 void RTCAlarm_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
 void USBWakeUp_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
-
+void TIM8BRK_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void TIM8_UP_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void TIM8_TRG_COM_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void TIM8_CC_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void ADC3_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void FSMC_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void SDIO_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void TIM5_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void SPI3_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void UART4_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void UART5_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void TIM6_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void TIM7_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void DMA2_Channel1_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void DMA2_Channel2_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void DMA2_Channel3_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+void DMA2_Channel4_5_IRQHandler(void) __attribute__((weak, __interrupt__, alias ("DefaultIrqHandler")));
+	
 extern void assert_failed(unsigned char* file, unsigned int line);
 
 #ifdef __cplusplus

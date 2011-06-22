@@ -4,24 +4,24 @@
 // Date			: 2010
 // All rights reserved.
 
-// Redistribution and use in source and binary forms, with or without modification,
+// Redistribution and use in source and binary forms, with or without modification, 
 // are permitted provided that the following conditions are met:
-// Redistributions of source code must retain the above copyright notice,
+// Redistributions of source code must retain the above copyright notice, 
 // this list of conditions and the following disclaimer.
 
-// Redistributions in binary form must reproduce the above copyright notice,
-// this list of conditions and the following disclaimer in the documentation and/or
+// Redistributions in binary form must reproduce the above copyright notice, 
+// this list of conditions and the following disclaimer in the documentation and/or 
 // other materials provided with the distribution.
 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-// OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY 
+// OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
 
@@ -128,27 +128,27 @@ namespace IO
 				Out = 0x01,
 				AltOut = 0x01
 			};
-
+			
 			static Configuration MapConfiguration(GenericConfiguration config)
 			{
 				if(config & GpioBase::Out)
 					return Out;
 				return In;
 			}
-
+			
 			template<GenericConfiguration config>
 			struct MapConfigurationConst
 			{
 				static const Configuration value = In;
 			};
 	};
-
+	
 
 	template<> struct NativePortBase::MapConfigurationConst<GpioBase::Out>{static const Configuration value = Out;};
 	template<> struct NativePortBase::MapConfigurationConst<GpioBase::OpenDrainOut>{static const Configuration value = Out;};
 	template<> struct NativePortBase::MapConfigurationConst<GpioBase::AltOut>{static const Configuration value = Out;};
 	template<> struct NativePortBase::MapConfigurationConst<GpioBase::AltOpenDrain>{static const Configuration value = Out;};
-
+	
 	//Port definitions for AtTiny, AtMega families.
 
 		template<class Out, class Dir, class In, int ID>
@@ -168,7 +168,7 @@ namespace IO
 			{
 				if(mask == 0) return;
 				if(value & mask)
-					Out::And((DataT)~(value & mask));
+					Out::And(~(value & mask));
 				ClearBitWise<value, mask << 1>();
 			}
 		public:
@@ -217,7 +217,7 @@ namespace IO
 
 				const unsigned countBitsToChange = PopulatedBits<clearMask>::value;
 
-				if(countBitsToChange <= MaxBitwiseOutput &&
+				if(countBitsToChange <= MaxBitwiseOutput && 
 					Id < 4)
 				{
 					SetBitWise<bitsToSet, 1>();
@@ -236,7 +236,7 @@ namespace IO
 			template<DataT value>
 			static void Set()
 			{
-				if(PopulatedBits<value>::value <= MaxBitwiseOutput &&
+				if(PopulatedBits<value>::value <= MaxBitwiseOutput && 
 					Id < 4)
 					SetBitWise<value, 1>();
 				else
@@ -246,11 +246,11 @@ namespace IO
 			template<DataT value>
 			static void Clear()
 			{
-				if(PopulatedBits<value>::value <= MaxBitwiseOutput &&
+				if(PopulatedBits<value>::value <= MaxBitwiseOutput && 
 					Id < 4)
 					ClearBitWise<value, 1>();
 				else
-					ATOMIC Out::And((DataT)~value);
+					ATOMIC Out::And(~value);
 			}
 
 			// Configuration interface
@@ -262,7 +262,7 @@ namespace IO
 				if(configuration)
 					Dir::Or(1 << pin);
 				else
-					Dir::And((DataT)~(1 << pin));
+					Dir::And(~(1 << pin));
 			}
 
 			static void SetConfiguration(DataT mask, Configuration configuration)

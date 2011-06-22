@@ -16,6 +16,12 @@
 		static bool BitIsClear(){return !(REG_NAME & (1 << Bit));}\
 	}
 
+#define I_REG_WRAPPER(REG_NAME, CLASS_NAME, DATA_TYPE) \
+	struct CLASS_NAME\
+	{\
+		typedef DATA_TYPE DataT;\
+		static DataT Get(){return REG_NAME;}\
+	}
 
 #define IO_STRUCT_WRAPPER(STRUCT_PTR, CLASS_NAME, STRUCT_TYPE) \
 	struct CLASS_NAME\

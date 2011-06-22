@@ -1,6 +1,6 @@
 #include "vectors.h"
 
-
+__attribute__((weak, __interrupt__));
 void DefaultIrqHandler(void)
 {
 	while(1);
@@ -77,7 +77,24 @@ void (* const g_pfnVectors[])(void) = {
 	USART3_IRQHandler,
 	EXTI15_10_IRQHandler,
 	RTCAlarm_IRQHandler,
-	USBWakeUp_IRQHandler
+	USBWakeUp_IRQHandler,
+	TIM8BRK_IRQHandler,
+	TIM8_UP_IRQHandler,
+	TIM8_TRG_COM_IRQHandler,
+	TIM8_CC_IRQHandler,
+	ADC3_IRQHandler,
+	FSMC_IRQHandler,
+	SDIO_IRQHandler,
+	TIM5_IRQHandler,
+	SPI3_IRQHandler,
+	UART4_IRQHandler,
+	UART5_IRQHandler,
+	TIM6_IRQHandler,
+	TIM7_IRQHandler,
+	DMA2_Channel1_IRQHandler,
+	DMA2_Channel2_IRQHandler,
+	DMA2_Channel3_IRQHandler,
+	DMA2_Channel4_5_IRQHandler
 };
 
 /* stm32 reset code */

@@ -15,6 +15,15 @@ using namespace IO;
 typedef IO::Pc8 led;
 typedef IO::Pc9 led2;
 
+extern "C" void DefaultIrqHandler(void)
+{
+	while(1)
+	{
+		led::Toggle();
+		Util::delay_ms<50, 8000000>();
+	}
+}
+
 volatile uint32_t value = 0;
 
 void Foo()

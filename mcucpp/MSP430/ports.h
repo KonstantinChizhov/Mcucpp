@@ -92,7 +92,7 @@ namespace IO
 				Out = DirBit,
 				AltOut = DirBit | AltSelBit
 			};
-			
+
 			static Configuration MapConfiguration(GpioBase::GenericConfiguration config)
 			{
 				switch(config)
@@ -101,26 +101,26 @@ namespace IO
 				case GpioBase::AnalogIn: return AnalogIn;
 				case GpioBase::PullUpOrDownIn: return PullUpOrDownIn;
 				case GpioBase::AltOut: return AltOut;
-				//case GpioBase::Out: 
+				//case GpioBase::Out:
 				default:
 					return Out;
 				}
 			}
-			
+
 			template<GenericConfiguration config>
 			struct MapConfigurationConst
 			{
 				static const Configuration value = Out;
 			};
 	};
-	
+
 	template<> struct NativePortBase::MapConfigurationConst<GpioBase::In>{static const Configuration value = In;};
 	template<> struct NativePortBase::MapConfigurationConst<GpioBase::AnalogIn>{static const Configuration value = AnalogIn;};
 	template<> struct NativePortBase::MapConfigurationConst<GpioBase::OpenDrainOut>{static const Configuration value = Out;};
 	template<> struct NativePortBase::MapConfigurationConst<GpioBase::AltOut>{static const Configuration value = AltOut;};
 	template<> struct NativePortBase::MapConfigurationConst<GpioBase::AltOpenDrain>{static const Configuration value = AltOut;};
 	template<> struct NativePortBase::MapConfigurationConst<GpioBase::PullUpOrDownIn>{static const Configuration value = PullUpOrDownIn;};
-	
+
 	namespace Private
 	{
 		template<class Out, class Dir, class In, class Sel, class Int, class IntEdge, class Ren, int ID>
@@ -154,7 +154,7 @@ namespace IO
 			{
 				return In::Get();
 			}
-			
+
 			// constant interface
 
 			template<DataT clearMask, DataT value>
@@ -178,11 +178,11 @@ namespace IO
 			template<DataT value>
 			static void Clear()
 			{
-				Out::And(~value);
+				Out::And(DataT(~value));
 			}
-			
+
 			// Configuration interface
-			
+
 			template<unsigned pin>
 			static void SetPinConfiguration(Configuration configuration)
 			{
@@ -190,15 +190,15 @@ namespace IO
 				if((unsigned)configuration & (unsigned)DirBit)
 					Dir::Or(1 << pin);
 				else
-					Dir::And(~(1 << pin));
+					Dir::And(DataT(~(1 << pin)));
 				if((unsigned)configuration & (unsigned)AltSelBit)
-					Sel::Or(1 << pin); 
+					Sel::Or(1 << pin);
 				else
-					Sel::And(~(1 << pin));
+					Sel::And(DataT(~(1 << pin)));
 				if((unsigned)configuration & (unsigned)ResEnBit)
-					Ren::Or(1 << pin); 
+					Ren::Or(1 << pin);
 				else
-					Ren::And(~(1 << pin));
+					Ren::And(DataT(~(1 << pin)));
 			}
 			static void SetConfiguration(DataT mask, Configuration configuration)
 			{
@@ -207,15 +207,15 @@ namespace IO
 				else
 					Dir::And(~mask);
 				if((unsigned)configuration & (unsigned)AltSelBit)
-					Sel::Or(mask); 
+					Sel::Or(mask);
 				else
 					Sel::And(~mask);
 				if((unsigned)configuration & (unsigned)ResEnBit)
-					Ren::Or(mask); 
+					Ren::Or(mask);
 				else
 					Ren::And(~mask);
 			}
-			
+
 			template<DataT mask, Configuration configuration>
 			static void SetConfiguration()
 			{
@@ -224,11 +224,11 @@ namespace IO
 				else
 					Dir::And(~mask);
 				if((unsigned)configuration & (unsigned)AltSelBit)
-					Sel::Or(mask); 
+					Sel::Or(mask);
 				else
 					Sel::And(~mask);
 				if((unsigned)configuration & (unsigned)ResEnBit)
-					Ren::Or(mask); 
+					Ren::Or(mask);
 				else
 					Ren::And(~mask);
 			}
@@ -236,12 +236,12 @@ namespace IO
 			enum{Id = ID};
 		};
 	}
-	
+
 	#define MAKE_PORT(portName, dirName, pinName, selectName, interruptName, interruptEdge, resistorEnable, className, ID) \
 	  namespace Private{\
 		IO_REG_WRAPPER(portName, portName ## _t, uint8_t);\
 		IO_REG_WRAPPER(dirName, dirName ## _t, uint8_t);\
-		IO_REG_WRAPPER(pinName, pinName ## _t, uint8_t);\
+		I_REG_WRAPPER(pinName, pinName ## _t, uint8_t);\
 		IO_REG_WRAPPER(selectName, selectName ## _t, uint8_t);\
 		IO_REG_WRAPPER(interruptName, interruptName ## _t, uint8_t);\
 		IO_REG_WRAPPER(interruptEdge, interruptEdge ## _t, uint8_t);\
@@ -256,7 +256,7 @@ namespace IO
 				Private::interruptEdge ## _t, \
 				Private::resistorEnable ## _t, \
 				ID> className;
-		
+
 
 	#ifdef USE_PORT0
 	MAKE_PORT(P0OUT, P0DIR, P0IN, Port0, '0')
