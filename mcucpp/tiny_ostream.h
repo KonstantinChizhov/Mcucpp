@@ -4,26 +4,10 @@
 #include "template_utils.h"
 #include <string.h>
 #include <stdlib.h>
+#include <tiny_ios.h>
 
 namespace IO
 {
-	template<class CharT>
-	class CharTrates;
-
-	template<>
-	class CharTrates<char>
-	{
-		public:
-		static char DigitToLit(unsigned digit)
-		{
-			return (digit < 10 ? '0' : 'a' - 10) + digit;
-		}
-
-		static char Minus()
-		{
-			return '-';
-		}
-	};
 
 	template<class T, class CharT>
 	CharT * IntToString(T value, CharT *bufferEnd, unsigned radix)
@@ -38,176 +22,18 @@ namespace IO
 		return ptr;
 	}
 
-
-	class ios_base
-	{
-		ios_base(const ios_base&);
-		ios_base& operator=(const ios_base&);
-		public:
-
-		ios_base()
-		{}
-
-		enum fmtflags
-		{
-			boolalpha   = 1 << 0,
-			dec         = 1 << 1,
-			fixed       = 1 << 2,
-			hex         = 1 << 3,
-			internal    = 1 << 4,
-			left        = 1 << 5,
-			oct         = 1 << 6,
-			right       = 1 << 7,
-			scientific  = 1 << 8,
-			showbase    = 1 << 9,
-			showpoint   = 1 << 10,
-			showpos     = 1 << 11,
-			skipws      = 1 << 12,
-			unitbuf     = 1 << 13,
-			uppercase   = 1 << 14,
-			adjustfield = left | right | internal,
-			basefield   = dec | oct | hex,
-			floatfield  = scientific | fixed
-		};
-
-		enum iostate
-		{
-			goodbit = 0,
-			badbit  = 1 << 0,
-			eofbit  = 1 << 1,
-			failbit = 1 << 2
-		};
-
-		enum seekdir
-		{
-			beg = 0,
-			cur = 1,
-			end = 2
-		};
-
-		enum openmode
-		{
-			app    = 1 << 0,
-			ate    = 1 << 1,
-			binary = 1 << 2,
-			in     = 1 << 3,
-			out    = 1 << 4,
-			trunc  = 1 << 5
-		};
-
-	};
-
-	DECLARE_ENUM_OPERATIONS(ios_base::fmtflags)
-	DECLARE_ENUM_OPERATIONS(ios_base::iostate)
-
-	class ios :public ios_base
-	{
-	public:
-		ios()
-			:_flags(dec)
-		{
-
-		}
-
-		bool good () const
-		{
-			return _state == goodbit;
-		}
-
-		bool fail () const
-		{
-			return _state & failbit;
-		}
-		bool bad () const
-		{
-			return _state & badbit;
-		}
-		bool eof ( ) const
-		{
-			return _state & eofbit;
-		}
-		iostate rdstate ( ) const
-		{
-			return _state;
-		}
-
-		void setstate ( iostate state )
-		{
-			_state |= state;
-		}
-
-		void clear ( iostate state = goodbit )
-		{
-			_state = state;
-		}
-
-		fmtflags flags ( ) const
-		{return _flags;}
-
-		fmtflags flags ( fmtflags fmtfl )
-		{
-			fmtflags tmp = _flags;
-			_flags = fmtfl;
-			return tmp;
-		}
-
-		fmtflags setf ( fmtflags fmtfl )
-		{
-			fmtflags tmp = _flags;
-			_flags |= fmtfl;
-			return tmp;
-		}
-
-		fmtflags setf ( fmtflags fmtfl, fmtflags mask )
-		{
-			fmtflags tmp = _flags;
-			_flags = (_flags & ~mask) | fmtfl;
-			return tmp;
-		}
-
-		fmtflags unsetf ( fmtflags mask )
-		{
-			fmtflags tmp = _flags;
-			_flags &= ~mask;
-			return tmp;
-		}
-
-		uint8_t width ( ) const
-		{
-			//return _width;
-			return 0;
-		}
-		uint8_t width ( uint8_t width )
-		{
-			//uint8_t tmp = _width;
-			//_width = width;
-			//return tmp;
-			return 0;
-		}
-
-		char fill ( ) const
-		{
-			return ' ';
-		}
-		char fill ( char fillch )
-		{
-			return ' ';
-		}
-	protected:
-		fmtflags _flags;
-		iostate _state;
-		//uint8_t _width;
-	};
-
-
-	template<class OutputPolicy, class IOS = ios, class CharT = char>
+	template<class OutputPolicy,
+            class CharT = char,
+            class IOS = basic_ios<CharT>
+            >
 	class FormatWriter :public OutputPolicy, public IOS
 	{
 	private:
 		const CharT *_formatSrting;
+		typedef CharTrates<CharT> Trates;
 	public:
 		typedef FormatWriter Self;
-	protected:
+	private:
 
 		template<class T>
 		struct ConvertBufferSize
@@ -217,11 +43,28 @@ namespace IO
 
 		unsigned Base()
 		{
-			if(IOS::flags() & ios::hex) return 16;
-			if(IOS::flags() & ios::oct) return 8;
+			if(IOS::flags() & IOS::hex) return 16;
+			if(IOS::flags() & IOS::oct) return 8;
 			return 10;
 		}
 
+        void FieldFillPost(int lastOutputLength)
+        {
+            if(IOS::flags() & IOS::right)
+                return;
+            int fillcount = IOS::width(0) - lastOutputLength;
+            for(int i=0; i<fillcount; i++)
+                OutputPolicy::put(IOS::fill());
+        }
+
+        void FieldFillPre(int lastOutputLength)
+        {
+            if(IOS::flags() & IOS::left)
+                return;
+            int fillcount = IOS::width(0) - lastOutputLength;
+            for(int i=0; i<fillcount; i++)
+                OutputPolicy::put(IOS::fill());
+        }
 
 		template<class T>
 		void PutInteger(T value)
@@ -232,7 +75,7 @@ namespace IO
 
 			if(Util::IsSigned<T>::value)
 			{
-				if(value < 0 && IOS::flags() & ios::dec)
+				if(value < 0 && IOS::flags() & IOS::dec)
 				{
 					value = -value;
 					sign = true;
@@ -244,32 +87,40 @@ namespace IO
 			CharT * str = IntToString(uvalue, buffer + bufferSize, Base());
 
 			if(sign)
-				*--str = CharTrates<CharT>::Minus();
+				*--str = Trates::Minus();
 
-			if((IOS::flags() & (ios::hex | ios::showbase)) == (ios::hex | ios::showbase))
+			if((IOS::flags() & (IOS::hex | IOS::showbase)) == (IOS::hex | IOS::showbase))
 			{
 				*--str = 'x';
 				*--str = '0';
 			}
-
+            int outputSize = buffer + bufferSize - str;
+            FieldFillPre(outputSize);
 			OutputPolicy::write(str, buffer + bufferSize - str);
+			FieldFillPost(outputSize);
 		}
 
 		void PutBool(bool value)
 		{
-			if(IOS::flags() & ios::boolalpha)
+			if(IOS::flags() & IOS::boolalpha)
 			{
 				if(value)
-					OutputPolicy::write("true", 4);
+				{
+					puts(Trates::True());
+				}
 				else
-					OutputPolicy::write("false", 5);
+				{
+					puts(Trates::False());
+				}
 			}
 			else
 			{
+			    FieldFillPre(1);
 				if(value)
-					OutputPolicy::put('1');
+					OutputPolicy::put(Trates::DigitToLit(1));
 				else
-					OutputPolicy::put('0');
+					OutputPolicy::put(Trates::DigitToLit(0));
+                FieldFillPost(1);
 			}
 		}
 
@@ -282,7 +133,9 @@ namespace IO
 				{
 					ptr++;
 				}
-				OutputPolicy::write(_formatSrting, ptr - _formatSrting);
+				int outputSize = ptr - _formatSrting;
+				OutputPolicy::write(_formatSrting, outputSize);
+
 				if(*ptr == '%') ptr++;
 				if(*ptr == '\0')
 					_formatSrting = 0;
@@ -339,13 +192,12 @@ namespace IO
 			return *this;
 		}
 
-		/*template<class CharPtr>
-		Self& operator% (CharPtr value)
+		Self& operator% (const CharT* value)
 		{
 			puts(value);
 			ProcessFormat();
 			return *this;
-		}*/
+		}
 
 		Self& operator<< (int value)
 		{
@@ -384,7 +236,20 @@ namespace IO
 		}
 
 		Self&
-		operator<<(ios& (*__pf) (ios&))
+		operator<<(IOS& (*__pf) (IOS&))
+		{
+			__pf(*this);
+			return *this;
+		}
+
+		Self&
+		operator%(Self& (*__pf)(Self&))
+		{
+			return __pf(*this);
+		}
+
+		Self&
+		operator%(IOS& (*__pf) (IOS&))
 		{
 			__pf(*this);
 			return *this;
@@ -392,52 +257,71 @@ namespace IO
 
 		void puts(const CharT *str)
 		{
-			OutputPolicy::write(str, strlen(str) );
+		    const int outputSize = Trates::SrtLen(str);
+            FieldFillPre(outputSize);
+			OutputPolicy::write(str, outputSize);
+			FieldFillPost(outputSize);
 		}
 
-		/*template<class CharPtr>
-		void puts(CharPtr str)
-		{
-			CharT c;
-			while(c = *str++)
-			{
-				OutputPolicy::put(c);
-			}
-		}*/
 	};
 
-	template<class OutputPolicy, class IOS, class CharT>
-	FormatWriter<OutputPolicy, IOS, CharT>& endl ( FormatWriter<OutputPolicy, IOS, CharT>& os)
+
+	template<class OutputPolicy, class CharT, class IOS>
+	FormatWriter<OutputPolicy, CharT, IOS>& endl ( FormatWriter<OutputPolicy, CharT, IOS>& os)
 	{
 		os.put('\n');
 		return os;
 	}
 
-	template<class OutputPolicy, class IOS, class CharT>
-	FormatWriter<OutputPolicy, IOS, CharT>& ends ( FormatWriter<OutputPolicy, IOS, CharT>& os)
+	template<class OutputPolicy, class CharT, class IOS>
+	FormatWriter<OutputPolicy, CharT, IOS>& ends ( FormatWriter<OutputPolicy, CharT, IOS>& os)
 	{
 		os.put('\0');
 		return os;
 	}
 
-	template<class OutputPolicy, class IOS, class CharT>
-	FormatWriter<OutputPolicy, IOS, CharT>& dec ( FormatWriter<OutputPolicy, IOS, CharT>& os)
+	template<class OutputPolicy, class CharT, class IOS>
+	FormatWriter<OutputPolicy, CharT, IOS>& dec ( FormatWriter<OutputPolicy, CharT, IOS>& os)
 	{
-		os.setf(ios::dec, ios::basefield);
+		os.setf(IOS::dec, IOS::basefield);
 		return os;
 	}
 
-	template<class OutputPolicy, class IOS, class CharT>
-	FormatWriter<OutputPolicy, IOS, CharT>& hex ( FormatWriter<OutputPolicy, IOS, CharT>& os)
+	template<class OutputPolicy, class CharT, class IOS>
+	FormatWriter<OutputPolicy, CharT, IOS>& hex ( FormatWriter<OutputPolicy, CharT, IOS>& os)
 	{
-		os.setf(ios::hex, ios::basefield);
+		os.setf(IOS::hex, IOS::basefield);
 		return os;
 	}
 
-	template<class OutputPolicy, class IOS, class CharT>
-	FormatWriter<OutputPolicy, IOS, CharT>& oct ( FormatWriter<OutputPolicy, IOS, CharT>& os)
+	template<class OutputPolicy, class CharT, class IOS>
+	FormatWriter<OutputPolicy, CharT, IOS>& oct ( FormatWriter<OutputPolicy, CharT, IOS>& os)
 	{
-		os.setf(ios::oct, ios::basefield);
+		os.setf(IOS::oct, IOS::basefield);
 		return os;
 	}
+
+    struct SetwT { int width; };
+
+    inline SetwT setw(int width)
+    {
+        SetwT f = { width };
+        return f;
+    }
+
+   template<class OutputPolicy, class CharT, class IOS>
+    FormatWriter<OutputPolicy, CharT, IOS>&  operator<<
+            ( FormatWriter<OutputPolicy, CharT, IOS>& os, SetwT f)
+    {
+        os.width(f.width);
+        return os;
+    }
+
+    template<class OutputPolicy, class CharT, class IOS>
+    FormatWriter<OutputPolicy, CharT, IOS>&  operator%
+            ( FormatWriter<OutputPolicy, CharT, IOS>& os, SetwT f)
+    {
+        os.width(f.width);
+        return os;
+    }
 }
