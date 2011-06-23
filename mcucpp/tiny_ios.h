@@ -109,13 +109,13 @@ namespace IO
 			trunc  = 1 << 5
 		};
 
-        fmtflags flags ( ) const;
-		fmtflags flags ( fmtflags fmtfl );
-		fmtflags setf ( fmtflags fmtfl );
-		fmtflags setf ( fmtflags fmtfl, fmtflags mask );
-		fmtflags unsetf ( fmtflags mask );
-        uint8_t width ( ) const;
-		uint8_t width ( uint8_t width );
+        inline fmtflags flags ( ) const;
+		inline fmtflags flags ( fmtflags fmtfl );
+		inline fmtflags setf ( fmtflags fmtfl );
+		inline fmtflags setf ( fmtflags fmtfl, fmtflags mask );
+		inline fmtflags unsetf ( fmtflags mask );
+        inline uint8_t width ( ) const;
+		inline uint8_t width ( uint8_t width );
 
 		private:
             fmtflags _flags;
@@ -133,15 +133,15 @@ namespace IO
 			:_fillch(' ')
 		{}
 
-		bool good () const;
-		bool fail () const;
-		bool bad () const;
-		bool eof ( ) const;
-		iostate rdstate ( ) const;
-		void setstate ( iostate state );
-		void clear ( iostate state = goodbit );
-		CharT fill ( ) const;
-		CharT fill ( char fillch );
+		inline bool good () const;
+		inline bool fail () const;
+		inline bool bad () const;
+		inline bool eof ( ) const;
+		inline iostate rdstate ( ) const;
+		inline void setstate ( iostate state );
+		inline void clear ( iostate state = goodbit );
+		inline CharT fill ( ) const;
+		inline CharT fill ( char fillch );
 
 	protected:
 		iostate _state;

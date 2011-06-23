@@ -8,141 +8,24 @@
 
 namespace IO
 {
-
-	template<class T, class CharT>
-	CharT * IntToString(T value, CharT *bufferEnd, unsigned radix)
-	{
-		CharT *ptr = bufferEnd;
-		do
-		{
-            *--ptr = CharTrates<CharT>::DigitToLit(value % radix);
-            value /= radix;
-		}
-		while (value != 0);
-		return ptr;
-	}
-
 	template<class OutputPolicy,
             class CharT = char,
             class IOS = basic_ios<CharT>
             >
 	class FormatWriter :public OutputPolicy, public IOS
 	{
-	private:
 		const CharT *_formatSrting;
 		typedef CharTrates<CharT> Trates;
-	public:
 		typedef FormatWriter Self;
 	private:
 
+		inline unsigned Base();
+        inline void FieldFillPost(int lastOutputLength);
+        inline void FieldFillPre(int lastOutputLength);
 		template<class T>
-		struct ConvertBufferSize
-		{
-			static const int value = sizeof(T) * 3;
-		};
-
-		unsigned Base()
-		{
-			if(IOS::flags() & IOS::hex) return 16;
-			if(IOS::flags() & IOS::oct) return 8;
-			return 10;
-		}
-
-        void FieldFillPost(int lastOutputLength)
-        {
-            if(IOS::flags() & IOS::right)
-                return;
-            int fillcount = IOS::width(0) - lastOutputLength;
-            for(int i=0; i<fillcount; i++)
-                OutputPolicy::put(IOS::fill());
-        }
-
-        void FieldFillPre(int lastOutputLength)
-        {
-            if(IOS::flags() & IOS::left)
-                return;
-            int fillcount = IOS::width(0) - lastOutputLength;
-            for(int i=0; i<fillcount; i++)
-                OutputPolicy::put(IOS::fill());
-        }
-
-		template<class T>
-		void PutInteger(T value)
-		{
-			const int bufferSize = ConvertBufferSize<int>::value;
-			CharT buffer[bufferSize];
-			bool sign = false;
-
-			if(Util::IsSigned<T>::value)
-			{
-				if(value < 0 && IOS::flags() & IOS::dec)
-				{
-					value = -value;
-					sign = true;
-				}
-			}
-
-			typedef typename Util::Unsigned<T>::Result UT;
-			UT uvalue = static_cast<UT>(value);
-			CharT * str = IntToString(uvalue, buffer + bufferSize, Base());
-
-			if(sign)
-				*--str = Trates::Minus();
-
-			if((IOS::flags() & (IOS::hex | IOS::showbase)) == (IOS::hex | IOS::showbase))
-			{
-				*--str = 'x';
-				*--str = '0';
-			}
-            int outputSize = buffer + bufferSize - str;
-            FieldFillPre(outputSize);
-			OutputPolicy::write(str, buffer + bufferSize - str);
-			FieldFillPost(outputSize);
-		}
-
-		void PutBool(bool value)
-		{
-			if(IOS::flags() & IOS::boolalpha)
-			{
-				if(value)
-				{
-					puts(Trates::True());
-				}
-				else
-				{
-					puts(Trates::False());
-				}
-			}
-			else
-			{
-			    FieldFillPre(1);
-				if(value)
-					OutputPolicy::put(Trates::DigitToLit(1));
-				else
-					OutputPolicy::put(Trates::DigitToLit(0));
-                FieldFillPost(1);
-			}
-		}
-
-		void ProcessFormat()
-		{
-			if(_formatSrting)
-			{
-				const CharT *ptr = _formatSrting;
-				while(*ptr != '%' && *ptr != '\0')
-				{
-					ptr++;
-				}
-				int outputSize = ptr - _formatSrting;
-				OutputPolicy::write(_formatSrting, outputSize);
-
-				if(*ptr == '%') ptr++;
-				if(*ptr == '\0')
-					_formatSrting = 0;
-				else
-					_formatSrting = ptr;
-			}
-		}
+		inline void PutInteger(T value);
+		inline void PutBool(bool value);
+		inline void ProcessFormat();
 	public:
 
 		FormatWriter()
@@ -196,6 +79,12 @@ namespace IO
 		{
 			puts(value);
 			ProcessFormat();
+			return *this;
+		}
+
+		Self& operator<< (bool value)
+		{
+			PutBool(value);
 			return *this;
 		}
 
@@ -325,3 +214,4 @@ namespace IO
         return os;
     }
 }
+#include <impl/tiny_ostream.tcc>
