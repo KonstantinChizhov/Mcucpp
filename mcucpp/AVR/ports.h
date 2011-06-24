@@ -160,7 +160,7 @@ namespace IO
 				if(mask == 0) return;
 				if(value & mask)
 					Out::Or(value & mask);
-				SetBitWise<value, mask << 1>();
+				SetBitWise<value, DataT(mask << 1)>();
 			}
 
 			template<DataT value, DataT mask>
@@ -168,8 +168,8 @@ namespace IO
 			{
 				if(mask == 0) return;
 				if(value & mask)
-					Out::And(~(value & mask));
-				ClearBitWise<value, mask << 1>();
+					Out::And(DataT(~(value & mask)));
+				ClearBitWise<value, DataT(mask << 1)>();
 			}
 		public:
 			static void Write(DataT value)
@@ -179,7 +179,7 @@ namespace IO
 
 			static void ClearAndSet(DataT clearMask, DataT value)
 			{
-				ATOMIC Out::AndOr(~clearMask, value);
+				ATOMIC Out::AndOr(DataT(~clearMask), value);
 			}
 
 			static DataT Read()
@@ -213,7 +213,7 @@ namespace IO
 			static void ClearAndSet()
 			{
 				const DataT bitsToSet = value & clearMask;
-				const DataT bitsToClear = ~value & clearMask;
+				const DataT bitsToClear = DataT(~value & clearMask);
 
 				const unsigned countBitsToChange = PopulatedBits<clearMask>::value;
 
@@ -224,7 +224,7 @@ namespace IO
 					ClearBitWise<bitsToClear, 1>();
 				}
 				else
-					ATOMIC Out::AndOr(~clearMask, value);
+					ATOMIC Out::AndOr(DataT(~clearMask), value);
 			}
 
 			template<DataT value>
@@ -250,7 +250,7 @@ namespace IO
 					Id < 4)
 					ClearBitWise<value, 1>();
 				else
-					ATOMIC Out::And(~value);
+					ATOMIC Out::And(DataT(~value));
 			}
 
 			// Configuration interface
@@ -262,7 +262,7 @@ namespace IO
 				if(configuration)
 					Dir::Or(1 << pin);
 				else
-					Dir::And(~(1 << pin));
+					Dir::And(DataT(~(1 << pin)));
 			}
 
 			static void SetConfiguration(DataT mask, Configuration configuration)
@@ -270,7 +270,7 @@ namespace IO
 				if(configuration)
 					Dir::Or(mask);
 				else
-					Dir::And(~mask);
+					Dir::And(DataT(~mask));
 			}
 
 			template<DataT mask, Configuration configuration>
@@ -279,7 +279,7 @@ namespace IO
 				if(configuration)
 					Dir::Or(mask);
 				else
-					Dir::And(~mask);
+					Dir::And(DataT(~mask));
 			}
 
 			enum{Id = ID};
