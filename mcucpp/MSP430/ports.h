@@ -222,15 +222,15 @@ namespace IO
 				if((unsigned)configuration & (unsigned)DirBit)
 					Dir::Or(mask);
 				else
-					Dir::And(~mask);
+					Dir::And(DataT(~mask));
 				if((unsigned)configuration & (unsigned)AltSelBit)
 					Sel::Or(mask);
 				else
-					Sel::And(~mask);
+					Sel::And(DataT(~mask));
 				if((unsigned)configuration & (unsigned)ResEnBit)
 					Ren::Or(mask);
 				else
-					Ren::And(~mask);
+					Ren::And(DataT(~mask));
 			}
 
 			enum{Id = ID};

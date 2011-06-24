@@ -1,6 +1,4 @@
 
-// target specific IO header
-#include <avr/io.h>
 
 // list of used IO ports
 #define USE_PORTA
@@ -9,7 +7,7 @@
 
 // NOTE that you need to add library platform independent and platform specific
 // folders to compiler include files search paths:
-// '../../mcucpp' and '../../mcucpp/AVR' respectively for this example
+// '../../mcucpp' and '../../mcucpp/ARM/STM32' respectively for this example
 
 // defination of TPin class
 #include <iopins.h>
@@ -23,27 +21,27 @@ using namespace IO;
 
 void Ports()
 {
-	// set all pins in PORTA to output
-	Porta::SetConfiguration(0xff, Porta::Out); // -> DDRA = 0xff;
+	// set all pins in port to output
+	Porta::SetConfiguration(0xff, Porta::Out); 
 	// write a value to port
-	Porta::Write(0x55);	// -> PORTA = 0x55;	
+	Porta::Write(0x55);	
 	// set pins with mask
-	Porta::Set(0xAA); 	// -> PORTA |= 0xAA;
+	Porta::Set(0xAA); 	
 	// clear pins with mask
-	Porta::Clear(0xF0); // -> PORTA &= ~0xf0;
+	Porta::Clear(0xF0); 
 	// togle pins with mask
-	Porta::Toggle(0xFF);// -> PORTA ^= ~0xf0;
+	Porta::Toggle(0xFF);
 
 	uint8_t clearMask = 0x0F;
 	uint8_t outputValue = 0x03;
-	Porta::ClearAndSet(clearMask, outputValue);// -> PORTA = (PORTA & ~clearMask) | outputValue;
+	Porta::ClearAndSet(clearMask, outputValue);
 	// read out register
 
-	// set all pins in PORTA to input
+	// set all pins in port to input
 	Porta::SetConfiguration(0xff, Porta::In);
-	uint8_t value = Porta::Read(); // -> 	uint8_t value = PORTA
+	uint8_t value = Porta::Read(); 
 	// read input register
-	value = Porta::PinRead(); // -> value = PINA;
+	value = Porta::PinRead(); 
 
 	// template versions of port manipulations for writing constant values
 	// these functions are guaranteed to be inlined for maximum speed
@@ -60,13 +58,13 @@ void Ports()
 // working with individual pins
 void IndividualPins()
 {
-	// definition of one IO pin: pin 1 at PORTA
+	// definition of one IO pin: pin 1 at port
 	typedef TPin<Porta, 1> Pin1;
 	// or you can use predefined short name
 	// typedef Pa1 Pin1;
 
 	// Configure pin as output
-	Pin1::SetConfiguration(Pin1::Port::Out); // DDRA |= (1 << PinNumber);
+	Pin1::SetConfiguration(Pin1::Port::Out); 
 	// set pin to logical 1
 	Pin1::Set();
 	// set pin to logical 0
@@ -76,7 +74,7 @@ void IndividualPins()
 	// Configure pin as input
 	Pin1::SetConfiguration(Pin1::Port::In);
 	// check pin state
-	if(Pin1::IsSet()) // ->> if(PINA & (1 << PinNumber))
+	if(Pin1::IsSet()) 
 	{
 		// do something
 	}
@@ -100,7 +98,7 @@ void IndividualPins()
 	// Configure pin as input
 	Pin2::SetConfiguration(Pin2::Port::In);
 	// check pin state
-	if(Pin2::IsSet()) // ->> if(PINA & (1 << PinNumber))
+	if(Pin2::IsSet()) 
 	{
 		// do something
 	}
@@ -139,10 +137,10 @@ void PinLists()
 	// They are much faster and smaller, since most of things are evaluated
 	// at compile time and only actual Read/Modify/Write operation will take place in runtime.
 
-	Porta::SetConfiguration<0xff, Group1::Out>();
+	Group1::SetConfiguration<Group1::Out, 0xff>();
 	Group1::Write<0x55>();
-	Porta::Set<0xAA>();
-	Porta::Clear<0xF0>();
+	Group1::Set<0xAA>();
+	Group1::Clear<0xF0>();
 
 	// Individual pins in group can be accessed in this way:
 	// Set pin 1 in group (indexing starts whith 0)
@@ -166,6 +164,11 @@ void PinLists()
 
 int main()
 {
+  // enable port clocking
+	Porta::Enable();
+ 	Portb::Enable();
+    Portc::Enable();
+	
 	Ports();
 	IndividualPins();
 	PinLists();
