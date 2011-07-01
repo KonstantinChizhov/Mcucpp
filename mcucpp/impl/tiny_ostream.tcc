@@ -36,16 +36,20 @@ namespace IO
 	{
 		if(IOS::flags() & IOS::right)
 			return;
-		int fillcount = IOS::width(0) - lastOutputLength;
-		for(int i=0; i<fillcount; i++)
-			OutputPolicy::put(IOS::fill());
+		FieldFill(lastOutputLength);
 	}
 
 	template<class OutputPolicy, class CharT, class IOS>
 	void FormatWriter<OutputPolicy, CharT, IOS>::FieldFillPre(int lastOutputLength)
 	{
-		if(IOS::flags() & IOS::left)
+		if((IOS::flags() & IOS::adjustfield) != IOS::right)
 			return;
+		FieldFill(lastOutputLength);
+	}
+
+	template<class OutputPolicy, class CharT, class IOS>
+	void FormatWriter<OutputPolicy, CharT, IOS>::FieldFill(int lastOutputLength)
+	{
 		int fillcount = IOS::width(0) - lastOutputLength;
 		for(int i=0; i<fillcount; i++)
 			OutputPolicy::put(IOS::fill());
@@ -116,19 +120,24 @@ namespace IO
 	{
 		if(_formatSrting)
 		{
-			const CharT *ptr = _formatSrting;
-			while(*ptr != '%' && *ptr != '\0')
+			while(true)
 			{
-				ptr++;
+			    if(*_formatSrting == '%')
+			    {
+			         _formatSrting++;
+                    if(*_formatSrting != '%')
+                    {
+                        break;
+                    }
+                }
+                if(*_formatSrting == '\0')
+                {
+                    _formatSrting = 0;
+                    break;
+                }
+				OutputPolicy::put(*_formatSrting);
+				_formatSrting++;
 			}
-			int outputSize = ptr - _formatSrting;
-			OutputPolicy::write(_formatSrting, outputSize);
-
-			if(*ptr == '%') ptr++;
-			if(*ptr == '\0')
-				_formatSrting = 0;
-			else
-				_formatSrting = ptr;
 		}
 	}
 }

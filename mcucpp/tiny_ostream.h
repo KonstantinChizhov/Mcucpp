@@ -20,6 +20,7 @@ namespace IO
 	private:
 
 		inline unsigned Base();
+		inline void FieldFill(int lastOutputLength);
         inline void FieldFillPost(int lastOutputLength);
         inline void FieldFillPre(int lastOutputLength);
 		template<class T>
