@@ -19,10 +19,7 @@ namespace IO
 		{
 			return '-';
 		}
-		static char Plus()
-		{
-			return '+';
-		}
+
 		static int SrtLen(const char *str){return strlen(str);}
 
 		static const char * False(){return "false";}

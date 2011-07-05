@@ -151,13 +151,6 @@ namespace IO
 		os.setf(IOS::oct, IOS::basefield);
 		return os;
 	}
-	
-	template<class OutputPolicy, class CharT, class IOS>
-	FormatWriter<OutputPolicy, CharT, IOS>& showpos ( FormatWriter<OutputPolicy, CharT, IOS>& os)
-	{
-		os.setf(IOS::showpos);
-		return os;
-	}
 
     struct SetwT { int width; };
 

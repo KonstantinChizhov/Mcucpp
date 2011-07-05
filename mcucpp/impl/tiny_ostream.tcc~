@@ -130,7 +130,7 @@ namespace IO
 			{
 				if(value < 0)
 				{
-					value = -value;
+					value = 10;//-value;
 					sign = Trates::Minus();
 				} else if(IOS::flags() & IOS::showpos)
 					sign = Trates::Plus();
