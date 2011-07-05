@@ -27,6 +27,10 @@ namespace IO
 		inline void PutInteger(T value);
 		inline void PutBool(bool value);
 		inline void ProcessFormat();
+		void inline ClearFmt()
+		{
+            IOS::setf(IOS::right | IOS::dec, IOS::boolalpha | IOS::adjustfield | IOS::basefield | IOS::floatfield);
+		}
 	public:
 
 		FormatWriter()
@@ -41,45 +45,15 @@ namespace IO
 			return *this;
 		}
 
-		Self& operator% (bool value)
+		template<class T>
+		Self& operator% (T value)
 		{
-			PutBool(value);
-			ProcessFormat();
-			return *this;
-		}
-
-		Self& operator% (int value)
-		{
-			PutInteger(value);
-			ProcessFormat();
-			return *this;
-		}
-
-		Self& operator% (long value)
-		{
-			PutInteger(value);
-			ProcessFormat();
-			return *this;
-		}
-
-		Self& operator% (unsigned long value)
-		{
-			PutInteger(value);
-			ProcessFormat();
-			return *this;
-		}
-
-		Self& operator% (unsigned value)
-		{
-			PutInteger(value);
-			ProcessFormat();
-			return *this;
-		}
-
-		Self& operator% (const CharT* value)
-		{
-			puts(value);
-			ProcessFormat();
+			if(_formatSrting)
+			{
+				*this << value;
+				ClearFmt();
+				ProcessFormat();
+			}
 			return *this;
 		}
 
@@ -127,19 +101,6 @@ namespace IO
 
 		Self&
 		operator<<(IOS& (*__pf) (IOS&))
-		{
-			__pf(*this);
-			return *this;
-		}
-
-		Self&
-		operator%(Self& (*__pf)(Self&))
-		{
-			return __pf(*this);
-		}
-
-		Self&
-		operator%(IOS& (*__pf) (IOS&))
 		{
 			__pf(*this);
 			return *this;

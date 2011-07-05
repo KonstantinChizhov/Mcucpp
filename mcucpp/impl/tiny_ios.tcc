@@ -44,6 +44,17 @@ namespace IO
         return tmp;
     }
 
+	uint8_t ios_base::precision ( ) const
+	{
+		return _prec;
+	}
+	uint8_t ios_base::precision ( uint8_t prec )
+	{
+		uint8_t tmp = _prec;
+        _prec = prec;
+        return tmp;
+	}
+
 	template<class CharT>
 	bool basic_ios<CharT>::good () const
     {
@@ -93,7 +104,7 @@ namespace IO
     }
 
     template<class CharT>
-    CharT basic_ios<CharT>::fill ( char fillch )
+    CharT basic_ios<CharT>::fill ( CharT fillch )
     {
         uint8_t tmp = _fillch;
         _fillch = fillch;

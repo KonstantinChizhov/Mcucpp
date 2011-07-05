@@ -59,7 +59,7 @@ namespace IO
 		public:
 
 		ios_base()
-		:_flags(dec)
+		:_flags(right)
 		{}
 
 		enum fmtflags
@@ -116,10 +116,13 @@ namespace IO
 		inline fmtflags unsetf ( fmtflags mask );
         inline uint8_t width ( ) const;
 		inline uint8_t width ( uint8_t width );
+		inline uint8_t precision ( ) const;
+		inline uint8_t precision ( uint8_t prec );
 
 		private:
             fmtflags _flags;
             uint8_t _width;
+			uint8_t _prec;
 	};
 
     DECLARE_ENUM_OPERATIONS(ios_base::fmtflags)
@@ -141,7 +144,7 @@ namespace IO
 		inline void setstate ( iostate state );
 		inline void clear ( iostate state = goodbit );
 		inline CharT fill ( ) const;
-		inline CharT fill ( char fillch );
+		inline CharT fill ( CharT fillch );
 
 	protected:
 		iostate _state;
