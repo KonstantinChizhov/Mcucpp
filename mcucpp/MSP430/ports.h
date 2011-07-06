@@ -160,7 +160,7 @@ namespace IO
 			template<DataT clearMask, DataT value>
 			static void ClearAndSet()
 			{
-				Out::AndOr(~clearMask, value);
+				Out::AndOr(DataT(~clearMask), value);
 			}
 
 			template<DataT value>
