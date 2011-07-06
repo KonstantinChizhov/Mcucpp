@@ -1,52 +1,40 @@
 
 #include <io.h>
-#include <iopins.h>
-#include <softspi.h>
-#include <delay.h>
-#include <drivers/Rfm70.h>
-#include <tiny_ostream.h>
 #include <signal.h>
 #include <isr_compat.h>
 
-#include <stdio.h>
+// mcucpp headers
+#include <iopins.h>
+#include <delay.h>
+#include <tiny_ostream.h>
 
 using namespace IO;
 
-
+// Dummy TX only software USART
 template<class TxPin, uint32_t Baud>
 class SoftUsart
 {
     static const uint32_t BitDelay = 1000000000/ Baud;
     public:
-    static void Putch(uint8_t value)
+    // Writes one char to USART
+    void put(char value)
     {
         TxPin::SetConfiguration(TxPin::Port::Out);
+        // start bit
         TxPin::Clear();
         Util::delay_ns<BitDelay, F_CPU>();
         for(uint8_t i = 0; i < 8; i++)
         {
+            // data bits
             TxPin::Set((value & 1) );
             value >>= 1;
             Util::delay_ns<BitDelay, F_CPU>();
         }
+        // stop bits
         TxPin::Set();
         Util::delay_ns<BitDelay*5, F_CPU>();
     }
-};
-
-
-
-template<class Src>
-class MyStream
-{
-    public:
-    void put(char c)
-    {
-    	if(c == '\n')
-			Src::Putch('\r');
-        Src::Putch(c);
-    }
-
+    // writes block of data
     void write(const char *ptr, size_t size)
     {
         for(size_t i=0; i<size; i++)
@@ -99,11 +87,10 @@ static void SetUpClock()
 	P2_7::SetConfiguration(Port2::AltOut);
 
 	Set_DCO(F_CPU / 4096);
-
 }
 
 typedef SoftUsart<P1_1, 9600> usart;
-typedef FormatWriter<MyStream<usart> > Debug;
+typedef FormatWriter<usart> Debug;
 Debug debug;
 
 // return curent temperature in 1/10 Celsius degrees
@@ -164,7 +151,7 @@ int main()
     while(1)
     {
     	int temp = Avg(adcData, bufferSize);
-    	debug.Format("Temp =%+4..%. C\n") % (temp / 10) % (temp % 10);
+    	debug.Format("Temp =%+4..% C\n") % (temp / 10) % (temp % 10);
     	//debug << "Temp =" << IO::setw(4) << IO::showpos << temp/10 << "." << temp%10 << " C\n";
 
     	ShiftData(adcData, bufferSize);

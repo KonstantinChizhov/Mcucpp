@@ -209,7 +209,7 @@ namespace IO
 									IOS::setf(IOS::showbase | IOS::boolalpha );
 									break;
 								case 'x': 
-									IOS::setf(IOS::hex | IOS::basefield);
+									IOS::setf(IOS::hex, IOS::basefield);
 									break;
 								case '0':
 									IOS::fill('0');
@@ -219,8 +219,8 @@ namespace IO
 									IOS::fill(' ');
 									IOS::setf(IOS::left, IOS::adjustfield);
 									break;
-								case ' ': case '*':
-									break;
+								//case ' ': case '*':
+								//	break;
 								default:
 								flags = false;
 							}
