@@ -81,4 +81,4 @@ namespace IO
 
 }
 
-#include <impl/iopin.tcc>
+#include <impl/iopin.h>

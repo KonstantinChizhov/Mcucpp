@@ -43,6 +43,10 @@ namespace IO
 			return L'-';
 		}
 
+		static wchar_t Plus()
+		{
+			return '+';
+		}
 		static int SrtLen(const wchar_t *str)
 		{
 		    const wchar_t *ptr = str;
@@ -159,5 +163,5 @@ namespace IO
 	typedef basic_ios<wchar_t> wios;
 }
 
-#include <impl/tiny_ios.tcc>
+#include <impl/tiny_ios.h>
 #endif

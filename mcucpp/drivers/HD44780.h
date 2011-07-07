@@ -44,14 +44,21 @@ class LcdBase
 
 
 
-template<class BUS, uint8_t LINE_WIDTH=8, uint8_t LINES=2>
+template<
+    class RS,
+    class RW,
+    class E,
+    class D4,
+    class D5,
+    class D6,
+    class D7,
+    uint8_t LINE_WIDTH=8,
+    uint8_t LINES=2
+    >
 class Lcd: public LcdBase
 {
-	enum{RsBit = 0, RwBit = 1, EBit = 2, BusBits = 3};
-	typedef typename BUS::template Pin<RsBit> RS;
-	typedef typename BUS::template Pin<RwBit> RW;
-	typedef typename BUS::template Pin<EBit> E;
-	typedef typename BUS::template Slice<BusBits, 4> DATA_BUS;
+	typedef IO::PinList<D4, D5, D6, D7> DataBus;
+    typedef IO::PinList<RS, RW, E, D4, D5, D6, D7> LcdPins;
 
 public:
 	static uint8_t LineWidth()
@@ -66,14 +73,14 @@ public:
 
 	static void Init()
 	{
-		BUS::template SetConfiguration<BUS::Out, 0xff>();
+		LcdPins:: template SetConfiguration<LcdPins::Out, 0xff>();
 		IO::PinList<RS, RW>::template Clear<0x03>();
-		DATA_BUS::template Write< 0x03<<BusBits >();
+		DataBus::template Write<0x03>();
 		Strobe();
 		Strobe();
 		Strobe();
 		Util::delay_ms<60, F_CPU>();
-		DATA_BUS::template Write<0x02<<BusBits>(); // set 4 bit mode
+		DataBus::template Write<0x02>(); // set 4 bit mode
 		Strobe();
 		Write(0x28); // 4 bit mode, 1/16 duty, 5x8 font
 
@@ -146,24 +153,24 @@ protected:
 	static void Write(uint8_t c)//__attribute__ ((noinline))
 	{
 		RW::Clear();
-		DATA_BUS::SetConfiguration(DATA_BUS::Out);
-		DATA_BUS::Write(c>>(4-BusBits));
+		DataBus::template SetConfiguration<DataBus::Out, 0xff>();
+		DataBus::Write(c>>4);
 		Strobe();
-		DATA_BUS::Write(c<<BusBits);
+		DataBus::Write(c);
 		Strobe();
 	}
 
 	static uint8_t Read() //__attribute__ ((noinline))
 	{
-		DATA_BUS::SetConfiguration(DATA_BUS::In);
+		DataBus::template SetConfiguration<DataBus::In, 0xff>();
 		RW::Set();
 		E::Set();
 		//Delay();
-		uint8_t res = DATA_BUS::Read() << 4;
+		uint8_t res = DataBus::Read() << 4;
 		E::Clear();
 		Delay();
 		E::Set();
-		res |= DATA_BUS::Read();
+		res |= DataBus::Read();
 		E::Clear();
 		RW::Clear();
 		return res;

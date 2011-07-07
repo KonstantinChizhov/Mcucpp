@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // MCUCPP formatted IO demo.
 // Target hardware: MSP430 Launchpad with MSP430G2231 MCU,
-//		HD44780 compatible display. External watch cristal is connected 
+//		HD44780 compatible display. External watch cristal is connected
 //		to MCU to calibrate internal DCO.
 // Description:
 // Current temperature is measured with MSP430G2231 built-in temperature sensor,
@@ -29,22 +29,30 @@
 
 using namespace IO;
 
+class MyStreamBase
+{
+    public:
+
+    virtual void put(char value)=0;
+    // writes block of data
+    void write(const char *ptr, size_t size)
+    {
+        for(size_t i=0; i<size; i++)
+            put(ptr[i]);
+    }
+};
+
 // Dummy TX only software USART
-template<class TxPin, uint32_t Baud>
-class SoftUsart
+template<class TxPin, uint32_t Baud, class OstreamClass>
+class SoftUsart :public OstreamClass
 {
     static const uint32_t BitDelay = 1000000000/ Baud;
     public:
     // Writes one char to USART
     void put(char value)
     {
-    	if(value == '\n')
-			putch('\r');
-		putch(value);
-    }
-
-    void putch(char value)
-    {
+        if(value == '\n')
+			put('\r');
         TxPin::SetConfiguration(TxPin::Port::Out);
         // start bit
         TxPin::Clear();
@@ -60,15 +68,27 @@ class SoftUsart
         TxPin::Set();
         Util::delay_ns<BitDelay*5, F_CPU>();
     }
-
-    // writes block of data
-    void write(const char *ptr, size_t size)
-    {
-        for(size_t i=0; i<size; i++)
-            put(ptr[i]);
-    }
 };
 
+template<class Display, class OstreamClass>
+class LcdStream : public OstreamClass
+{
+    public:
+    LcdStream()
+    {
+        Display::Init();
+    }
+
+    void put(char value)
+    {
+        if(value == '\n')
+        {
+            Display::Home();
+        }
+        else
+            Display::Putch(value);
+    }
+};
 
 static void Set_DCO(unsigned int Delta)            // Set DCO to selected frequency
 {
@@ -112,14 +132,27 @@ static void SetUpClock()
 {
 	P2_6::SetConfiguration(Port2::AltOut);
 	P2_7::SetConfiguration(Port2::AltOut);
-
 	Set_DCO(F_CPU / 4096);
 }
 
-typedef SoftUsart<P1_1, 9600> usart;
-typedef FormatWriter<usart> Debug;
-Debug debug;
-typedef Lcd<PinList<P1_0, NullPin, P1_2, P1_4, P1_5, P1_5, P1_7> > MyLcd;
+typedef FormatWriter<MyStreamBase> AbstractStream;
+
+typedef SoftUsart<P1_1, 9600, AbstractStream> MyUsartStream;
+
+typedef Lcd<
+        P1_0,   // RS
+        NullPin,// RW
+        P1_2,   // E
+        P1_4,   // D4
+        P1_5,   // D5
+        P1_5,   // D6
+        P1_7    // D7
+    > MyLcd;
+
+
+typedef LcdStream<MyLcd, AbstractStream> MyLcdStream;
+MyUsartStream usart;
+MyLcdStream lcd;
 
 // return curent temperature in 1/10 Celsius degrees
 static int AdcGetTemp()
@@ -137,15 +170,6 @@ static void AdcInitTempSence()
     ADC10CTL1 = INCH_10 + ADC10DIV_3;
     ADC10CTL0 = SREF_1 + ADC10SHT_3 + REFON + ADC10ON + ADC10IE;
 }
-
-//extern "C" int putchar(int c)
-//{
-//    if(c == '\n')
-//        usart::Putch('\r');
-//    usart::Putch(c);
-//    return c;
-//}
-
 
 template<class T>
 void ShiftData(T * buffer, unsigned size)
@@ -171,8 +195,6 @@ int main()
     WDTCTL = WDTPW + WDTHOLD;
 	SetUpClock();
 
-	MyLcd::Init();
-
     AdcInitTempSence();
 
     for(unsigned i=0; i < bufferSize; i++)
@@ -181,8 +203,12 @@ int main()
     while(1)
     {
     	int temp = Avg(adcData, bufferSize);
-    	debug.Format("Temp =%+4..% C\n") % (temp / 10) % (temp % 10);
-    	//debug << "Temp =" << IO::setw(4) << IO::showpos << temp/10 << "." << temp%10 << " C\n";
+    	int tempC = temp / 10;
+    	int temp10 = temp % 10;
+
+    	usart.Format("Temp =%+6..% C\n") % tempC % temp10;
+    	lcd.Format("Temp =%+4..% C\n") % tempC % temp10;
+    	//usart << "Temp =" << IO::showpos << IO::right << IO::setw(10)  << temp/10 << "." << IO::noshowpos << temp%10 << " C\n";
 
     	ShiftData(adcData, bufferSize);
         adcData[0] = AdcGetTemp();
@@ -197,4 +223,9 @@ interrupt(ADC10_VECTOR) adc_service_routine()
     __bic_SR_register_on_exit(CPUOFF);
 }
 
+
+extern "C" void __cxa_pure_virtual()
+{
+    while(1);
+}
 

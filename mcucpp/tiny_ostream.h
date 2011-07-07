@@ -29,8 +29,8 @@ namespace IO
 		inline void ProcessFormat();
 		void inline ClearFmt()
 		{
-            IOS::setf(IOS::right | IOS::dec, IOS::unitbuf | IOS::showpos | 
-											IOS::boolalpha | IOS::adjustfield | 
+            IOS::setf(IOS::right | IOS::dec, IOS::unitbuf | IOS::showpos |
+											IOS::boolalpha | IOS::adjustfield |
 											IOS::basefield | IOS::floatfield |
 											IOS::skipws | IOS::showbase |
 											IOS::showpoint | IOS::uppercase);
@@ -163,6 +163,11 @@ IO_DECLARE_STREAM_MANIPULATOR(unitbuf, IOS::unitbuf, IOS::unitbuf)
 IO_DECLARE_STREAM_MANIPULATOR(scientific, IOS::scientific, IOS::floatfield)
 IO_DECLARE_STREAM_MANIPULATOR(fixed, IOS::fixed, IOS::floatfield)
 
+IO_DECLARE_STREAM_MANIPULATOR(left, IOS::left, IOS::adjustfield)
+IO_DECLARE_STREAM_MANIPULATOR(right, IOS::right, IOS::adjustfield)
+IO_DECLARE_STREAM_MANIPULATOR(internal, IOS::internal, IOS::adjustfield)
+
+
 IO_DECLARE_STREAM_UNSET_MANIPULATOR(noshowbase, IOS::showbase)
 IO_DECLARE_STREAM_UNSET_MANIPULATOR(noboolalpha, IOS::boolalpha)
 IO_DECLARE_STREAM_UNSET_MANIPULATOR(noshowpos, IOS::showpos)
@@ -185,5 +190,13 @@ IO_DECLARE_STREAM_UNSET_MANIPULATOR(nounitbuf, IOS::unitbuf)
         return os;
     }
 
+    template<class OutputPolicy, class CharT, class IOS>
+    FormatWriter<OutputPolicy, CharT, IOS>&  operator%
+            ( FormatWriter<OutputPolicy, CharT, IOS>& os, SetwT f)
+    {
+        os.width(f.width);
+        return os;
+    }
+
 }
-#include <impl/tiny_ostream.tcc>
+#include <impl/tiny_ostream.h>

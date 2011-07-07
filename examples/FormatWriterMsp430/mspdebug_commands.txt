@@ -1,2 +1,2 @@
 prog main.elf
-gdb 1234
+run

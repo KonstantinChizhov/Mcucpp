@@ -34,7 +34,7 @@
 #include <static_if.h>
 #include <select_size.h>
 
-#include "impl/pinlist.tcc"
+#include "impl/pinlist.h"
 
 namespace IO
 {

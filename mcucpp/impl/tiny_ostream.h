@@ -113,7 +113,7 @@ namespace IO
 		int fillcount = IOS::width(0) - lastOutputLength;
 		CharT c = IOS::fill(' ');
 		for(int i=0; i<fillcount; i++)
-			OutputPolicy::put(c);
+			put(c);
 	}
 
 	template<class OutputPolicy, class CharT, class IOS>
@@ -130,7 +130,7 @@ namespace IO
 			{
 				if(value < 0)
 				{
-					value = 10;//-value;
+					value = -value;
 					sign = Trates::Minus();
 				} else if(IOS::flags() & IOS::showpos)
 					sign = Trates::Plus();
@@ -141,7 +141,7 @@ namespace IO
 					sign = Trates::Plus();
 			}
 		}
-		
+
 
 		typedef typename Util::Unsigned<T>::Result UT;
 		UT uvalue = static_cast<UT>(value);
@@ -157,7 +157,7 @@ namespace IO
 		}
 		int outputSize = buffer + bufferSize - str;
 		FieldFillPre(outputSize);
-		OutputPolicy::write(str, buffer + bufferSize - str);
+		write(str, buffer + bufferSize - str);
 		FieldFillPost(outputSize);
 	}
 
@@ -179,9 +179,9 @@ namespace IO
 		{
 			FieldFillPre(1);
 			if(value)
-				OutputPolicy::put(Trates::DigitToLit(1));
+				put(Trates::DigitToLit(1));
 			else
-				OutputPolicy::put(Trates::DigitToLit(0));
+				put(Trates::DigitToLit(0));
 			FieldFillPost(1);
 		}
 	}
@@ -202,14 +202,14 @@ namespace IO
 						do{
 							switch(*_formatSrting)
 							{
-								case '+': 
+								case '+':
 									IOS::setf(IOS::showpos);
 									break;
-								case '#': 
+								case '#':
 									IOS::setf(IOS::showbase | IOS::boolalpha );
 									break;
-								case 'x': 
-									IOS::setf(IOS::hex | IOS::basefield);
+								case 'x':
+									IOS::setf(IOS::hex, IOS::basefield);
 									break;
 								case '0':
 									IOS::fill('0');
@@ -219,8 +219,8 @@ namespace IO
 									IOS::fill(' ');
 									IOS::setf(IOS::left, IOS::adjustfield);
 									break;
-								case ' ': case '*':
-									break;
+								//case ' ': case '*':
+								//	break;
 								default:
 								flags = false;
 							}
@@ -240,13 +240,12 @@ namespace IO
                         break;
                     }
                 }
-				
                 if(*_formatSrting == '\0')
                 {
                     _formatSrting = 0;
                     break;
                 }
-				OutputPolicy::put(*_formatSrting);
+				put(*_formatSrting);
 				_formatSrting++;
 			}
 		}
