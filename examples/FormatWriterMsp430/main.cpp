@@ -1,3 +1,21 @@
+///////////////////////////////////////////////////////////////////////////////
+// MCUCPP formatted IO demo.
+// Target hardware: MSP430 Launchpad with MSP430G2231 MCU,
+//		HD44780 compatible display. External watch cristal is connected 
+//		to MCU to calibrate internal DCO.
+// Description:
+// Current temperature is measured with MSP430G2231 built-in temperature sensor,
+// displayed on LCD and send via USART using MCUCPP formatted IO capability.
+// Target pins description:
+// P1.0 -
+// P1.1 -
+// P1.2 -
+// P1.3 -
+// P1.4 -
+// P1.5 -
+// P1.6 -
+// P1.7 -
+///////////////////////////////////////////////////////////////////////////////
 
 #include <io.h>
 #include <signal.h>
@@ -7,6 +25,7 @@
 #include <iopins.h>
 #include <delay.h>
 #include <tiny_ostream.h>
+#include <drivers/HD44780.h>
 
 using namespace IO;
 
@@ -18,6 +37,13 @@ class SoftUsart
     public:
     // Writes one char to USART
     void put(char value)
+    {
+    	if(value == '\n')
+			putch('\r');
+		putch(value);
+    }
+
+    void putch(char value)
     {
         TxPin::SetConfiguration(TxPin::Port::Out);
         // start bit
@@ -34,6 +60,7 @@ class SoftUsart
         TxPin::Set();
         Util::delay_ns<BitDelay*5, F_CPU>();
     }
+
     // writes block of data
     void write(const char *ptr, size_t size)
     {
@@ -92,6 +119,7 @@ static void SetUpClock()
 typedef SoftUsart<P1_1, 9600> usart;
 typedef FormatWriter<usart> Debug;
 Debug debug;
+typedef Lcd<PinList<P1_0, NullPin, P1_2, P1_4, P1_5, P1_5, P1_7> > MyLcd;
 
 // return curent temperature in 1/10 Celsius degrees
 static int AdcGetTemp()
@@ -142,6 +170,8 @@ int main()
 {
     WDTCTL = WDTPW + WDTHOLD;
 	SetUpClock();
+
+	MyLcd::Init();
 
     AdcInitTempSence();
 
