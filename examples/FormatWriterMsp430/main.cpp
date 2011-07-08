@@ -145,7 +145,7 @@ typedef Lcd<
         P1_2,   // E
         P1_4,   // D4
         P1_5,   // D5
-        P1_5,   // D6
+        P1_6,   // D6
         P1_7    // D7
     > MyLcd;
 

@@ -358,7 +358,7 @@ namespace IO
 			static const int BitPosition = Head::Position;
 			static const int value =
 				((PinNumber == I::PinNumber - 1 &&
-				BitPosition == I::BitPosition) ?
+				BitPosition == I::BitPosition - 1) ?
 				I::value + 1 : 1);
 		};
 ////////////////////////////////////////////////////////////////////////////////
