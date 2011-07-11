@@ -77,6 +77,7 @@ class LcdStream : public OstreamClass
     LcdStream()
     {
         Display::Init();
+        _position = 0;
     }
 
     void put(char value)
@@ -84,10 +85,18 @@ class LcdStream : public OstreamClass
         if(value == '\n')
         {
             Display::Home();
+            _position = 0;
         }
         else
+        {
             Display::Putch(value);
+            _position++;
+        }
+        if(_position == Display::LineWidth())
+			Display::Goto(0, 1);
     }
+private:
+    uint8_t _position;
 };
 
 static void Set_DCO(unsigned int Delta)            // Set DCO to selected frequency
@@ -146,7 +155,9 @@ typedef Lcd<
         P1_4,   // D4
         P1_5,   // D5
         P1_6,   // D6
-        P1_7    // D7
+        P1_7,	// D7
+        8,		// Line width
+        2		// number of lines
     > MyLcd;
 
 
@@ -190,6 +201,16 @@ T Avg(T * buffer, unsigned size)
 const unsigned bufferSize = 20;
 int adcData[bufferSize];
 
+void PrintTemp(int temp, AbstractStream &out)
+{
+	int tempC = temp / 10;
+   	int temp10 = temp % 10;
+  	out.Format("Temp =%+4..% C\n") % tempC % temp10;
+   	//out << "Temp =" << IO::showpos << IO::right << IO::setw(4)  << tempC << "." << IO::noshowpos << temp10 << " C\n";
+}
+// TODO review
+// http://www.boost.org/doc/libs/1_46_1/libs/format/doc/format.html
+
 int main()
 {
     WDTCTL = WDTPW + WDTHOLD;
@@ -203,12 +224,8 @@ int main()
     while(1)
     {
     	int temp = Avg(adcData, bufferSize);
-    	int tempC = temp / 10;
-    	int temp10 = temp % 10;
-
-    	usart.Format("Temp =%+6..% C\n") % tempC % temp10;
-    	lcd.Format("Temp =%+4..% C\n") % tempC % temp10;
-    	//usart << "Temp =" << IO::showpos << IO::right << IO::setw(10)  << temp/10 << "." << IO::noshowpos << temp%10 << " C\n";
+    	PrintTemp(temp, usart);
+		PrintTemp(temp, lcd);
 
     	ShiftData(adcData, bufferSize);
         adcData[0] = AdcGetTemp();

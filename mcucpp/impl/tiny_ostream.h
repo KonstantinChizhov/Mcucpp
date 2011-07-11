@@ -142,7 +142,6 @@ namespace IO
 			}
 		}
 
-
 		typedef typename Util::Unsigned<T>::Result UT;
 		UT uvalue = static_cast<UT>(value);
 		CharT * str = Impl::IntToString(uvalue, buffer + bufferSize, Base());
@@ -150,10 +149,12 @@ namespace IO
 		if(sign)
 			*--str = sign;
 
-		if((IOS::flags() & (IOS::hex | IOS::showbase)) == (IOS::hex | IOS::showbase))
+		if(IOS::flags() & IOS::showbase)
 		{
-			*--str = 'x';
-			*--str = '0';
+			if(IOS::flags() & IOS::hex)
+				*--str = 'x';
+			if(IOS::flags() & (IOS::hex | IOS::oct))
+				*--str = '0';
 		}
 		int outputSize = buffer + bufferSize - str;
 		FieldFillPre(outputSize);
