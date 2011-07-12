@@ -58,12 +58,12 @@ namespace IO
 		static void SetConfiguration(Configuration configuration);
 
 		template<Configuration configuration>
-		void SetConfiguration()
+		static void SetConfiguration()
 		{
 			ConfigPort:: template SetConfiguration<1 << PIN, configuration>();
 		}
 
-		static uint8_t IsSet();
+		static bool IsSet();
 		static void WaiteForSet();
 		static void WaiteForClear();
 	};
