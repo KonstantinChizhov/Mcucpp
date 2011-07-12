@@ -57,7 +57,7 @@ namespace IO
 	template<class PORT, uint8_t PIN, class CONFIG_PORT>
 	uint8_t TPin<PORT, PIN, CONFIG_PORT>::IsSet()
 	{
-		return PORT::PinRead() & (uint8_t)(1 << PIN);
+		return PORT::PinRead() & (PORT::DataT)(1 << PIN);
 	}
 
 	template<class PORT, uint8_t PIN, class CONFIG_PORT>
