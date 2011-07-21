@@ -196,55 +196,76 @@ namespace IO
 			{
 			    if(*_formatSrting == '%')
 			    {
-			         _formatSrting++;
+			        _formatSrting++;
                     if(*_formatSrting != '%')
                     {
-						bool flags=true;
-						do{
-							switch(*_formatSrting)
-							{
-								case '+':
-									IOS::setf(IOS::showpos);
-									break;
-								case '#':
-									IOS::setf(IOS::showbase | IOS::boolalpha );
-									break;
-								case 'x':
-									IOS::setf(IOS::hex, IOS::basefield);
-									break;
-								case '0':
-									IOS::fill('0');
-									IOS::setf(IOS::right, IOS::adjustfield);
-									break;
-								case '-':
-									IOS::fill(' ');
-									IOS::setf(IOS::left, IOS::adjustfield);
-									break;
-								//case ' ': case '*':
-								//	break;
-								default:
-								flags = false;
-							}
-							if(flags) _formatSrting++;
-						}while(flags);
-						uint8_t width;
-						_formatSrting += Impl::StringToIntDec<uint8_t>(_formatSrting, width);
-						IOS::width(width);
-						if(*_formatSrting == '.')
-						{
-							_formatSrting++;
-							uint8_t presc;
-							_formatSrting += Impl::StringToIntDec<uint8_t>(_formatSrting, presc);
-							IOS::precision(presc);
-						}
+                        if(*_formatSrting == '|')
+                        {
+                            bool isFlag=true;
+                            do{
+                                _formatSrting++;
+                                typename IOS::fmtflags flags, mask;
 
-                        break;
+                                if(*_formatSrting == '+')
+                                {
+                                    mask = flags = IOS::showpos;
+                                }
+                                else if(*_formatSrting == '#')
+                                {
+                                    mask = flags = IOS::showbase | IOS::boolalpha;
+                                }
+                                else if(*_formatSrting == 'x')
+                                {
+                                    flags = IOS::hex;
+                                    mask = IOS::basefield;
+                                }
+                                else if(*_formatSrting == 'o')
+                                {
+                                    flags = IOS::oct;
+                                    mask = IOS::basefield;
+                                }
+                                else if(*_formatSrting == '0')
+                                {
+                                    IOS::fill('0');
+                                    flags = IOS::right;
+                                    mask = IOS::adjustfield;
+                                }
+                                else if(*_formatSrting == '-')
+                                {
+                                    IOS::fill(' ');
+                                    flags = IOS::left;
+                                    mask = IOS::adjustfield;
+                                }
+                                else
+                                {
+                                    isFlag = false;
+                                }
+
+                                if(isFlag)
+                                {
+                                    IOS::setf(flags, mask);
+                                }
+                            }while(isFlag);
+                            uint8_t width;
+                            _formatSrting += Impl::StringToIntDec<uint8_t>(_formatSrting, width);
+                            IOS::width(width);
+                            if(ScanFloatPrecision && *_formatSrting == '.')
+                            {
+                                _formatSrting++;
+                                uint8_t presc;
+                                _formatSrting += Impl::StringToIntDec<uint8_t>(_formatSrting, presc);
+                                IOS::precision(presc);
+                            }
+                            if(*_formatSrting == '|')
+                                _formatSrting++;
+                        }
                     }
+                    return;
                 }
                 if(*_formatSrting == '\0')
                 {
                     _formatSrting = 0;
-                    break;
+                    return;
                 }
 				put(*_formatSrting);
 				_formatSrting++;

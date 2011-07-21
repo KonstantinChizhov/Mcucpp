@@ -14,6 +14,7 @@ namespace IO
             >
 	class FormatWriter :public OutputPolicy, public IOS
 	{
+	    static const bool ScanFloatPrecision = false;
 		const CharT *_formatSrting;
 		typedef CharTrates<CharT> Trates;
 		typedef FormatWriter Self;
@@ -105,6 +106,19 @@ namespace IO
 
 		Self&
 		operator<<(IOS& (*__pf) (IOS&))
+		{
+			__pf(*this);
+			return *this;
+		}
+
+		Self&
+		operator%(Self& (*__pf)(Self&))
+		{
+			return __pf(*this);
+		}
+
+		Self&
+		operator%(IOS& (*__pf) (IOS&))
 		{
 			__pf(*this);
 			return *this;

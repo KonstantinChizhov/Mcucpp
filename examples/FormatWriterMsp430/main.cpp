@@ -205,11 +205,9 @@ void PrintTemp(int temp, AbstractStream &out)
 {
 	int tempC = temp / 10;
    	int temp10 = temp % 10;
-  	out.Format("Temp =%+4..% C\n") % tempC % temp10;
+  	out.Format("Temp =%|+4|.% C\n") % tempC % temp10;
    	//out << "Temp =" << IO::showpos << IO::right << IO::setw(4)  << tempC << "." << IO::noshowpos << temp10 << " C\n";
 }
-// TODO review
-// http://www.boost.org/doc/libs/1_46_1/libs/format/doc/format.html
 
 int main()
 {
