@@ -11,7 +11,7 @@ namespace Timers
 		public:
 		typedef unsigned short DataT;
 		static const unsigned short MaxValue = 0xffff;
-                
+				
 		enum ClockDivider
 		{
 			DivStop = 0, 
@@ -22,24 +22,24 @@ namespace Timers
 		};
 
 		enum {ClockDividerMask = ~Div8};
-                
-                enum ClockSrc
-                { 
-                  ExtRising = TASSEL_0,
-                  AuxClock = TASSEL_1,
-                  MainClock = TASSEL_2,          
-                  ExtFailing = TASSEL_3
-                };
-                
-                enum {ClockSrcMask = ~ExtFailing};
-                
+				
+		enum ClockSrc
+		{ 
+		  ExtRising = TASSEL_0,
+		  AuxClock = TASSEL_1,
+		  MainClock = TASSEL_2,          
+		  ExtFailing = TASSEL_3
+		};
+
+		enum {ClockSrcMask = ~ExtFailing};
+				
 		enum TimerMode
 		{
 			Normal = MC_2,
 			ClearOnMatch0 = MC_1,
 			UpDown = MC_3
 		};
-                
+				
 		enum {TimerModeMask = ~UpDown};
 
 		template<unsigned Number> struct Divider;
@@ -67,7 +67,7 @@ namespace Timers
 		static void Start(ClockDivider divider, ClockSrc clockSrc = MainClock, TimerMode mode = Normal)
 		{
 			TACTL = (TACTL & (ClockDividerMask | ClockSrcMask | TimerModeMask)) 
-                          | divider | clockSrc | mode;
+						  | divider | clockSrc | mode;
 		}
 
 		static void EnableInterrupt()
@@ -79,12 +79,12 @@ namespace Timers
 		{
 			return TACTL & TAIFG;
 		}
-		
+
 		static void ClearInterruptFlag()
 		{
 			TACTL |= TAIFG;
 		}
-		
+
 		static void SetMode(TimerMode mode)
 		{
 			TACTL = (TACTL & TimerModeMask) | mode;

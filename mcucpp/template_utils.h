@@ -38,10 +38,16 @@ namespace Util
 		static const uint64_t value = 1u;
 	};
 
+    template<class T>
+	struct MinValue
+	{
+		static const T value = IsSigned<T>::value ? ( T(1) << (sizeof(T)*8 - 1)) : 0;
+	};
+
 	template<class T>
 	struct MaxValue
 	{
-		static const T value = (Pow<2, sizeof(T)*8 - IsSigned<T>::value >::value - 1u);
+		static const T value = ~MinValue<T>::value;
 	};
 
 	template<class T, unsigned Base>
@@ -49,7 +55,7 @@ namespace Util
 	{
 		static const T value = Pow<Base, Log<MaxValue<T>::value, Base>::value>::value;
 	};
-	
+
 	template<class T>
 	struct Unsigned
 	{

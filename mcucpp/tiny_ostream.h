@@ -98,6 +98,12 @@ namespace IO
 			return *this;
 		}
 
+		Self& operator<< (CharT value)
+		{
+			put(value);
+			return *this;
+		}
+
 		Self&
 		operator<<(Self& (*__pf)(Self&))
 		{

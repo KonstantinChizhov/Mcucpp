@@ -5,8 +5,7 @@
 #include <avr/interrupt.h>
 #include "ioreg.h"
 #include "ring_buffer.h"
-
-
+#include <static_assert.h>
 
 #ifdef URSEL
 enum{ursel = 1 << URSEL};
@@ -45,22 +44,20 @@ class UsartBase
 	static inline void SetBaundRate()
 	{
 		const unsigned int ubrr = (F_CPU/16/baund-1);
-		const unsigned int ubrr2x 	(F_CPU/8/baund-1);
+		const unsigned int ubrr2x =	(F_CPU/8/baund-1);
 		const unsigned long rbaund = (F_CPU/16/(ubrr+1));	
- 		const unsigned long rbaund2x (F_CPU/8/(ubrr2x+1));
+ 		const unsigned long rbaund2x = (F_CPU/8/(ubrr2x+1));
 
-		unsigned long err1;
-		if(baund > rbaund)
-			err1 = (baund - rbaund)*1000/baund;
-		else
-			err1 = (rbaund - baund)*1000/rbaund;
+		const unsigned long err1 = baund > rbaund ? 
+					(baund - rbaund)*1000/baund :
+					(rbaund - baund)*1000/rbaund;
 
-		unsigned long err2;
-		if(baund > rbaund2x)
-			err2 = (baund - rbaund2x)*1000/baund;
-		else
-			err2 = (rbaund2x - baund)*1000/rbaund2x;
+		const unsigned long err2 = baund > rbaund2x ?
+					(baund - rbaund2x)*1000/baund :
+					(rbaund2x - baund)*1000/rbaund2x;
 
+		// 2.5 % baud rate error tolerance
+		BOOST_STATIC_ASSERT(err2 < 25 || err1 < 25);
 		unsigned int ubrrToUse;
 		if(err1 > err2)
 		{
@@ -79,9 +76,9 @@ class UsartBase
 	static inline void SetBaundRate(unsigned long baund)
 	{
 		unsigned int ubrr = (F_CPU/16/baund-1);
-		unsigned int ubrr2x 	(F_CPU/8/baund-1);
+		unsigned int ubrr2x =	(F_CPU/8/baund-1);
 		unsigned long rbaund = (F_CPU/16/(ubrr+1));	
- 		unsigned long rbaund2x (F_CPU/8/(ubrr2x+1));
+ 		unsigned long rbaund2x = (F_CPU/8/(ubrr2x+1));
 
 		unsigned long err1;
 		if(baund > rbaund)
@@ -141,7 +138,7 @@ class PollUsart :public UsartBase<Regs>
 
 	static inline void Init(unsigned long baund)
 	{
-		UsartBase<Regs>:: template SetBaundRate(baund);
+		UsartBase<Regs>:: SetBaundRate(baund);
 		EnableTxRx();
 	}
 
