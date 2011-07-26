@@ -25,6 +25,8 @@
 #include <iopins.h>
 #include <delay.h>
 #include <tiny_ostream.h>
+#include <tiny_iomainp.h>
+#include <format_parser.h>
 #include <drivers/HD44780.h>
 
 using namespace IO;
@@ -199,13 +201,13 @@ T Avg(T * buffer, unsigned size)
 }
 
 const unsigned bufferSize = 20;
-int adcData[bufferSize];
+unsigned adcData[bufferSize];
 
 void PrintTemp(int temp, AbstractStream &out)
 {
-	int tempC = temp / 10;
-   	int temp10 = temp % 10;
-  	out.Format("Temp =%|+4|.% C\n") % tempC % temp10;
+	unsigned tempC = temp / 10;
+   	unsigned temp10 = temp % 10;
+  	out % IO::Format("Temp =%|+4|.% C\n") % tempC % temp10;
    	//out << "Temp =" << IO::showpos << IO::right << IO::setw(4)  << tempC << "." << IO::noshowpos << temp10 << " C\n";
 }
 

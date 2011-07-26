@@ -124,7 +124,7 @@ namespace IO
 		CharT buffer[bufferSize];
 		CharT sign = 0;
 
-		if(Base() == 10)
+		if((IOS::flags() & (IOS::hex | IOS::oct)) == 0)
 		{
 			if(Util::IsSigned<T>::value)
 			{
@@ -184,92 +184,6 @@ namespace IO
 			else
 				put(Trates::DigitToLit(0));
 			FieldFillPost(1);
-		}
-	}
-
-	template<class OutputPolicy, class CharT, class IOS>
-	void FormatWriter<OutputPolicy, CharT, IOS>::ProcessFormat()
-	{
-		if(_formatSrting)
-		{
-			while(true)
-			{
-			    if(*_formatSrting == '%')
-			    {
-			        _formatSrting++;
-                    if(*_formatSrting != '%')
-                    {
-                        if(*_formatSrting == '|')
-                        {
-                            bool isFlag=true;
-                            do{
-                                _formatSrting++;
-                                typename IOS::fmtflags flags, mask;
-
-                                if(*_formatSrting == '+')
-                                {
-                                    mask = flags = IOS::showpos;
-                                }
-                                else if(*_formatSrting == '#')
-                                {
-                                    mask = flags = IOS::showbase | IOS::boolalpha;
-                                }
-                                else if(*_formatSrting == 'x')
-                                {
-                                    flags = IOS::hex;
-                                    mask = IOS::basefield;
-                                }
-                                else if(*_formatSrting == 'o')
-                                {
-                                    flags = IOS::oct;
-                                    mask = IOS::basefield;
-                                }
-                                else if(*_formatSrting == '0')
-                                {
-                                    IOS::fill('0');
-                                    flags = IOS::right;
-                                    mask = IOS::adjustfield;
-                                }
-                                else if(*_formatSrting == '-')
-                                {
-                                    IOS::fill(' ');
-                                    flags = IOS::left;
-                                    mask = IOS::adjustfield;
-                                }
-                                else
-                                {
-                                    isFlag = false;
-                                }
-
-                                if(isFlag)
-                                {
-                                    IOS::setf(flags, mask);
-                                }
-                            }while(isFlag);
-                            uint8_t width;
-                            _formatSrting += Impl::StringToIntDec<uint8_t>(_formatSrting, width);
-                            IOS::width(width);
-                            if(ScanFloatPrecision && *_formatSrting == '.')
-                            {
-                                _formatSrting++;
-                                uint8_t presc;
-                                _formatSrting += Impl::StringToIntDec<uint8_t>(_formatSrting, presc);
-                                IOS::precision(presc);
-                            }
-                            if(*_formatSrting == '|')
-                                _formatSrting++;
-                        }
-                    }
-                    return;
-                }
-                if(*_formatSrting == '\0')
-                {
-                    _formatSrting = 0;
-                    return;
-                }
-				put(*_formatSrting);
-				_formatSrting++;
-			}
 		}
 	}
 }
