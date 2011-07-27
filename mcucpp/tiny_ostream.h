@@ -90,10 +90,25 @@ namespace IO
 		{
 		    const int outputSize = Trates::SrtLen(str);
             FieldFillPre(outputSize);
-			OutputPolicy::write(str, outputSize);
+			write(str, outputSize);
 			FieldFillPost(outputSize);
 		}
-
+		
+		template<class CharPtr>
+		void puts(CharPtr str)
+		{
+			CharPtr strEnd = str;
+			while(*strEnd) ++strEnd;
+			int outputSize = strEnd - str;
+            FieldFillPre(outputSize);
+			 
+			while(CharT c = *str)
+			{
+				put(c);
+				++str;
+			}
+			FieldFillPost(outputSize);
+		}
 	};
 
 	template<class OutputPolicy, class CharT, class IOS>

@@ -1,10 +1,23 @@
 #pragma once
+
+#include <tiny_iomainp.h>
+
 namespace IO
 {
-	template<class Stream, class FormatStrPtrType = char *>
+	enum FormatMode
+	{
+		FmMinimal,
+		FmNormal,
+		FmFull
+	};
+
+	template<class Stream, FormatMode Mode = FmNormal, class FormatStrPtrType = char *>
 	class FormatParser
 	{
-		static const bool ScanFloatPrecision = false;
+		static const bool ScanFloatPrecision = Mode == FmFull;
+		static const bool ScanFieldWidth = (Mode == FmNormal || Mode == FmFull);
+		static const bool ScanFlags = (Mode == FmNormal || Mode == FmFull);
+
 		FormatStrPtrType _formatSrting;
 		typedef FormatParser Self;
 	public:
@@ -56,7 +69,7 @@ namespace IO
 		}
 	};
 
-	template<class FormatStr>
+	template< FormatMode Mode, class FormatStr>
 	struct FormatT
 	{
 		FormatStr FormatSrting;
@@ -66,16 +79,22 @@ namespace IO
 		{}
 	};
 
-	template<class FormatStr>
-	FormatT<FormatStr> Format(FormatStr formatStr)
+	template<FormatMode Mode, class FormatStr>
+	FormatT<Mode, FormatStr> Format(FormatStr formatStr)
 	{
-		return FormatT<FormatStr>(formatStr);
+		return FormatT<Mode, FormatStr>(formatStr);
 	}
 
-	template<class Stream, class FormatStr>
-	FormatParser<Stream, FormatStr> operator% (Stream &stream, FormatT<FormatStr> format)
+	template<class FormatStr>
+	FormatT<FmNormal, FormatStr> Format(FormatStr formatStr)
 	{
-		return FormatParser<Stream, FormatStr>(stream, format.FormatSrting);
+		return FormatT<FmNormal, FormatStr>(formatStr);
+	}
+
+	template<class Stream, FormatMode Mode, class FormatStr>
+	FormatParser<Stream, Mode, FormatStr> operator% (Stream &stream, FormatT<Mode, FormatStr> format)
+	{
+		return FormatParser<Stream, Mode, FormatStr>(stream, format.FormatSrting);
 	}
 }
 

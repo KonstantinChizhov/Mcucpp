@@ -1,8 +1,8 @@
 #pragma once
 namespace IO
 {
-		template<class Stream, class FormatStrPtrType>
-	void FormatParser<Stream, FormatStrPtrType>::ProcessFormat()
+	template<class Stream, FormatMode Mode, class FormatStrPtrType>
+	void FormatParser<Stream, Mode, FormatStrPtrType>::ProcessFormat()
 	{
 		if(_formatSrting)
 		{
@@ -13,7 +13,7 @@ namespace IO
 			        _formatSrting++;
                     if(*_formatSrting != '%')
                     {
-                        if(*_formatSrting == '|')
+                        if(*_formatSrting == '|' && ScanFlags)
                         {
                             bool isFlag=true;
                             do{
@@ -60,14 +60,17 @@ namespace IO
                                     out.setf(flags, mask);
                                 }
                             }while(isFlag);
-                            uint8_t width;
-                            _formatSrting += Impl::StringToIntDec<uint8_t>(_formatSrting, width);
-                            out.width(width);
+                            if(ScanFieldWidth)
+                            {
+								unsigned width;
+								_formatSrting += Impl::StringToIntDec<unsigned>(_formatSrting, width);
+								out.width(width);
+                            }
                             if(ScanFloatPrecision && *_formatSrting == '.')
                             {
                                 _formatSrting++;
-                                uint8_t presc;
-                                _formatSrting += Impl::StringToIntDec<uint8_t>(_formatSrting, presc);
+                                unsigned presc;
+                                _formatSrting += Impl::StringToIntDec<unsigned>(_formatSrting, presc);
                                 out.precision(presc);
                             }
                             if(*_formatSrting == '|')

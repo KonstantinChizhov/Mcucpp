@@ -5,6 +5,9 @@
 #define FLASH_PTR(PTR) (PTR)
 #define FLASH __flash
 
+template<class PtrT>
+inline __flash PtrT * FLASH_PTR(__flash PtrT *ptr){return ptr;}
+
 #elif defined(__AVR__)
 
 #include <avr/pgmspace.h>
@@ -57,14 +60,24 @@ public:
 		return *this;
 	}
 
-	inline Self operator +(int value)
+	inline Self operator +(int value)const
 	{
 		return Self(_address + value);
 	}
 
-	inline Self operator -(int value)
+	inline Self operator -(int value)const
 	{
 		return Self(_address - value);
+	}
+
+	inline int operator +(Self &other)const
+	{
+		return (_address + other._address);
+	}
+
+	inline int operator -(Self &other)const
+	{
+		return (_address - other._address);
 	}
 
 	inline bool operator !=(const Self &other) const
@@ -77,16 +90,21 @@ public:
 		return _address == other._address;
 	}
 
+	inline operator bool() const
+	{
+		return _address == 0;
+	}
+
 	inline const T operator *()const
 	{
-		union 
+		union
 		{
 			T value;
 			uint8_t bytes[sizeof(T)];
-		};
+		}bytesToValue;
 		for(unsigned i = 0; i<sizeof(T); ++i)
-			bytes[i] = pgm_read_byte(_address + i);
-		return value;
+			bytesToValue.bytes[i] = pgm_read_byte((uint8_t* const)(_address) + i);
+		return bytesToValue.value;
 	}
 
 private:
@@ -94,12 +112,13 @@ private:
 };
 
 #define FLASH PROGMEM
-#define FLASH_PTR(PTR) ProgmemPtr<typeof(*(PTR))>(PTR)
 
+template<class PtrT>
+inline ProgmemPtr<PtrT> FLASH_PTR(PtrT *ptr){return ProgmemPtr<PtrT>(ptr);}
 
 #else
 
-#define FLASH_PTR(PTR) (PTR)
+inline const PtrT * FLASH_PTR(const PtrT *ptr){return ptr;}
 #define FLASH const
 
 #endif

@@ -32,25 +32,25 @@ namespace IO
         return tmp;
     }
 
-    uint8_t ios_base::width ( ) const
+    unsigned ios_base::width ( ) const
     {
         return _width;
     }
 
-    uint8_t ios_base::width ( uint8_t width )
+    unsigned ios_base::width ( unsigned width )
     {
-        uint8_t tmp = _width;
+        unsigned tmp = _width;
         _width = width;
         return tmp;
     }
 
-	uint8_t ios_base::precision ( ) const
+	unsigned ios_base::precision ( ) const
 	{
 		return _prec;
 	}
-	uint8_t ios_base::precision ( uint8_t prec )
+	unsigned ios_base::precision ( unsigned prec )
 	{
-		uint8_t tmp = _prec;
+		unsigned tmp = _prec;
         _prec = prec;
         return tmp;
 	}

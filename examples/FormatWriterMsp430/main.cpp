@@ -208,7 +208,7 @@ void PrintTemp(int temp, AbstractStream &out)
 	unsigned tempC = temp / 10;
    	unsigned temp10 = temp % 10;
   	out % IO::Format("Temp =%|+4|.% C\n") % tempC % temp10;
-   	//out << "Temp =" << IO::showpos << IO::right << IO::setw(4)  << tempC << "." << IO::noshowpos << temp10 << " C\n";
+   	//out << "Temp =" << IO::showpos << tempC << "." << IO::noshowpos << temp10 << " C\n";
 }
 
 int main()

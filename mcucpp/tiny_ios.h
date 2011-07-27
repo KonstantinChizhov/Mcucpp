@@ -121,15 +121,15 @@ namespace IO
 		inline fmtflags setf ( fmtflags fmtfl );
 		inline fmtflags setf ( fmtflags fmtfl, fmtflags mask );
 		inline fmtflags unsetf ( fmtflags mask );
-        inline uint8_t width ( ) const;
-		inline uint8_t width ( uint8_t width );
-		inline uint8_t precision ( ) const;
-		inline uint8_t precision ( uint8_t prec );
+        inline unsigned width ( ) const;
+		inline unsigned width ( unsigned width );
+		inline unsigned precision ( ) const;
+		inline unsigned precision ( unsigned prec );
 
 		private:
             fmtflags _flags;
-            uint8_t _width;
-			uint8_t _prec;
+            unsigned _width;
+			unsigned _prec;
 	};
 
     DECLARE_ENUM_OPERATIONS(ios_base::fmtflags)
