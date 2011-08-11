@@ -1,3 +1,4 @@
+#include <stdlib.h>
 
 namespace IO
 {
@@ -9,8 +10,10 @@ namespace IO
 			CharT *ptr = bufferEnd;
 			do
 			{
-				*--ptr = CharTrates<CharT>::DigitToLit(value % radix);
-				value /= radix;
+				T q = value / radix;
+				T rem = value - q*radix;
+				value = q;
+				*--ptr = CharTrates<CharT>::DigitToLit(rem);
 			}
 			while (value != 0);
 			return ptr;
@@ -19,7 +22,7 @@ namespace IO
 		template<class T>
 		struct ConvertBufferSize
 		{
-			static const int value = sizeof(T) * 3;
+			static const int value = sizeof(T) * 3 + 1;
 		};
 
 		template<class CharT>
@@ -94,25 +97,35 @@ namespace IO
 	}
 
 	template<class OutputPolicy, class CharT, class IOS>
-	void FormatWriter<OutputPolicy, CharT, IOS>::FieldFillPost(int lastOutputLength)
+	void FormatWriter<OutputPolicy, CharT, IOS>::FieldFillPost(streamsize_t lastOutputLength)
 	{
 		if(IOS::flags() & IOS::left)
             FieldFill(lastOutputLength);
 	}
 
 	template<class OutputPolicy, class CharT, class IOS>
-	void FormatWriter<OutputPolicy, CharT, IOS>::FieldFillPre(int lastOutputLength)
+	void FormatWriter<OutputPolicy, CharT, IOS>::FieldFillPre(streamsize_t lastOutputLength)
 	{
-		if(!(IOS::flags() & IOS::left))
+		if(IOS::flags() & IOS::right)
             FieldFill(lastOutputLength);
 	}
 
 	template<class OutputPolicy, class CharT, class IOS>
-	void FormatWriter<OutputPolicy, CharT, IOS>::FieldFill(int lastOutputLength)
+	void FormatWriter<OutputPolicy, CharT, IOS>::FieldFillInt(streamsize_t lastOutputLength)
 	{
-		int fillcount = IOS::width(0) - lastOutputLength;
+		if(IOS::flags() & IOS::internal)
+            FieldFill(lastOutputLength);
+	}
+
+	template<class OutputPolicy, class CharT, class IOS>
+	void FormatWriter<OutputPolicy, CharT, IOS>::FieldFill(streamsize_t lastOutputLength)
+	{
+		streamsize_t width = IOS::width(0);
+		if(width < lastOutputLength)
+			return;
+		streamsize_t fillcount = width - lastOutputLength;
 		CharT c = IOS::fill(' ');
-		for(int i=0; i<fillcount; i++)
+		for(streamsize_t i=0; i<fillcount; i++)
 			put(c);
 	}
 
@@ -122,7 +135,9 @@ namespace IO
 	{
 		const int bufferSize = Impl::ConvertBufferSize<int>::value;
 		CharT buffer[bufferSize];
-		CharT sign = 0;
+		const int maxPrefixSize = 3;
+		CharT prefix[maxPrefixSize];
+		CharT *prefixPtr = prefix + maxPrefixSize;
 
 		if((IOS::flags() & (IOS::hex | IOS::oct)) == 0)
 		{
@@ -131,34 +146,34 @@ namespace IO
 				if(value < 0)
 				{
 					value = -value;
-					sign = Trates::Minus();
+					*--prefixPtr = Trates::Minus();
 				} else if(IOS::flags() & IOS::showpos)
-					sign = Trates::Plus();
+					*--prefixPtr = Trates::Plus();
 			}
 			else
 			{
 				if(IOS::flags() & IOS::showpos)
-					sign = Trates::Plus();
+					*--prefixPtr = Trates::Plus();
 			}
+		}
+		else
+		if(IOS::flags() & IOS::showbase)
+		{
+			if(IOS::flags() & IOS::hex)
+				*--prefixPtr = 'x';
+			*--prefixPtr = '0';
 		}
 
 		typedef typename Util::Unsigned<T>::Result UT;
 		UT uvalue = static_cast<UT>(value);
 		CharT * str = Impl::IntToString(uvalue, buffer + bufferSize, Base());
+		
+		int outputSize = buffer + bufferSize - str + prefix + maxPrefixSize - prefixPtr;
 
-		if(sign)
-			*--str = sign;
-
-		if(IOS::flags() & IOS::showbase)
-		{
-			if(IOS::flags() & IOS::hex)
-				*--str = 'x';
-			if(IOS::flags() & (IOS::hex | IOS::oct))
-				*--str = '0';
-		}
-		int outputSize = buffer + bufferSize - str;
 		FieldFillPre(outputSize);
-		write(str, buffer + bufferSize - str);
+		write(prefixPtr, prefix + maxPrefixSize);
+		FieldFillInt(outputSize);
+		write(str, buffer + bufferSize);
 		FieldFillPost(outputSize);
 	}
 

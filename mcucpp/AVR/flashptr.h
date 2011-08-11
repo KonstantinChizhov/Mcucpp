@@ -2,11 +2,11 @@
 
 #if defined(__ICCAVR__) 
 
-#define FLASH_PTR(PTR) (PTR)
+//#define FLASH_PTR(PTR) (PTR)
 #define FLASH __flash
 
 template<class PtrT>
-inline __flash PtrT * FLASH_PTR(__flash PtrT *ptr){return ptr;}
+inline  PtrT __flash* FLASH_PTR( PtrT __flash* ptr){return ptr;}
 
 #elif defined(__AVR__)
 
@@ -48,24 +48,24 @@ public:
 		return tmp;
 	}
 
-	inline Self& operator +=(int value)
+	inline Self& operator +=(size_t value)
 	{
 		_address += value;
 		return *this;
 	}
 
-	inline Self& operator -=(int value)
+	inline Self& operator -=(size_t value)
 	{
 		_address -= value;
 		return *this;
 	}
 
-	inline Self operator +(int value)const
+	inline Self operator +(size_t value)const
 	{
 		return Self(_address + value);
 	}
 
-	inline Self operator -(int value)const
+	inline Self operator -(size_t value)const
 	{
 		return Self(_address - value);
 	}
@@ -92,7 +92,7 @@ public:
 
 	inline operator bool() const
 	{
-		return _address == 0;
+		return _address != 0;
 	}
 
 	inline const T operator *()const
@@ -102,14 +102,18 @@ public:
 			T value;
 			uint8_t bytes[sizeof(T)];
 		}bytesToValue;
+
 		for(unsigned i = 0; i<sizeof(T); ++i)
-			bytesToValue.bytes[i] = pgm_read_byte((uint8_t* const)(_address) + i);
+			bytesToValue.bytes[i] = 
+					pgm_read_byte((const uint8_t* const)(_address) + i);
 		return bytesToValue.value;
 	}
 
-private:
+protected:
 	PtrType _address;
 };
+
+
 
 #define FLASH PROGMEM
 

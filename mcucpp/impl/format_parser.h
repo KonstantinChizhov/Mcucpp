@@ -6,45 +6,46 @@ namespace IO
 	{
 		if(_formatSrting)
 		{
+			FormatStrPtrType ptr = _formatSrting;
 			while(true)
 			{
-			    if(*_formatSrting == '%')
+			    if(*ptr == '%')
 			    {
-			        _formatSrting++;
-                    if(*_formatSrting != '%')
+			        ptr++;
+                    if(*ptr != '%')
                     {
-                        if(*_formatSrting == '|' && ScanFlags)
+                        if(*ptr == '|' && ScanFlags)
                         {
                             bool isFlag=true;
                             do{
-                                _formatSrting++;
+                                ptr++;
                                 typename Stream::fmtflags flags, mask;
 
-                                if(*_formatSrting == '+')
+                                if(*ptr == '+')
                                 {
                                     mask = flags = Stream::showpos;
                                 }
-                                else if(*_formatSrting == '#')
+                                else if(*ptr == '#')
                                 {
                                     mask = flags = Stream::showbase | Stream::boolalpha;
                                 }
-                                else if(*_formatSrting == 'x')
+                                else if(*ptr == 'x')
                                 {
                                     flags = Stream::hex;
                                     mask = Stream::basefield;
                                 }
-                                else if(*_formatSrting == 'o')
+                                else if(*ptr == 'o')
                                 {
                                     flags = Stream::oct;
                                     mask = Stream::basefield;
                                 }
-                                else if(*_formatSrting == '0')
+                                else if(*ptr == '0')
                                 {
                                     out.fill('0');
-                                    flags = Stream::right;
+                                    flags = Stream::internal;
                                     mask = Stream::adjustfield;
                                 }
-                                else if(*_formatSrting == '-')
+                                else if(*ptr == '-')
                                 {
                                     out.fill(' ');
                                     flags = Stream::left;
@@ -62,30 +63,31 @@ namespace IO
                             }while(isFlag);
                             if(ScanFieldWidth)
                             {
-								unsigned width;
-								_formatSrting += Impl::StringToIntDec<unsigned>(_formatSrting, width);
+								streamsize_t width;
+								ptr += Impl::StringToIntDec<streamsize_t>(ptr, width);
 								out.width(width);
                             }
-                            if(ScanFloatPrecision && *_formatSrting == '.')
+                            if(ScanFloatPrecision && *ptr == '.')
                             {
-                                _formatSrting++;
-                                unsigned presc;
-                                _formatSrting += Impl::StringToIntDec<unsigned>(_formatSrting, presc);
+                                ptr++;
+                                streamsize_t presc;
+                                ptr += Impl::StringToIntDec<streamsize_t>(ptr, presc);
                                 out.precision(presc);
                             }
-                            if(*_formatSrting == '|')
-                                _formatSrting++;
+                            if(*ptr == '|')
+                                ptr++;
                         }
                     }
+					_formatSrting = ptr;
                     return;
                 }
-                if(*_formatSrting == '\0')
+                if(*ptr == '\0')
                 {
                     _formatSrting = 0;
                     return;
                 }
-				out.put(*_formatSrting);
-				_formatSrting++;
+				out.put(*ptr);
+				ptr++;
 			}
 		}
 	}

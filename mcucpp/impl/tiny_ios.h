@@ -32,25 +32,25 @@ namespace IO
         return tmp;
     }
 
-    unsigned ios_base::width ( ) const
+    streamsize_t ios_base::width ( ) const
     {
         return _width;
     }
 
-    unsigned ios_base::width ( unsigned width )
+    streamsize_t ios_base::width ( streamsize_t width )
     {
-        unsigned tmp = _width;
+        streamsize_t tmp = _width;
         _width = width;
         return tmp;
     }
 
-	unsigned ios_base::precision ( ) const
+	streamsize_t ios_base::precision ( ) const
 	{
 		return _prec;
 	}
-	unsigned ios_base::precision ( unsigned prec )
+	streamsize_t ios_base::precision ( streamsize_t prec )
 	{
-		unsigned tmp = _prec;
+		streamsize_t tmp = _prec;
         _prec = prec;
         return tmp;
 	}

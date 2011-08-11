@@ -1,7 +1,6 @@
 
 #pragma once
 #include <clock.h>
-#include "dma_buffer.h"
 
 namespace HAL
 {
@@ -11,11 +10,11 @@ namespace HAL
 		enum UsartMode
 		{
 			DataBits8 = 0,
-			DataBits9 = USART_CR1_M
+			DataBits9 = USART_CR1_M,
 		
 			NoneParity = 0,
 			EvenParity = USART_CR1_PCE,
-			OddParity  = USART_CR1_PS | USART_CR1_PCE
+			OddParity  = USART_CR1_PS | USART_CR1_PCE,
 		
 			NoClock = 0,
 			
@@ -85,7 +84,7 @@ namespace HAL
 			class Dma
 			{
 				public:
-				typedef Dma1Channel4 ChannelTx;
+				//typedef Dma1Channel4 ChannelTx;
 				static void EnableTx()
 				{
 					

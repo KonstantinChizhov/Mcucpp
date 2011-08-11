@@ -138,29 +138,28 @@ inline uint8_t ilog10 (T x)
     return i;
 }
 
-inline uint16_t div5(uint16_t num, uint16_t &rem)
-{
-    uint16_t q = num*0x6667ul >> 16;
-    q >>= 1;
-    rem = num - q*5;
-    return q;
-}
+	inline static uint16_t divu10(uint16_t n)
+	{
+		uint16_t q, r;
+		q = (n >> 1) + (n >> 2);
+		q += (q >> 4);
+		q += (q >> 8);
+		q >>= 3;
+		r = n - q*10;
+		return q + ((r + 6) >> 4);
+	}
 
-inline uint16_t div10(uint16_t num, uint16_t &rem)
-{
-    uint16_t q = num*0x6667ul >> 16;
-    q >>= 2;
-    rem = num - q*10;
-    return q;
-}
-
-inline uint32_t div10(uint32_t num, uint32_t &rem)
-{
-    uint32_t q = num*0x66666667ull >> 32;
-    q >>= 2;
-    rem = num - q*10;
-    return q;
-}
+	inline static uint32_t divu10(uint32_t n)
+	{
+		uint32_t q;
+		q = (n >> 1) + (n >> 2);
+		q += (q >> 4);
+		q += (q >> 8);
+		q += (q >> 16);
+		q >>= 3;
+		uint32_t r = n - q * 10;
+		return q + ((r + 6) >> 4);
+	}
 
 inline uint8_t CountOfOnes(uint8_t val)
 {

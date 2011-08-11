@@ -52,11 +52,10 @@ int main()
 // Format string stored in flash
 	cout % IO::Format(FLASH_PTR(str1)) % FLASH_PTR(str2) % PORTA;
 // Format string stored in ram
-	cout % IO::Format<IO::FmMinimal>("% -- %\n") % "Hello world" % PORTA;
+	//cout % IO::Format("% -- %\n") % "Hello world" % PORTA;
 	
 	while(1)
 	{
 		
 	}
 }
-

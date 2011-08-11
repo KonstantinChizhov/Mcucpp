@@ -58,6 +58,11 @@ namespace IO
 		static const wchar_t * True(){return L"true";}
 	};
 
+#if (defined(__ICCAVR__) || defined(__AVR__) || defined(__AVR) || defined(AVR)) && !defined(TINY_IOS_LARGE_STREAM_SIZE) 
+	typedef unsigned char streamsize_t;
+#else
+	typedef unsigned streamsize_t;
+#endif
 
 	class ios_base
 	{
@@ -121,15 +126,15 @@ namespace IO
 		inline fmtflags setf ( fmtflags fmtfl );
 		inline fmtflags setf ( fmtflags fmtfl, fmtflags mask );
 		inline fmtflags unsetf ( fmtflags mask );
-        inline unsigned width ( ) const;
-		inline unsigned width ( unsigned width );
-		inline unsigned precision ( ) const;
-		inline unsigned precision ( unsigned prec );
+        inline streamsize_t width ( ) const;
+		inline streamsize_t width ( streamsize_t width );
+		inline streamsize_t precision ( ) const;
+		inline streamsize_t precision ( streamsize_t prec );
 
 		private:
             fmtflags _flags;
-            unsigned _width;
-			unsigned _prec;
+            streamsize_t _width;
+			streamsize_t _prec;
 	};
 
     DECLARE_ENUM_OPERATIONS(ios_base::fmtflags)

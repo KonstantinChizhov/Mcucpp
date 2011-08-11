@@ -19,14 +19,16 @@ namespace IO
 	private:
 
 		inline unsigned Base();
-		inline void FieldFill(int lastOutputLength);
-        inline void FieldFillPost(int lastOutputLength);
-        inline void FieldFillPre(int lastOutputLength);
+		inline void FieldFill(streamsize_t lastOutputLength);
+        inline void FieldFillPost(streamsize_t lastOutputLength);
+        inline void FieldFillPre(streamsize_t lastOutputLength);
+		inline void FieldFillInt(streamsize_t lastOutputLength);
 		template<class T>
 		inline void PutInteger(T value);
 		inline void PutBool(bool value);
 
 	public:
+		using OutputPolicy::put;
 
 		FormatWriter()
 		{}
@@ -88,7 +90,7 @@ namespace IO
 
 		void puts(const CharT *str)
 		{
-		    const int outputSize = Trates::SrtLen(str);
+		    const size_t outputSize = Trates::SrtLen(str);
             FieldFillPre(outputSize);
 			write(str, outputSize);
 			FieldFillPost(outputSize);
@@ -108,6 +110,23 @@ namespace IO
 				++str;
 			}
 			FieldFillPost(outputSize);
+		}
+
+		template<class CharPtr>
+		void write(CharPtr str, size_t size)
+		{
+			CharPtr end = str + size;
+			write(str, end);
+		}
+
+		template<class CharPtr>
+		void write(CharPtr begin, CharPtr end)
+		{
+			while(begin != end)
+			{
+				put(*begin);
+				++begin;
+			}
 		}
 	};
 
