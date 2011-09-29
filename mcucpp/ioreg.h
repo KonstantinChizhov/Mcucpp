@@ -29,3 +29,22 @@
 		typedef STRUCT_TYPE DataT;\
 		STRUCT_TYPE* operator->(){return ((STRUCT_TYPE *)(STRUCT_PTR));}\
 	}
+
+// A stub for IO register
+// Any data written is ignored
+// Always reads as zero
+template<class DATA_TYPE = unsigned char>
+	struct NullReg
+	{
+		typedef DATA_TYPE DataT;
+		static DataT Get(){return DataT(0);}
+		static void Set(DataT){}
+		static void Or(DataT){}
+		static void And(DataT){}
+		static void Xor(DataT){}
+		static void AndOr(DataT, DataT){}
+		template<int Bit>
+		static bool BitIsSet(){return false;}
+		template<int Bit>
+		static bool BitIsClear(){return true;}
+	};

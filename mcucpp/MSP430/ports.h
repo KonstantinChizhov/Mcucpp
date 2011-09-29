@@ -80,17 +80,20 @@ namespace IO
 	{
 		public:
 		typedef uint8_t DataT;
-			enum{DirBit = 1, AltSelBit = 2, ResEnBit = 4};
+			enum{DirBit = 1, AltSelBit = 2, ResEnBit = 4, AltSel2Bit = 8};
 			typedef NativePortBase Base;
 			enum{Width=sizeof(DataT)*8};
 		public:
 			enum Configuration
 			{
 				AnalogIn = AltSelBit,
+				AltIn = AltSelBit,
+				AltIn2 = AltSelBit | AltSel2Bit,
 				In = 0,
 				PullUpOrDownIn = ResEnBit,
 				Out = DirBit,
-				AltOut = DirBit | AltSelBit
+				AltOut = DirBit | AltSelBit,
+				AltOut2 = DirBit | AltSelBit | AltSel2Bit
 			};
 
 			static Configuration MapConfiguration(GpioBase::GenericConfiguration config)
@@ -123,7 +126,7 @@ namespace IO
 
 	namespace Private
 	{
-		template<class Out, class Dir, class In, class Sel, class Int, class IntEdge, class Ren, int ID>
+		template<class In, class Out, class Dir, class Ifg, class Ies, class Ie, class Sel, class Sel2, class Ren, int ID>
 		class PortImplementation :public NativePortBase{
 		public:
 			static void Write(DataT value)
@@ -195,6 +198,10 @@ namespace IO
 					Sel::Or(1 << pin);
 				else
 					Sel::And(DataT(~(1 << pin)));
+				if((unsigned)configuration & (unsigned)AltSel2Bit)
+					Sel2::Or(1 << pin);
+				else
+					Sel2::And(DataT(~(1 << pin)));
 				if((unsigned)configuration & (unsigned)ResEnBit)
 					Ren::Or(1 << pin);
 				else
@@ -210,6 +217,10 @@ namespace IO
 					Sel::Or(mask);
 				else
 					Sel::And(~mask);
+				if((unsigned)configuration & (unsigned)AltSel2Bit)
+					Sel2::Or(mask);
+				else
+					Sel2::And(~mask);
 				if((unsigned)configuration & (unsigned)ResEnBit)
 					Ren::Or(mask);
 				else
@@ -227,6 +238,10 @@ namespace IO
 					Sel::Or(mask);
 				else
 					Sel::And(DataT(~mask));
+				if((unsigned)configuration & (unsigned)AltSel2Bit)
+					Sel2::Or(mask);
+				else
+					Sel2::And(DataT(~mask));
 				if((unsigned)configuration & (unsigned)ResEnBit)
 					Ren::Or(mask);
 				else
@@ -236,70 +251,242 @@ namespace IO
 			enum{Id = ID};
 		};
 	}
-
-	#define MAKE_PORT(portName, dirName, pinName, selectName, interruptName, interruptEdge, resistorEnable, className, ID) \
+	
+	#define MAKE_BASIC_PORT(PORT_PREFIX, className, ID) \
 	  namespace Private{\
-		IO_REG_WRAPPER(portName, portName ## _t, uint8_t);\
-		IO_REG_WRAPPER(dirName, dirName ## _t, uint8_t);\
-		I_REG_WRAPPER(pinName, pinName ## _t, uint8_t);\
-		IO_REG_WRAPPER(selectName, selectName ## _t, uint8_t);\
-		IO_REG_WRAPPER(interruptName, interruptName ## _t, uint8_t);\
-		IO_REG_WRAPPER(interruptEdge, interruptEdge ## _t, uint8_t);\
-		IO_REG_WRAPPER(resistorEnable, resistorEnable ## _t, uint8_t);\
+		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## OUT, PORT_PREFIX ## OUT ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## DIR, PORT_PREFIX ## DIR ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## SEL, PORT_PREFIX ## SEL ## _t, uint8_t);\
 		}\
 		  typedef Private::PortImplementation<\
-				Private::portName ## _t, \
-				Private::dirName ## _t, \
-				Private::pinName ## _t, \
-				Private::selectName ## _t, \
-				Private::interruptName ## _t, \
-				Private::interruptEdge ## _t, \
-				Private::resistorEnable ## _t, \
+				Private::PORT_PREFIX ## IN ## _t, \
+				Private::PORT_PREFIX ## OUT ## _t, \
+				Private::PORT_PREFIX ## DIR ## _t, \
+				NullReg<uint8_t>, \
+				NullReg<uint8_t>, \
+				NullReg<uint8_t>, \
+				Private::PORT_PREFIX ## SEL ## _t, \
+				NullReg<uint8_t>, \
+				NullReg<uint8_t>, \
 				ID> className;
 
 
+	#define MAKE_PORT_WITH_IE(PORT_PREFIX, className, ID) \
+	  namespace Private{\
+		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## OUT, PORT_PREFIX ## OUT ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## DIR, PORT_PREFIX ## DIR ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## SEL, PORT_PREFIX ## SEL ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## IFG, PORT_PREFIX ## IFG ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## IES, PORT_PREFIX ## IES ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## IE, PORT_PREFIX ## IE ## _t, uint8_t);\
+		}\
+		  typedef Private::PortImplementation<\
+				Private::PORT_PREFIX ## IN ## _t, \
+				Private::PORT_PREFIX ## OUT ## _t, \
+				Private::PORT_PREFIX ## DIR ## _t, \
+				Private::PORT_PREFIX ## IFG ## _t, \
+				Private::PORT_PREFIX ## IES ## _t, \
+				Private::PORT_PREFIX ## IE ## _t, \
+				Private::PORT_PREFIX ## SEL ## _t, \
+				NullReg<uint8_t>, \
+				NullReg<uint8_t>, \
+				ID> className;
+	
+	#define MAKE_PORT_WITH_IE_AND_REN(PORT_PREFIX, className, ID) \
+	  namespace Private{\
+		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## OUT, PORT_PREFIX ## OUT ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## DIR, PORT_PREFIX ## DIR ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## SEL, PORT_PREFIX ## SEL ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## IFG, PORT_PREFIX ## IFG ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## IES, PORT_PREFIX ## IES ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## IE, PORT_PREFIX ## IE ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## REN, PORT_PREFIX ## REN ## _t, uint8_t);\
+		}\
+		  typedef Private::PortImplementation<\
+				Private::PORT_PREFIX ## IN ## _t, \
+				Private::PORT_PREFIX ## OUT ## _t, \
+				Private::PORT_PREFIX ## DIR ## _t, \
+				Private::PORT_PREFIX ## IFG ## _t, \
+				Private::PORT_PREFIX ## IES ## _t, \
+				Private::PORT_PREFIX ## IE ## _t, \
+				Private::PORT_PREFIX ## SEL ## _t, \
+				NullReg<uint8_t>, \
+				Private::PORT_PREFIX ## REN ## _t, \
+				ID> className;
+	
+	#define MAKE_PORT_WITH_REN(PORT_PREFIX, className, ID) \
+	  namespace Private{\
+		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## OUT, PORT_PREFIX ## OUT ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## DIR, PORT_PREFIX ## DIR ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## SEL, PORT_PREFIX ## SEL ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## REN, PORT_PREFIX ## REN ## _t, uint8_t);\
+		}\
+		  typedef Private::PortImplementation<\
+				Private::PORT_PREFIX ## IN ## _t, \
+				Private::PORT_PREFIX ## OUT ## _t, \
+				Private::PORT_PREFIX ## DIR ## _t, \
+				NullReg<uint8_t>, \
+				NullReg<uint8_t>, \
+				NullReg<uint8_t>, \
+				Private::PORT_PREFIX ## SEL ## _t, \
+				NullReg<uint8_t>, \
+				Private::PORT_PREFIX ## REN ## _t, \
+				ID> className;
+
+	#define MAKE_PORT_1_2_x2xx(PORT_PREFIX, className, ID) \
+	  namespace Private{\
+		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## OUT, PORT_PREFIX ## OUT ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## DIR, PORT_PREFIX ## DIR ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## IFG, PORT_PREFIX ## IFG ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## IES, PORT_PREFIX ## IES ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## IE, PORT_PREFIX ## IE ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## SEL, PORT_PREFIX ## SEL ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## SEL2, PORT_PREFIX ## SEL2 ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## REN, PORT_PREFIX ## REN ## _t, uint8_t);\
+		}\
+		  typedef Private::PortImplementation<\
+				Private::PORT_PREFIX ## IN ## _t, \
+				Private::PORT_PREFIX ## OUT ## _t, \
+				Private::PORT_PREFIX ## DIR ## _t, \
+				Private::PORT_PREFIX ## IFG ## _t, \
+				Private::PORT_PREFIX ## IES ## _t, \
+				Private::PORT_PREFIX ## IE ## _t, \
+				Private::PORT_PREFIX ## SEL ## _t, \
+				Private::PORT_PREFIX ## SEL2 ## _t, \
+				Private::PORT_PREFIX ## REN ## _t, \
+				ID> className;
+	
+	#define MAKE_PORT_3_8_x2xx(PORT_PREFIX, className, ID) \
+	  namespace Private{\
+		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## OUT, PORT_PREFIX ## OUT ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## DIR, PORT_PREFIX ## DIR ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## SEL, PORT_PREFIX ## SEL ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## SEL2, PORT_PREFIX ## SEL2 ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## REN, PORT_PREFIX ## REN ## _t, uint8_t);\
+		}\
+		  typedef Private::PortImplementation<\
+				Private::PORT_PREFIX ## IN ## _t, \
+				Private::PORT_PREFIX ## OUT ## _t, \
+				Private::PORT_PREFIX ## DIR ## _t, \
+				NullReg<uint8_t>, \
+				NullReg<uint8_t>, \
+				NullReg<uint8_t>, \
+				Private::PORT_PREFIX ## SEL ## _t, \
+				Private::PORT_PREFIX ## SEL2 ## _t, \
+				Private::PORT_PREFIX ## REN ## _t, \
+				ID> className;
+	
+	#define MAKE_PORT_1_2_G2xx(PORT_PREFIX, className, ID) \
+	  namespace Private{\
+		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## OUT, PORT_PREFIX ## OUT ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## DIR, PORT_PREFIX ## DIR ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## IFG, PORT_PREFIX ## IFG ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## IES, PORT_PREFIX ## IES ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## IE, PORT_PREFIX ## IE ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## SEL, PORT_PREFIX ## SEL ## _t, uint8_t);\
+		IO_REG_WRAPPER(PORT_PREFIX ## REN, PORT_PREFIX ## REN ## _t, uint8_t);\
+		}\
+		  typedef Private::PortImplementation<\
+				Private::PORT_PREFIX ## IN ## _t, \
+				Private::PORT_PREFIX ## OUT ## _t, \
+				Private::PORT_PREFIX ## DIR ## _t, \
+				Private::PORT_PREFIX ## IFG ## _t, \
+				Private::PORT_PREFIX ## IES ## _t, \
+				Private::PORT_PREFIX ## IE ## _t, \
+				Private::PORT_PREFIX ## SEL ## _t, \
+				NullReg<uint8_t>, \
+				Private::PORT_PREFIX ## REN ## _t, \
+				ID> className;
+
 	#ifdef USE_PORT0
-	MAKE_PORT(P0OUT, P0DIR, P0IN, Port0, '0')
+	MAKE_BASIC_PORT(P0, Port0, '0')
 	#endif
 
 	#ifdef USE_PORT1
-	MAKE_PORT(P1OUT, P1DIR, P1IN, P1SEL, P1IE, P1IES, P1REN, Port1, '1')
+	#ifdef PORTS_HAS_PULLUP
+		MAKE_PORT_WITH_IE_AND_REN(P1, Port1, '1')
+	#else
+		MAKE_PORT_WITH_IE(P1, Port1, '1')
+	#endif
 	#endif
 
 	#ifdef USE_PORT2
-	MAKE_PORT(P2OUT, P2DIR, P2IN, P2SEL, P2IE, P2IES, P2REN, Port2, '2')
+	#ifdef PORTS_HAS_PULLUP
+		MAKE_PORT_WITH_IE_AND_REN(P2, Port2, '2')
+	#else
+		MAKE_PORT_WITH_IE(P2, Port2, '2')
+	#endif
 	#endif
 
 	#ifdef USE_PORT3
-	MAKE_PORT(P3OUT, P3DIR, P3IN, P3SEL, P3IE, P3IES, P3REN, Port3, '3')
+	#ifdef PORTS_HAS_PULLUP
+		MAKE_PORT_WITH_REN(P3, Port3, '3')
+	#else
+		MAKE_BASIC_PORT(P3, Port3, '3')
+	#endif
 	#endif
 
 	#ifdef USE_PORT4
-	MAKE_PORT(P4OUT, P4DIR, P4IN, P4SEL, P4IE, P4IES, P4REN, Port4, '4')
+	#ifdef PORTS_HAS_PULLUP
+		MAKE_PORT_WITH_REN(P4, Port4, '4')
+	#else
+		MAKE_BASIC_PORT(P4, Port4, '4')
+	#endif
 	#endif
 
 	#ifdef USE_PORT5
-	MAKE_PORT(P5OUT, P5DIR, P5IN, P5SEL, P5IE, P5IES, P5REN, Port5, '5')
+	#ifdef PORTS_HAS_PULLUP
+		MAKE_PORT_WITH_REN(P5, Port5, '5')
+	#else
+		MAKE_BASIC_PORT(P5, Port5, '5')
+	#endif
 	#endif
 
 	#ifdef USE_PORT6
-	MAKE_PORT(P6OUT, P6DIR, P6IN, P6SEL, P6IE, P6IES, P6REN, Port6, '6')
+	#ifdef PORTS_HAS_PULLUP
+		MAKE_PORT_WITH_REN(P6, Port6, '6')
+	#else
+		MAKE_BASIC_PORT(P6, Port6, '6')
+	#endif
 	#endif
 
 	#ifdef USE_PORT7
-	MAKE_PORT(P7OUT, P7DIR, P7IN, P7SEL, P7IE, P7IES, P7REN, Port7, '7')
+	#ifdef PORTS_HAS_PULLUP
+		MAKE_PORT_WITH_REN(P7, Port7, '7')
+	#else
+		MAKE_BASIC_PORT(P7, Port7, '7')
+	#endif
 	#endif
 
 	#ifdef USE_PORT8
-	MAKE_PORT(P8OUT, P8DIR, P8IN, P8SEL, P8IE, P8IES, P8REN, Port8, '8')
+	#ifdef PORTS_HAS_PULLUP
+		MAKE_PORT_WITH_REN(P8, Port8, '8')
+	#else
+		MAKE_BASIC_PORT(P8, Port8, '8')
+	#endif
 	#endif
 
 	#ifdef USE_PORT9
-	MAKE_PORT(P9OUT, P9DIR, P9IN, P9SEL, P9IE, P9IES, P9REN, Port9, '9')
+	#ifdef PORTS_HAS_PULLUP
+		MAKE_PORT_WITH_REN(P9, Port9, '9')
+	#else
+		MAKE_BASIC_PORT(P9, Port9, '9')
+	#endif
 	#endif
 
 	#ifdef USE_PORT10
-	MAKE_PORT(P10OUT, P10DIR, P10IN, P10SEL, P10IE, P10IES, P10REN, Port10, '10')
+	#ifdef PORTS_HAS_PULLUP
+		MAKE_PORT_WITH_REN(P10, Port10, '10')
+	#else
+		MAKE_BASIC_PORT(P10, Port10, '10')
+	#endif
 	#endif
 
 }

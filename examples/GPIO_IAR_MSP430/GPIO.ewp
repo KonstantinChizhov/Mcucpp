@@ -982,7 +982,7 @@
         </option>
         <option>
           <name>OGChipSelectMenu</name>
-          <state>MSP430G2231	MSP430G2231</state>
+          <state>MSP430F2418	MSP430F2418</state>
         </option>
         <option>
           <name>GStackHeapOverride</name>
@@ -1536,7 +1536,7 @@
         </option>
         <option>
           <name>XclFile</name>
-          <state>$TOOLKIT_DIR$\CONFIG\lnk430F149.xcl</state>
+          <state>$TOOLKIT_DIR$\CONFIG\lnk430F123.xcl</state>
         </option>
         <option>
           <name>XclFileSlave</name>
@@ -1664,7 +1664,7 @@
         </option>
         <option>
           <name>ExtraOutputFile</name>
-          <state>templproj.a43</state>
+          <state>GPIO.a43</state>
         </option>
         <option>
           <name>ExtraOutputFormat</name>
