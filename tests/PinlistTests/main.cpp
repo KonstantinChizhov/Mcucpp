@@ -15,6 +15,8 @@ DECLARE_PORT_PINS(Porta, Pa)
 
 DECLARE_PORT_PINS(Portb, Pb)
 
+// TODO: move to google test framework
+
 #define ASSERT_TRUE(value) if(!(value)){\
     std::cout << "\nAssertion failed! "  << "\n\tFile: " << __FILE__ << std::endl << "\tfunction: " << __FUNCTION__ << "\n\tline: " << __LINE__ << std::endl;\
     std::cout << std::hex << "\tExpacted: true" << std::boolalpha << "\tgot: " << (bool)(value);\
@@ -307,6 +309,8 @@ int main()
     TestOnePortPinList<PinList<Pa4, Pa1, Pa6, Pa3, Pa2, Pa5, Pa0, Pa7 > >(0xaa, 0xaa);
     TestOnePortPinList<PinList<Pa4, Pa1, Pa6, Pa3, Pa2, Pa5, Pa0, Pa7 > >(0x55, 0x55);
 
+    TestOnePortPinList<PinList<Pa1, Pa2, Pa14, Pa15> >(0x0f, (0x3 << 1) | (0x3 << 14));
+
     typedef PinList<Pa2, Pa1, Pa3, Pa4, Pa6> Pins1;
     typedef PinList<Pins1::Pin<0>, Pins1::Pin<1>, Pins1::Pin<2>, Pins1::Pin<3>, Pins1::Pin<4> > Pins1Clone;
 
@@ -323,5 +327,9 @@ int main()
 
     Test2PortConfiguration<PinList<Pa1, Pa3, Pa2, Pa0, Pb1, Pb3, Pb2, Pb0>, Porta, Portb>(0xff, 0x0f, 0x0f);
     Test2PortConfiguration<PinList<Pa1, Pa2, Pa3, Pa0, Pb0, Pb1, Pb2, Pb3>, Porta, Portb>(0xff, 0x0f, 0x0f);
+
+	std::cout << "=======================================================";
+    std::cout << "\n\t\tTests passed\n";
+    std::cout << "=======================================================";
     return 0;
 }

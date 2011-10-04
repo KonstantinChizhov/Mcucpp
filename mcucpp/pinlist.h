@@ -86,7 +86,7 @@ namespace IO
     {
       typedef PinListProperties<PINS> Config;
     public:
-        typedef typename Config::DataType DataType;
+        typedef typename Config::DataType ValueType;
         typedef typename Config::Ports Ports;
         typedef typename Config::ConfigPorts ConfigPorts;
         typedef typename Config::ConfigPins ConfigPins;
@@ -117,65 +117,65 @@ namespace IO
         class Pin :public TypeAt<PINS, PIN>::Result::Pin
         {};
 
-        static void Write(DataType value)
+        static void Write(ValueType value)
         {
-            IoPrivate::PortWriteIterator<Ports, PINS>::Write(value);
+            IoPrivate::PortWriteIterator<Ports, PINS, ValueType>::Write(value);
         }
 
-        static DataType Read()
+        static ValueType Read()
         {
-            typedef IoPrivate::PortWriteIterator<Ports, PINS> iter;
-            DataType result = iter::template OutRead<DataType>();
+            typedef IoPrivate::PortWriteIterator<Ports, PINS, ValueType> iter;
+            ValueType result = iter::OutRead();
             return result;
         }
-        static void Set(DataType value)
+        static void Set(ValueType value)
         {
-            IoPrivate::PortWriteIterator<Ports, PINS>::Set(value);
+            IoPrivate::PortWriteIterator<Ports, PINS, ValueType>::Set(value);
         }
 
-        static void Clear(DataType value)
+        static void Clear(ValueType value)
         {
-            IoPrivate::PortWriteIterator<Ports, PINS>::Clear(value);
+            IoPrivate::PortWriteIterator<Ports, PINS, ValueType>::Clear(value);
         }
 
-        static DataType PinRead()
+        static ValueType PinRead()
         {
-            typedef IoPrivate::PortWriteIterator<Ports, PINS> iter;
-            DataType result = iter::template PinRead<DataType>();
+            typedef IoPrivate::PortWriteIterator<Ports, PINS, ValueType> iter;
+            ValueType result = iter::PinRead();
             return result;
         }
 
         template<class ConfigurationT>
-        static void SetConfiguration(ConfigurationT config, DataType mask = DataType(-1))
+        static void SetConfiguration(ConfigurationT config, ValueType mask = ValueType(-1))
         {
-            IoPrivate::PortWriteIterator<ConfigPorts, ConfigPins>::SetConfiguration(config, mask);
+            IoPrivate::PortWriteIterator<ConfigPorts, ConfigPins, ValueType>::SetConfiguration(config, mask);
         }
 
         // constant writing interface
 
-        template<DataType value>
+        template<ValueType value>
         static void Write()
         {
-            IoPrivate::PortWriteIterator<Ports, PINS>:: template Write<DataType, value>();
+            IoPrivate::PortWriteIterator<Ports, PINS, ValueType>:: template Write<value>();
         }
 
-        template<DataType value>
+        template<ValueType value>
         static void Set()
         {
-            IoPrivate::PortWriteIterator<Ports, PINS>:: template Set<DataType, value>();
+            IoPrivate::PortWriteIterator<Ports, PINS, ValueType>:: template Set<value>();
         }
 
-        template<DataType value>
+        template<ValueType value>
         static void Clear()
         {
-            IoPrivate::PortWriteIterator<Ports, PINS>:: template Clear<DataType, value>();
+            IoPrivate::PortWriteIterator<Ports, PINS, ValueType>:: template Clear<value>();
         }
 
-        template<PortConfiguration config, DataType mask>
+        template<PortConfiguration config, ValueType mask>
         static void SetConfiguration()
         {
-            IoPrivate::PortConfigurationIterator<ConfigPorts, ConfigPins, PortConfiguration, config>::
-                template SetConfiguration<DataType, mask>();
+            IoPrivate::PortConfigurationIterator<ConfigPorts, ConfigPins, PortConfiguration, config, ValueType>::
+                template SetConfiguration<mask>();
         }
     };
 

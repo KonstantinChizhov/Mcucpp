@@ -418,14 +418,14 @@ namespace IO
 
 		template <> struct PinWriteIterator<NullType>
 		{
-			template<class DataType, class PortDataType>
-			static inline PortDataType UppendValue(DataType value, PortDataType result)
+			template<class DataType>
+			static inline DataType UppendValue(DataType value, DataType result)
 			{
 				return result;
 			}
 
-			template<class DataType, class PortDataType>
-			static inline DataType UppendReadValue(PortDataType portValue, DataType result)
+			template<class DataType>
+			static inline DataType UppendReadValue(DataType portValue, DataType result)
 			{
 				return result;
 			}
@@ -434,10 +434,8 @@ namespace IO
 		template <class Head, class Tail>
 		struct PinWriteIterator< Typelist<Head, Tail> >
 		{
-			//typedef typename Head::Pin::Port::DataT PortDataType;
-
-			template<class DataType, class PortDataType>
-			static inline PortDataType UppendValue(DataType value, PortDataType result)
+			template<class DataType>
+			static inline DataType UppendValue(DataType value, DataType result)
 			{
 				typedef Typelist<Head, Tail> CurrentList;
 				typedef typename SelectPins<CurrentList, TransparentMappedPins>::Result TransparentPins;
@@ -484,8 +482,8 @@ namespace IO
 				return PinWriteIterator<Tail>::UppendValue(value, result);
 			}
 
-			template<class DataType, class PortDataType>
-			static inline DataType UppendReadValue(PortDataType portValue, DataType result)
+			template<class DataType>
+			static inline DataType UppendReadValue(DataType portValue, DataType result)
 			{
 				typedef Typelist<Head, Tail> CurrentList;
 				typedef typename SelectPins<CurrentList, TransparentMappedPins>::Result TransparentPins;
@@ -536,20 +534,20 @@ namespace IO
 ////////////////////////////////////////////////////////////////////////////////
 // PinConstWriteIterator
 ////////////////////////////////////////////////////////////////////////////////
-		template <class TList, class DataType, class PortDataType, DataType value> struct PinConstWriteIterator;
+		template <class TList, class DataType, DataType value> struct PinConstWriteIterator;
 
-		template <class DataType, class PortDataType, DataType value>
-		struct PinConstWriteIterator<NullType, DataType, PortDataType, value>
+		template <class DataType, DataType value>
+		struct PinConstWriteIterator<NullType, DataType, value>
 		{
-			static const PortDataType PortValue = 0;
+			static const DataType PortValue = 0;
 		};
 
-		template <class Head, class Tail, class DataType, class PortDataType, DataType value>
-		struct PinConstWriteIterator< Typelist<Head, Tail>, DataType, PortDataType, value>
+		template <class Head, class Tail, class DataType, DataType value>
+		struct PinConstWriteIterator< Typelist<Head, Tail>, DataType, value>
 		{
-			static const PortDataType PortValue = (value & (1 << Head::Position) ?
+			static const DataType PortValue = (value & (1 << Head::Position) ?
 					(1 << Head::Pin::Number) : 0) |
-					PinConstWriteIterator<Tail, DataType, PortDataType, value>::PortValue;
+					PinConstWriteIterator<Tail, DataType, value>::PortValue;
 		};
 ////////////////////////////////////////////////////////////////////////////////
 // class template PortWriteIterator
@@ -558,33 +556,30 @@ namespace IO
 // And PortList is type list of port types.
 ////////////////////////////////////////////////////////////////////////////////
 
-		template <class PortList, class PinList> struct PortWriteIterator;
+		template <class PortList, class PinList, class ValueType> struct PortWriteIterator;
 
-		template <class PinList> struct PortWriteIterator<NullType, PinList>
+		template <class PinList, class ValueType> struct PortWriteIterator<NullType, PinList, ValueType>
 		{
-			template<class DataType>
+			typedef ValueType DataType;
+
 			static void Write(DataType value)
 			{   }
 
-			template<class DataType>
 			static void Set(DataType value)
 			{   }
 
-			template<class DataType>
 			static void Clear(DataType value)
 			{   }
 
-			template<class DataType>
 			static DataType PinRead()
 			{
 				return 0;
 			}
 
-			template<class Configuration, class DataType>
+			template<class Configuration>
 			static void SetConfiguration(Configuration config, DataType mask)
 			{	}
 
-			template<class DataType>
 			static DataType OutRead()
 			{
 				return 0;
@@ -592,38 +587,45 @@ namespace IO
 
 			// constant writing interface
 
-			template<class DataType, DataType value>
+			template<DataType value>
 			static void Write()
 			{	}
 
-			template<class DataType, DataType value>
+			template<DataType value>
 			static void Set()
 			{	}
 
-			template<class DataType, DataType value>
+			template<DataType value>
 			static void Clear()
 			{	}
 
-			template<class Configuration, class DataType, Configuration config, DataType mask>
+			template<class Configuration, Configuration config, DataType mask>
 			static void SetConfiguration()
 			{	}
 
-			template<class DataType, GpioBase::GenericConfiguration config, DataType mask>
+			template<GpioBase::GenericConfiguration config, DataType mask>
 			static void SetConfiguration()
 			{	}
         };
 
-        template <class Head, class Tail, class PinList>
-        struct PortWriteIterator< Typelist<Head, Tail>, PinList>
+        template <class Head, class Tail, class PinList, class ValueType>
+        struct PortWriteIterator< Typelist<Head, Tail>, PinList, ValueType>
         {
 			//pins on current port
 			typedef typename SelectPins<PinList, PinsWithPort<Head>::template Result>::Result Pins;
 
 			enum{Mask = GetPortMask<Pins>::value};
 
-			typedef Head Port; //Head points to current port i the list.
+			typedef Head Port; //Head points to current port in the list.
+			typedef typename Port::DataT PortType;
 
-			template<class DataType>
+			typedef typename StaticIf
+			  		<
+					  sizeof(PortType) >= sizeof(ValueType),
+					  PortType,
+					  ValueType
+					 >::Result DataType;
+
 			static void Write(DataType value)
 			{
 				DataType result = PinWriteIterator<Pins>::UppendValue(value, DataType(0));
@@ -635,147 +637,157 @@ namespace IO
 					Port::ClearAndSet(Mask, result);
 				}
 
-				PortWriteIterator<Tail, PinList>::Write(value);
+				PortWriteIterator<Tail, PinList, ValueType>::Write(value);
 			}
 
-			template<class DataType>
 			static void Set(DataType value)
 			{
 				DataType result = PinWriteIterator<Pins>::UppendValue(value, DataType(0));
 				Port::Set(result);
 
-				PortWriteIterator<Tail, PinList>::Set(value);
+				PortWriteIterator<Tail, PinList, ValueType>::Set(value);
 			}
 
-			template<class DataType>
 			static void Clear(DataType value)
 			{
 				DataType result = PinWriteIterator<Pins>::UppendValue(value, DataType(0));
 				Port::Clear(result);
 
-				PortWriteIterator<Tail, PinList>::Clear(value);
+				PortWriteIterator<Tail, PinList, ValueType>::Clear(value);
 			}
 
-			template<class Configuration, class DataType>
+			template<class Configuration>
 			static void SetConfiguration(Configuration config, DataType mask)
 			{
 				DataType portMask = PinWriteIterator<Pins>::UppendValue(mask, DataType(0));
 				Port::SetConfiguration(portMask, config);
-				PortWriteIterator<Tail, PinList>::SetConfiguration(config, mask);
+				PortWriteIterator<Tail, PinList, ValueType>::SetConfiguration(config, mask);
 			}
 
-			template<class DataType>
 			static void SetConfiguration(GpioBase::GenericConfiguration config, DataType mask)
 			{
 				DataType portMask = PinWriteIterator<Pins>::UppendValue(mask, DataType(0));
 				Port::SetConfiguration(portMask, Port::MapConfiguration(config) );
-				PortWriteIterator<Tail, PinList>::SetConfiguration(config, mask);
+				PortWriteIterator<Tail, PinList, ValueType>::SetConfiguration(config, mask);
 			}
 
-			template<class DataType>
 			static DataType PinRead()
 			{
-				typename Port::DataT portValue = Port::PinRead();
-				return PinWriteIterator<Pins>::UppendReadValue(
+				DataType portValue = Port::PinRead();
+				return PinWriteIterator<Pins>::template UppendReadValue<DataType>(
 							portValue,
-							PortWriteIterator<Tail, PinList>::template PinRead<DataType>());
+							PortWriteIterator<Tail, PinList, ValueType>::PinRead());
 			}
 
-			template<class DataType>
 			static DataType OutRead()
 			{
-				typename Port::DataT portValue = Port::Read();
-				return PinWriteIterator<Pins>::UppendReadValue(
+				DataType portValue = Port::Read();
+				return PinWriteIterator<Pins>::template UppendReadValue<DataType>(
 							portValue,
-							PortWriteIterator<Tail, PinList>::template OutRead<DataType>());
+							PortWriteIterator<Tail, PinList, ValueType>::OutRead());
 			}
 
 			// constant writing interface
 
-			template<class DataType, DataType value>
+			template<DataType value>
 			static void Write()
 			{
-				const typename Port::DataT portValue =
-					PinConstWriteIterator<Pins, DataType, typename Port::DataT, value>::PortValue ^
+				const DataType portValue =
+					PinConstWriteIterator<Pins, DataType, value>::PortValue ^
 					GetInversionMask<Pins>::value;
 
 				Port::template ClearAndSet<Mask, portValue>();
-				PortWriteIterator<Tail, PinList>::template Write<DataType, value>();
+				PortWriteIterator<Tail, PinList, ValueType>::template Write<value>();
 			}
 
-			template<class DataType, DataType value>
+			template<DataType value>
 			static void Set()
 			{
-				const typename Port::DataT portValue =
-					PinConstWriteIterator<Pins, DataType, typename Port::DataT, value>::PortValue ^
+				const DataType portValue =
+					PinConstWriteIterator<Pins, DataType, value>::PortValue ^
 					GetInversionMask<Pins>::value;
 
 				Port::template Set<portValue>();
-				PortWriteIterator<Tail, PinList>::template Set<DataType, value>();
+				PortWriteIterator<Tail, PinList, ValueType>::template Set<value>();
 			}
 
-			template<class DataType, DataType value>
+			template<DataType value>
 			static void Clear()
 			{
-				const typename Port::DataT portValue =
-					PinConstWriteIterator<Pins, DataType, typename Port::DataT, value>::PortValue^
+				const DataType portValue =
+					PinConstWriteIterator<Pins, DataType, value>::PortValue^
 					GetInversionMask<Pins>::value;
 
 				Port::template Clear<portValue>();
-				PortWriteIterator<Tail, PinList>::template Clear<DataType, value>();
+				PortWriteIterator<Tail, PinList, ValueType>::template Clear<value>();
 			}
         };
 ////////////////////////////////////////////////////////////////////////////////
 // PortConfigurationIterator
 ////////////////////////////////////////////////////////////////////////////////
 
-		template <class PortList, class PinList, class Configuration, Configuration config>
+		template <class PortList, class PinList, class Configuration, Configuration config, class ValueType>
 		struct PortConfigurationIterator;
 
-		template <class PinList, class Configuration, Configuration config>
-		struct PortConfigurationIterator<NullType, PinList, Configuration, config>
+		template <class PinList, class Configuration, Configuration config, class ValueType>
+		struct PortConfigurationIterator<NullType, PinList, Configuration, config, ValueType>
 		{
-			template<class DataType, DataType mask>
+			template<ValueType mask>
 			static void SetConfiguration()
 			{	}
 		};
 
-		template <class Head, class Tail, class PinList, class Configuration, Configuration config>
-		struct PortConfigurationIterator< Typelist<Head, Tail>, PinList, Configuration, config>
+		template <class Head, class Tail, class PinList, class Configuration, Configuration config, class ValueType>
+		struct PortConfigurationIterator< Typelist<Head, Tail>, PinList, Configuration, config, ValueType>
 		{
 			//pins on current port
 			typedef typename SelectPins<PinList, PinsWithPort<Head>::template Result>::Result Pins;
 			typedef Head Port; //Head points to current port i the list.
+			typedef typename Port::DataT PortType;
 
-			template<class DataType, DataType mask>
+			typedef typename StaticIf
+			  		<
+					  sizeof(PortType) >= sizeof(ValueType),
+					  PortType,
+					  ValueType
+					 >::Result DataType;
+
+			template<DataType mask>
 			static void SetConfiguration()
 			{
-				const typename Port::DataT portValue = PinConstWriteIterator<Pins, DataType, typename Port::DataT, mask>::PortValue;
+				const DataType portValue = PinConstWriteIterator<Pins, DataType, mask>::PortValue;
 				Port::template SetConfiguration<portValue, config>();
-				PortConfigurationIterator<Tail, PinList, Configuration, config>::template SetConfiguration<DataType, mask>();
+				PortConfigurationIterator<Tail, PinList, Configuration, config, ValueType>::template SetConfiguration<mask>();
 			}
 		};
 
-		template <class Head, class Tail, class PinList, GpioBase::GenericConfiguration config>
-		struct PortConfigurationIterator< Typelist<Head, Tail>, PinList, GpioBase::GenericConfiguration, config>
+		template <class Head, class Tail, class PinList, GpioBase::GenericConfiguration config, class ValueType>
+		struct PortConfigurationIterator< Typelist<Head, Tail>, PinList, GpioBase::GenericConfiguration, config, ValueType>
 		{
 			//pins on current port
 			typedef typename SelectPins<PinList, PinsWithPort<Head>::template Result>::Result Pins;
 			typedef Head Port; //Head points to current port i the list.
+			typedef typename Port::DataT PortType;
+			typedef typename StaticIf
+				<
+				  sizeof(PortType) >= sizeof(ValueType),
+				  PortType,
+				  ValueType
+				 >::Result DataType;
 
 			template<class DataType, DataType mask>
 			static void SetConfiguration()
 			{
-				const typename Port::DataT portValue =
-					PinConstWriteIterator<Pins, DataType, typename Port::DataT, mask>::PortValue;
+				const DataType portValue =
+					PinConstWriteIterator<Pins, DataType, mask>::PortValue;
 
 				const typename Port::Configuration portConfig =
 					Port::template MapConfigurationConst<config>::value;
 
 				Port::template SetConfiguration<portValue, portConfig>();
 
-				PortConfigurationIterator<Tail, PinList, GpioBase::GenericConfiguration, config>::
-					template SetConfiguration<DataType, mask>();
+				PortConfigurationIterator<Tail, PinList, GpioBase::GenericConfiguration, config, ValueType>::
+					template SetConfiguration<mask>();
 			}
 		};
 	}
