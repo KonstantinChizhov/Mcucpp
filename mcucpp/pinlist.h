@@ -177,6 +177,13 @@ namespace IO
             IoPrivate::PortConfigurationIterator<ConfigPorts, ConfigPins, PortConfiguration, config, ValueType>::
                 template SetConfiguration<mask>();
         }
+
+        template<PortConfiguration config>
+        static void SetConfiguration()
+        {
+            IoPrivate::PortConfigurationIterator<ConfigPorts, ConfigPins, PortConfiguration, config, ValueType>::
+                template SetConfiguration<ValueType(-1)>();
+        }
     };
 
 ////////////////////////////////////////////////////////////////////////////////
