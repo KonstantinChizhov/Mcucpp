@@ -63,16 +63,12 @@ namespace IO
                             }while(isFlag);
                             if(ScanFieldWidth)
                             {
-								streamsize_t width;
-								ptr += Impl::StringToIntDec<streamsize_t>(ptr, width);
-								out.width(width);
+								out.width(Impl::StringToIntDec<streamsize_t>(ptr));
                             }
                             if(ScanFloatPrecision && *ptr == '.')
                             {
                                 ptr++;
-                                streamsize_t presc;
-                                ptr += Impl::StringToIntDec<streamsize_t>(ptr, presc);
-                                out.precision(presc);
+                                out.precision(Impl::StringToIntDec<streamsize_t>(ptr));
                             }
                             if(*ptr == '|')
                                 ptr++;

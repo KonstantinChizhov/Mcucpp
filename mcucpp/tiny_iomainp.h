@@ -6,7 +6,7 @@ namespace IO
 
 #define IO_DECLARE_STREAM_MANIPULATOR(NAME, FLAG, MASK) \
 template<class OutputPolicy, class CharT, class IOS> \
-FormatWriter<OutputPolicy, CharT, IOS>& NAME ( FormatWriter<OutputPolicy, CharT, IOS>& os)\
+basic_ostream<OutputPolicy, CharT, IOS>& NAME ( basic_ostream<OutputPolicy, CharT, IOS>& os)\
 {\
 	os.setf(FLAG, MASK);\
 	return os;\
@@ -14,7 +14,7 @@ FormatWriter<OutputPolicy, CharT, IOS>& NAME ( FormatWriter<OutputPolicy, CharT,
 
 #define IO_DECLARE_STREAM_UNSET_MANIPULATOR(NAME, FLAG) \
 template<class OutputPolicy, class CharT, class IOS> \
-FormatWriter<OutputPolicy, CharT, IOS>& NAME ( FormatWriter<OutputPolicy, CharT, IOS>& os)\
+basic_ostream<OutputPolicy, CharT, IOS>& NAME ( basic_ostream<OutputPolicy, CharT, IOS>& os)\
 {\
 	os.unsetf(FLAG);\
 	return os;\
@@ -51,8 +51,8 @@ IO_DECLARE_STREAM_UNSET_MANIPULATOR(nounitbuf, IOS::unitbuf)
     }
 
 	template<class OutputPolicy, class CharT, class IOS>
-    FormatWriter<OutputPolicy, CharT, IOS>&  operator<<
-            ( FormatWriter<OutputPolicy, CharT, IOS>& os, SetwT f)
+    basic_ostream<OutputPolicy, CharT, IOS>&  operator<<
+            ( basic_ostream<OutputPolicy, CharT, IOS>& os, SetwT f)
     {
         os.width(f.width);
         return os;

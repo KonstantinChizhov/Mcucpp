@@ -12,17 +12,14 @@ namespace IO
             class CharT = char,
             class IOS = basic_ios<CharT>
             >
-	class FormatWriter :public OutputPolicy, public IOS
+	class basic_ostream :public OutputPolicy, public IOS
 	{
 		typedef CharTrates<CharT> Trates;
-		typedef FormatWriter Self;
+		typedef basic_ostream Self;
 	private:
 
 		inline unsigned Base();
-		inline void FieldFill(streamsize_t lastOutputLength);
-        inline void FieldFillPost(streamsize_t lastOutputLength);
-        inline void FieldFillPre(streamsize_t lastOutputLength);
-		inline void FieldFillInt(streamsize_t lastOutputLength);
+		inline void FieldFill(streamsize_t lastOutputLength, typename IOS::fmtflags mask);
 		template<class T>
 		inline void PutInteger(T value);
 		inline void PutBool(bool value);
@@ -30,7 +27,7 @@ namespace IO
 	public:
 		using OutputPolicy::put;
 
-		FormatWriter()
+		basic_ostream()
 		{}
 
 		Self& operator<< (bool value)
@@ -91,9 +88,9 @@ namespace IO
 		void puts(const CharT *str)
 		{
 		    const size_t outputSize = Trates::SrtLen(str);
-            FieldFillPre(outputSize);
+            FieldFill(outputSize, IOS::right);
 			write(str, outputSize);
-			FieldFillPost(outputSize);
+			FieldFill(outputSize, IOS::left);
 		}
 		
 		template<class CharPtr>
@@ -102,14 +99,14 @@ namespace IO
 			CharPtr strEnd = str;
 			while(*strEnd) ++strEnd;
 			int outputSize = strEnd - str;
-            FieldFillPre(outputSize);
+            FieldFill(outputSize, IOS::right);
 			 
 			while(CharT c = *str)
 			{
 				put(c);
 				++str;
 			}
-			FieldFillPost(outputSize);
+			FieldFill(outputSize, IOS::left);
 		}
 
 		template<class CharPtr>
@@ -131,14 +128,14 @@ namespace IO
 	};
 
 	template<class OutputPolicy, class CharT, class IOS>
-	FormatWriter<OutputPolicy, CharT, IOS>& endl ( FormatWriter<OutputPolicy, CharT, IOS>& os)
+	basic_ostream<OutputPolicy, CharT, IOS>& endl ( basic_ostream<OutputPolicy, CharT, IOS>& os)
 	{
 		os.put('\n');
 		return os;
 	}
 
 	template<class OutputPolicy, class CharT, class IOS>
-	FormatWriter<OutputPolicy, CharT, IOS>& ends ( FormatWriter<OutputPolicy, CharT, IOS>& os)
+	basic_ostream<OutputPolicy, CharT, IOS>& ends ( basic_ostream<OutputPolicy, CharT, IOS>& os)
 	{
 		os.put('\0');
 		return os;

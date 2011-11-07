@@ -38,39 +38,35 @@ namespace IO
 		}
 
 		template<class T, class StrT>
-		unsigned StringToIntDec(StrT str, T &result)
+		T StringToIntDec(StrT &str)
 		{
-			result = 0;
-			unsigned count = 0;
+			T result = 0;
 			while(isdigit(*str))
 			{
+				
 				result = result * 10 + (*str - '0');
 				str++;
-				count++;
 			}
-			return count;
+			return result;
 		}
 
 		template<class T, class StrT>
-		unsigned StringToIntOct(StrT str, T &result)
+		T StringToIntOct(StrT &str)
 		{
-			result = 0;
-			unsigned count = 0;
+			T result = 0;
 			while(isoctdigit(*str))
 			{
 				result = result * 8 + (*str - '0');
 				str++;
-				count++;
 			}
-			return count;
+			return result;
 		}
 
 		template<class T, class StrT>
-		unsigned StringToIntHex(StrT str, T &result)
+		T StringToIntHex(StrT &str)
 		{
-			result = 0;
+			T result = 0;
 			int delta;
-			unsigned count = 0;
 			while(1)
 			{
 				if(isdigit(*str))
@@ -84,12 +80,11 @@ namespace IO
 				result = result * 16 + (*str - delta);
 				str++;
 			}
-			return count;
 		}
 	}
 
 	template<class OutputPolicy, class CharT, class IOS>
-	unsigned FormatWriter<OutputPolicy, CharT, IOS>::Base()
+	unsigned basic_ostream<OutputPolicy, CharT, IOS>::Base()
 	{
 		if(IOS::flags() & IOS::hex) return 16;
 		if(IOS::flags() & IOS::oct) return 8;
@@ -97,41 +92,23 @@ namespace IO
 	}
 
 	template<class OutputPolicy, class CharT, class IOS>
-	void FormatWriter<OutputPolicy, CharT, IOS>::FieldFillPost(streamsize_t lastOutputLength)
+	void basic_ostream<OutputPolicy, CharT, IOS>::FieldFill(streamsize_t lastOutputLength, typename IOS::fmtflags mask)
 	{
-		if(IOS::flags() & IOS::left)
-            FieldFill(lastOutputLength);
-	}
-
-	template<class OutputPolicy, class CharT, class IOS>
-	void FormatWriter<OutputPolicy, CharT, IOS>::FieldFillPre(streamsize_t lastOutputLength)
-	{
-		if(IOS::flags() & IOS::right)
-            FieldFill(lastOutputLength);
-	}
-
-	template<class OutputPolicy, class CharT, class IOS>
-	void FormatWriter<OutputPolicy, CharT, IOS>::FieldFillInt(streamsize_t lastOutputLength)
-	{
-		if(IOS::flags() & IOS::internal)
-            FieldFill(lastOutputLength);
-	}
-
-	template<class OutputPolicy, class CharT, class IOS>
-	void FormatWriter<OutputPolicy, CharT, IOS>::FieldFill(streamsize_t lastOutputLength)
-	{
-		streamsize_t width = IOS::width(0);
-		if(width < lastOutputLength)
-			return;
-		streamsize_t fillcount = width - lastOutputLength;
-		CharT c = IOS::fill(' ');
-		for(streamsize_t i=0; i<fillcount; i++)
-			put(c);
+		if(IOS::flags() & mask)
+		{
+			streamsize_t width = IOS::width(0);
+			if(width < lastOutputLength)
+				return;
+			streamsize_t fillcount = width - lastOutputLength;
+			CharT c = IOS::fill(' ');
+			for(streamsize_t i=0; i<fillcount; i++)
+				put(c);
+		}
 	}
 
 	template<class OutputPolicy, class CharT, class IOS>
 	template<class T>
-	void FormatWriter<OutputPolicy, CharT, IOS>::PutInteger(T value)
+	void basic_ostream<OutputPolicy, CharT, IOS>::PutInteger(T value)
 	{
 		const int bufferSize = Impl::ConvertBufferSize<int>::value;
 		CharT buffer[bufferSize];
@@ -170,15 +147,15 @@ namespace IO
 		
 		int outputSize = buffer + bufferSize - str + prefix + maxPrefixSize - prefixPtr;
 
-		FieldFillPre(outputSize);
+		FieldFill(outputSize, IOS::right);
 		write(prefixPtr, prefix + maxPrefixSize);
-		FieldFillInt(outputSize);
+		FieldFill(outputSize, IOS::internal);
 		write(str, buffer + bufferSize);
-		FieldFillPost(outputSize);
+		FieldFill(outputSize, IOS::left);
 	}
 
 	template<class OutputPolicy, class CharT, class IOS>
-	void FormatWriter<OutputPolicy, CharT, IOS>::PutBool(bool value)
+	void basic_ostream<OutputPolicy, CharT, IOS>::PutBool(bool value)
 	{
 		if(IOS::flags() & IOS::boolalpha)
 		{
@@ -193,12 +170,12 @@ namespace IO
 		}
 		else
 		{
-			FieldFillPre(1);
+			FieldFill(1, IOS::right);
 			if(value)
 				put(Trates::DigitToLit(1));
 			else
 				put(Trates::DigitToLit(0));
-			FieldFillPost(1);
+			FieldFill(1, IOS::left);
 		}
 	}
 }
