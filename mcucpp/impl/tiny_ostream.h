@@ -110,7 +110,7 @@ namespace IO
 	template<class T>
 	void basic_ostream<OutputPolicy, CharT, IOS>::PutInteger(T value)
 	{
-		const int bufferSize = Impl::ConvertBufferSize<int>::value;
+		const int bufferSize = Impl::ConvertBufferSize<T>::value;
 		CharT buffer[bufferSize];
 		const int maxPrefixSize = 3;
 		CharT prefix[maxPrefixSize];

@@ -36,10 +36,11 @@ namespace IO
 
 	public:
 		FormatParser(Stream &stream, FormatStrPtrType format)
-			:out(stream)
+			:out(stream),
+			_formatSrting(format)
 		{
-			_formatSrting = format;
-			ProcessFormat();
+			if(_formatSrting)
+				ProcessFormat();
 		}
 
 		Self&
@@ -62,7 +63,6 @@ namespace IO
 			if(_formatSrting)
 			{
 				out << value;
-				ClearFmt();
 				ProcessFormat();
 			}
 			return *this;

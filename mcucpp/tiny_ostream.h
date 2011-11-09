@@ -98,7 +98,7 @@ namespace IO
 		{
 			CharPtr strEnd = str;
 			while(*strEnd) ++strEnd;
-			int outputSize = strEnd - str;
+			streamsize_t outputSize = strEnd - str;
             FieldFill(outputSize, IOS::right);
 			 
 			while(CharT c = *str)
