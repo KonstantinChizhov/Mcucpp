@@ -1,5 +1,5 @@
 
-#include <io.h>
+#include <msp430.h>
 
 #include "pinlist.h"
 #include "iopins.h"

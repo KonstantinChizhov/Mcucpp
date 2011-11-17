@@ -27,12 +27,15 @@
 				<Option use_console_runner="0" />
 				<Compiler>
 					<Add option="-msave-prologue" />
-					<Add option="-Os" />
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+					<Add option="-nostdlib" />
+					<Add option="-finline-functions" />
+					<Add option="-finline-limit=35" />
 				</Compiler>
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-mmcu=msp430x2011" />
 			<Add option="-nostdlib" />
 			<Add option="-nostartfiles" />
 			<Add option="-pedantic" />
@@ -45,10 +48,15 @@
 			<Add option="-fno-exceptions" />
 			<Add option="-MD" />
 			<Add option="-MF $(TARGET_OUTPUT_FILE).dep" />
+			<Add option="-mmcu=msp430g2231" />
 			<Add option="-DF_CPU=16000000UL" />
 			<Add directory="..\..\mcucpp" />
 			<Add directory="..\..\mcucpp\MSP430" />
 		</Compiler>
+		<Linker>
+			<Add option="-nostdlib" />
+			<Add option="-mmcu=msp430g2231" />
+		</Linker>
 		<ExtraCommands>
 			<Add after="msp430-size $(TARGET_OUTPUT_FILE)" />
 			<Add after="msp430-objcopy -O ihex -R .eeprom -R .eesafe $(TARGET_OUTPUT_FILE) $(TARGET_OUTPUT_FILE).hex" />

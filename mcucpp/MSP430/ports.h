@@ -136,7 +136,8 @@ namespace IO
 			}
 			static void ClearAndSet(DataT clearMask, DataT value)
 			{
-				Out::AndOr(~clearMask, value);
+				Out::And(~clearMask);
+				Out::Or(value);
 			}
 			static DataT Read()
 			{
@@ -252,7 +253,7 @@ namespace IO
 			enum{Id = ID};
 		};
 	}
-	
+
 	#define MAKE_BASIC_PORT_NO_SEL(PORT_PREFIX, className, ID) \
 	  namespace Private{\
 		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
@@ -270,7 +271,7 @@ namespace IO
 				NullReg<uint8_t>, \
 				NullReg<uint8_t>, \
 				ID> className;
-	  
+
 	#define MAKE_BASIC_PORT(PORT_PREFIX, className, ID) \
 	  namespace Private{\
 		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
@@ -312,7 +313,7 @@ namespace IO
 				NullReg<uint8_t>, \
 				NullReg<uint8_t>, \
 				ID> className;
-	
+
 	#define MAKE_PORT_IE_REN(PORT_PREFIX, className, ID) \
 	  namespace Private{\
 		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
@@ -335,7 +336,7 @@ namespace IO
 				NullReg<uint8_t>, \
 				Private::PORT_PREFIX ## REN ## _t, \
 				ID> className;
-	
+
 	#define MAKE_PORT_REN(PORT_PREFIX, className, ID) \
 	  namespace Private{\
 		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
@@ -379,7 +380,7 @@ namespace IO
 				Private::PORT_PREFIX ## SEL2 ## _t, \
 				Private::PORT_PREFIX ## REN ## _t, \
 				ID> className;
-	
+
 	#define MAKE_PORT_REN_SEL2(PORT_PREFIX, className, ID) \
 	  namespace Private{\
 		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
@@ -400,7 +401,7 @@ namespace IO
 				Private::PORT_PREFIX ## SEL2 ## _t, \
 				Private::PORT_PREFIX ## REN ## _t, \
 				ID> className;
-				
+
 	#define MAKE_PORT_IE_SEL2(PORT_PREFIX, className, ID) \
 	  namespace Private{\
 		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
@@ -423,7 +424,7 @@ namespace IO
 				Private::PORT_PREFIX ## SEL2 ## _t, \
 				NullReg<uint8_t>, \
 				ID> className;
-	
+
 	#define MAKE_PORT_IE_REN_NO_SEL(PORT_PREFIX, className, ID) \
 	  namespace Private{\
 		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
@@ -445,7 +446,7 @@ namespace IO
 				NullReg<uint8_t>, \
 				Private::PORT_PREFIX ## REN ## _t, \
 				ID> className;
-	
+
 	#define MAKE_PORT_IE_NO_SEL(PORT_PREFIX, className, ID) \
 	  namespace Private{\
 		I_REG_WRAPPER(PORT_PREFIX ## IN, PORT_PREFIX ## IN ## _t, uint8_t);\
