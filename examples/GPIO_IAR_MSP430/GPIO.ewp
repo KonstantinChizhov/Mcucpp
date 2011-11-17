@@ -943,11 +943,11 @@
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430fn.h</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xsfn.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430fn.r43</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xsfn.r43</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -982,7 +982,7 @@
         </option>
         <option>
           <name>OGChipSelectMenu</name>
-          <state>MSP430F2418	MSP430F2418</state>
+          <state>MSP430G2231	MSP430G2231</state>
         </option>
         <option>
           <name>GStackHeapOverride</name>
@@ -1536,7 +1536,7 @@
         </option>
         <option>
           <name>XclFile</name>
-          <state>$TOOLKIT_DIR$\CONFIG\lnk430F123.xcl</state>
+          <state>$TOOLKIT_DIR$\CONFIG\lnkCC430F5133.xcl</state>
         </option>
         <option>
           <name>XclFileSlave</name>

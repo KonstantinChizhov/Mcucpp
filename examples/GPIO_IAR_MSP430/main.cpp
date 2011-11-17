@@ -1,11 +1,6 @@
 
-#include "io430.h"
+#include "msp430.h"
 
-// list of used IO ports
-#define USE_PORT1
-#define USE_PORT2
-// define this if your device ports has a pullup and you want to use it
-//#define PORTS_HAS_PULLUP
 
 // NOTE that you need to add library platform independent and platform specific
 // folders to compiler include files search paths:
