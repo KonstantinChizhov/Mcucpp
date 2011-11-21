@@ -419,13 +419,13 @@ namespace IO
 		template <> struct PinWriteIterator<NullType>
 		{
 			template<class DataType>
-			static inline DataType UppendValue(DataType value, DataType result)
+			static inline DataType AppendValue(DataType value, DataType result)
 			{
 				return result;
 			}
 
 			template<class DataType>
-			static inline DataType UppendReadValue(DataType portValue, DataType result)
+			static inline DataType AppendReadValue(DataType portValue, DataType result)
 			{
 				return result;
 			}
@@ -435,7 +435,7 @@ namespace IO
 		struct PinWriteIterator< Typelist<Head, Tail> >
 		{
 			template<class DataType>
-			static inline DataType UppendValue(DataType value, DataType result)
+			static inline DataType AppendValue(DataType value, DataType result)
 			{
 				typedef Typelist<Head, Tail> CurrentList;
 				typedef typename SelectPins<CurrentList, TransparentMappedPins>::Result TransparentPins;
@@ -448,7 +448,7 @@ namespace IO
 							GetPortMask<TransparentPins>::value) ^
 							GetInversionMask<TransparentPins>::value;
 
-					return PinWriteIterator<NotTransparentPins>::UppendValue(value, result);
+					return PinWriteIterator<NotTransparentPins>::AppendValue(value, result);
 				}
 
 				enum{SerialLength = GetSerialCount<CurrentList>::value};
@@ -465,7 +465,7 @@ namespace IO
 							GetPortMask<SerialList>::value) ^
 							GetInversionMask<SerialList>::value;
 
-					return PinWriteIterator<RestList>::UppendValue(value, result);
+					return PinWriteIterator<RestList>::AppendValue(value, result);
 				}
 
 				if(Head::Pin::Inverted == false)
@@ -479,11 +479,11 @@ namespace IO
 						result |= (1 << Head::Pin::Number);
 				}
 
-				return PinWriteIterator<Tail>::UppendValue(value, result);
+				return PinWriteIterator<Tail>::AppendValue(value, result);
 			}
 
 			template<class DataType>
-			static inline DataType UppendReadValue(DataType portValue, DataType result)
+			static inline DataType AppendReadValue(DataType portValue, DataType result)
 			{
 				typedef Typelist<Head, Tail> CurrentList;
 				typedef typename SelectPins<CurrentList, TransparentMappedPins>::Result TransparentPins;
@@ -496,7 +496,7 @@ namespace IO
 							GetValueMask<TransparentPins>::value) ^
 							GetInversionMask<TransparentPins>::value;
 
-					return PinWriteIterator<NotTransparentPins>::UppendReadValue(portValue, result);
+					return PinWriteIterator<NotTransparentPins>::AppendReadValue(portValue, result);
 				}
 				enum{SerialLength = GetSerialCount<CurrentList>::value};
 
@@ -513,7 +513,7 @@ namespace IO
 					result |= (AtctualShifter::Shift(portValue) &
 					GetValueMask<SerialList>::value) ^
 					GetInversionMask<SerialList>::value;
-					return PinWriteIterator<RestList>::UppendReadValue(portValue, result);
+					return PinWriteIterator<RestList>::AppendReadValue(portValue, result);
 				}
 
 				if(Head::Pin::Inverted)
@@ -528,7 +528,7 @@ namespace IO
 				}
 
 
-				return PinWriteIterator<Tail>::UppendReadValue(portValue, result);
+				return PinWriteIterator<Tail>::AppendReadValue(portValue, result);
 			}
 		};
 ////////////////////////////////////////////////////////////////////////////////
@@ -628,7 +628,7 @@ namespace IO
 
 			static void Write(DataType value)
 			{
-				DataType result = PinWriteIterator<Pins>::UppendValue(value, DataType(0));
+				DataType result = PinWriteIterator<Pins>::AppendValue(value, DataType(0));
 
 				if((int)Length<Pins>::value == (int)Port::Width)// whole port
 					Port::Write(result);
@@ -642,7 +642,7 @@ namespace IO
 
 			static void Set(DataType value)
 			{
-				DataType result = PinWriteIterator<Pins>::UppendValue(value, DataType(0));
+				DataType result = PinWriteIterator<Pins>::AppendValue(value, DataType(0));
 				Port::Set(result);
 
 				PortWriteIterator<Tail, PinList, ValueType>::Set(value);
@@ -650,7 +650,7 @@ namespace IO
 
 			static void Clear(DataType value)
 			{
-				DataType result = PinWriteIterator<Pins>::UppendValue(value, DataType(0));
+				DataType result = PinWriteIterator<Pins>::AppendValue(value, DataType(0));
 				Port::Clear(result);
 
 				PortWriteIterator<Tail, PinList, ValueType>::Clear(value);
@@ -659,14 +659,14 @@ namespace IO
 			template<class Configuration>
 			static void SetConfiguration(Configuration config, DataType mask)
 			{
-				DataType portMask = PinWriteIterator<Pins>::UppendValue(mask, DataType(0));
+				DataType portMask = PinWriteIterator<Pins>::AppendValue(mask, DataType(0));
 				Port::SetConfiguration(portMask, config);
 				PortWriteIterator<Tail, PinList, ValueType>::SetConfiguration(config, mask);
 			}
 
 			static void SetConfiguration(GpioBase::GenericConfiguration config, DataType mask)
 			{
-				DataType portMask = PinWriteIterator<Pins>::UppendValue(mask, DataType(0));
+				DataType portMask = PinWriteIterator<Pins>::AppendValue(mask, DataType(0));
 				Port::SetConfiguration(portMask, Port::MapConfiguration(config) );
 				PortWriteIterator<Tail, PinList, ValueType>::SetConfiguration(config, mask);
 			}
@@ -674,7 +674,7 @@ namespace IO
 			static DataType PinRead()
 			{
 				DataType portValue = Port::PinRead();
-				return PinWriteIterator<Pins>::template UppendReadValue<DataType>(
+				return PinWriteIterator<Pins>::template AppendReadValue<DataType>(
 							portValue,
 							PortWriteIterator<Tail, PinList, ValueType>::PinRead());
 			}
@@ -682,7 +682,7 @@ namespace IO
 			static DataType OutRead()
 			{
 				DataType portValue = Port::Read();
-				return PinWriteIterator<Pins>::template UppendReadValue<DataType>(
+				return PinWriteIterator<Pins>::template AppendReadValue<DataType>(
 							portValue,
 							PortWriteIterator<Tail, PinList, ValueType>::OutRead());
 			}
