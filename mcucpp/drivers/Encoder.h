@@ -9,7 +9,15 @@ public:
 	typedef typename Pins1::DataType PortType;
 	static const unsigned Channels = Pins1::Length;
 
-	static void CaptureHandler()
+	static void Init()
+	{
+		Pins1::template SetConfiguration<Pins1::PullUpOrDownIn>();
+		Pins2::template SetConfiguration<Pins1::PullUpOrDownIn>();
+		Pins1::template Write<typename Pins1::DataT(-1)>();
+		Pins2::template Write<typename Pins2::DataT(-1)>();
+	}
+
+	static inline  void CaptureHandler()
 	{
 		PortType y1 = Pins1::PinRead();
 		PortType y2 = Pins2::PinRead();
@@ -22,12 +30,13 @@ public:
 
 		volatile DataT * ptr = _value;
 		for(uint8_t i = Channels; i; --i)
-		{	
-			if(fwd & 1)
-				 (*ptr) ++;
-			else 
-			if(back & 1)
-				(*ptr) --;
+		{
+			//if(fwd & 1)
+			//	 (*ptr) ++;
+			//else 
+			//if(back & 1)
+			//	(*ptr) --;
+			*ptr = *ptr + (fwd & 1) - (back & 1);
 			ptr++;
 			fwd >>= 1;
 			back >>= 1;
