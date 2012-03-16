@@ -277,9 +277,19 @@ namespace IO
 			static void SetConfiguration()
 			{
 				if(configuration)
-					Dir::Or(mask);
+				{
+					if(mask == (DataT)-1)
+						Dir::Set(mask);
+					else
+						Dir::Or(mask);
+				}
 				else
-					Dir::And(DataT(~mask));
+				{
+					if(mask == (DataT)-1)
+						Dir::Set(DataT(~mask));
+					else
+						Dir::And(DataT(~mask));
+				}
 			}
 
 			enum{Id = ID};
