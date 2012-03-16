@@ -58,7 +58,7 @@ namespace IO
 		static const wchar_t * True(){return L"true";}
 	};
 
-#if (defined(__ICCAVR__) || defined(__AVR__) || defined(__AVR) || defined(AVR)) && !defined(TINY_IOS_LARGE_STREAM_SIZE) 
+#if (defined(__ICCAVR__) || defined(__AVR__) || defined(__AVR) || defined(AVR)) && !defined(TINY_IOS_LARGE_STREAM_SIZE)
 	typedef unsigned char streamsize_t;
 #else
 	typedef unsigned streamsize_t;
@@ -71,7 +71,7 @@ namespace IO
 		public:
 
 		ios_base()
-		:_flags(right)
+		:_flags(right), _width(0), _prec(0)
 		{}
 
 		enum fmtflags

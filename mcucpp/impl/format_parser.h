@@ -72,9 +72,9 @@ namespace IO
                         if(*ptr == '|')
                             ptr++;
                     }
+                    _formatSrting = ptr;
+					return;
                 }
-				_formatSrting = ptr;
-                return;
             }
             if(*ptr == '\0')
             {
