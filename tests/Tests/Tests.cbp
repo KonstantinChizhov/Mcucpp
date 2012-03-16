@@ -12,24 +12,30 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-Wall" />
 				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-g" />
 			<Add option="-fexceptions" />
+			<Add option="-ffunction-sections" />
+			<Add option="-fdata-sections" />
+			<Add option="-Wl,--gc-sections" />
 			<Add directory="..\..\mcucpp" />
 			<Add directory="..\..\mcucpp\Test" />
 			<Add directory="..\..\gtest" />
 			<Add directory="..\..\" />
 		</Compiler>
+		<Linker>
+			<Add option="--gc-sections" />
+		</Linker>
 		<Unit filename="..\..\gtest\gtest-all.cc" />
 		<Unit filename="..\..\gtest\gtest.h" />
 		<Unit filename="..\..\gtest\gtest_main.cc" />
+		<Unit filename="FormatWriter.cpp" />
+		<Unit filename="PinList.cpp" />
 		<Unit filename="timers.cpp" />
 		<Extensions>
 			<code_completion />
