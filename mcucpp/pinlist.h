@@ -171,7 +171,7 @@ namespace IO
             IoPrivate::PortWriteIterator<Ports, PINS, ValueType>:: template Clear<value>();
         }
 
-        template<PortConfiguration config, ValueType mask>
+        template<ValueType mask, PortConfiguration config>
         static void SetConfiguration()
         {
             IoPrivate::PortConfigurationIterator<ConfigPorts, ConfigPins, PortConfiguration, config, ValueType>::
