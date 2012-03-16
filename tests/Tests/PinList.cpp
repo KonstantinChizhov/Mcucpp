@@ -2,7 +2,7 @@
 #include <string>
 #include "iopins.h"
 #include "pinlist.h"
-#include <stdlib.h>
+#include <gtest.h>
 
 using namespace std;
 using namespace IO;
@@ -14,26 +14,6 @@ typedef TestPort<unsigned, 'B'> Portb;
 DECLARE_PORT_PINS(Porta, Pa)
 
 DECLARE_PORT_PINS(Portb, Pb)
-
-// TODO: move to google test framework
-
-#define ASSERT_TRUE(value) if(!(value)){\
-    std::cout << "\nAssertion failed! "  << "\n\tFile: " << __FILE__ << std::endl << "\tfunction: " << __FUNCTION__ << "\n\tline: " << __LINE__ << std::endl;\
-    std::cout << std::hex << "\tExpacted: true" << std::boolalpha << "\tgot: " << (bool)(value);\
-    exit(1);\
-    }
-
-#define ASSERT_FALSE(value) if((value)){\
-    std::cout << "\nAssertion failed! "  << "\n\tFile: " << __FILE__ << std::endl << "\tfunction: " << __FUNCTION__ << "\n\tline: " << __LINE__ << std::endl;\
-    std::cout << std::hex << "\tExpacted: false" << std::boolalpha << "\tgot: " << (bool)(value);\
-    exit(1);\
-    }
-
-#define ASSERT_EQUAL(value, expected) if((value) != (expected)){\
-    std::cout << "\nAssertion failed! "  << "\n\tFile: " << __FILE__ << std::endl << "\tfunction: " << __FUNCTION__ << "\n\tline: " << __LINE__ << std::endl;\
-    std::cout << std::hex << "\tExpacted: 0x" << (unsigned)(expected) << "\tgot: 0x" << (unsigned)(value);\
-    exit(1);\
-    }
 
 template<class Pin>
 void PinTest()
@@ -47,45 +27,45 @@ void PinTest()
 
 	Port::Write(0);
 	Port::template SetConfiguration<DataT(-1), Port::In>();
-	ASSERT_EQUAL(Port::OutReg, 0)
+	EXPECT_EQ(Port::OutReg, 0);
 	Pin::Set();
-	ASSERT_EQUAL(Port::OutReg, mask)
+	EXPECT_EQ(Port::OutReg, mask);
 	Pin::Clear();
-	ASSERT_EQUAL(Port::OutReg, 0)
+	EXPECT_EQ(Port::OutReg, 0);
 	Pin::Set(1);
-	ASSERT_EQUAL(Port::OutReg, mask)
+	EXPECT_EQ(Port::OutReg, mask);
 	Pin::Set(0);
-	ASSERT_EQUAL(Port::OutReg, 0);
+	EXPECT_EQ(Port::OutReg, 0);
 	Pin::Toggle();
-	ASSERT_EQUAL(Port::OutReg, mask)
+	EXPECT_EQ(Port::OutReg, mask);
 	Pin::Toggle();
-	ASSERT_EQUAL(Port::OutReg, 0)
+	EXPECT_EQ(Port::OutReg, 0);
 
 	Pin::SetDirRead();
-	ASSERT_EQUAL(Port::DirReg, 0)
+	EXPECT_EQ(Port::DirReg, 0);
 	Pin::SetDirWrite();
-	ASSERT_EQUAL(Port::DirReg, mask)
+	EXPECT_EQ(Port::DirReg, mask);
 
 	Pin::SetDir(0);
-	ASSERT_EQUAL(Port::DirReg, 0)
+	EXPECT_EQ(Port::DirReg, 0);
 	Pin::SetDir(1);
-	ASSERT_EQUAL(Port::DirReg, mask)
+	EXPECT_EQ(Port::DirReg, mask);
 
 	Pin::SetConfiguration(Port::In);
-	ASSERT_EQUAL(Port::DirReg, 0)
+	EXPECT_EQ(Port::DirReg, 0);
 	Pin::SetConfiguration(Port::Out);
-	ASSERT_EQUAL(Port::DirReg, mask)
+	EXPECT_EQ(Port::DirReg, mask);
 
 	Pin::template SetConfiguration<Port::In>();
-	ASSERT_EQUAL(Port::DirReg, 0)
+	EXPECT_EQ(Port::DirReg, 0);
 	Pin:: template SetConfiguration<Port::Out>();
-	ASSERT_EQUAL(Port::DirReg, mask)
+	EXPECT_EQ(Port::DirReg, mask);
 
 	Port::InReg = 0;
-	ASSERT_FALSE(Pin::IsSet())
+	EXPECT_FALSE(Pin::IsSet());
 
 	Port::InReg = mask;
-	ASSERT_TRUE(Pin::IsSet())
+	EXPECT_TRUE(Pin::IsSet());
 
 	cout << "\tOK" << endl;
 }
@@ -93,7 +73,6 @@ void PinTest()
 template<class Pins>
 struct PrintPinList
 {
-
     template<class List, int index>
     struct Iterator
     {
@@ -135,36 +114,36 @@ void TestOnePortPinList(unsigned listValue, unsigned portValue)
     Port::Write(0);
 
     Pins::Write(listValue);
-    ASSERT_EQUAL(Port::OutReg,  portValue);
+    EXPECT_EQ(Port::OutReg,  portValue);
     val = Pins::Read();
-    ASSERT_EQUAL(val, listValue);
+    EXPECT_EQ(val, listValue);
 
     Port::DirReg = 0;
     Pins::SetConfiguration(Pins::Out, listValue);
-    ASSERT_EQUAL(Port::DirReg, portValue);
+    EXPECT_EQ(Port::DirReg, portValue);
 
     Port::Write(0);
     Port::DirReg = 0;
 
     Port::InReg = portValue;
     val = Pins::PinRead();
-    ASSERT_EQUAL(val, listValue);
+    EXPECT_EQ(val, listValue);
 
     Port::InReg = 0;
     val = Pins::PinRead();
-    ASSERT_EQUAL(val, 0);
+    EXPECT_EQ(val, 0);
 
     Pins::Write(0);
-    ASSERT_EQUAL(Port::OutReg, 0);
+    EXPECT_EQ(Port::OutReg, 0);
 
     Pins::Set(listValue);
-    ASSERT_EQUAL(Port::OutReg, portValue);
+    EXPECT_EQ(Port::OutReg, portValue);
 
     Pins::Clear(listValue);
-    ASSERT_EQUAL(Port::OutReg, 0);
+    EXPECT_EQ(Port::OutReg, 0);
 
     Pins::SetConfiguration(Pins::In, 0xff);
-    ASSERT_EQUAL(Port::DirReg, 0);
+    EXPECT_EQ(Port::DirReg, 0);
 
     cout << "\tOK" << endl;
 }
@@ -180,36 +159,36 @@ void TestOnePortConstIface()
     Port::template Write<0>();
 
     Pins::template Write<listValue>();
-    ASSERT_EQUAL(Port::OutReg,  portValue);
+    EXPECT_EQ(Port::OutReg,  portValue);
     val = Pins::Read();
-    ASSERT_EQUAL(val, listValue);
+    EXPECT_EQ(val, listValue);
 
     Port::DirReg = 0;
-    Pins::template SetConfiguration<Pins::Out, listValue>();
-    ASSERT_EQUAL(Port::DirReg, portValue);
+    Pins::template SetConfiguration<listValue, Pins::Out>();
+    EXPECT_EQ(Port::DirReg, portValue);
 
     Port::template Write<0>();
     Port::DirReg = 0;
 
     Port::InReg = portValue;
     val = Pins::PinRead();
-    ASSERT_EQUAL(val, listValue);
+    EXPECT_EQ(val, listValue);
 
     Port::InReg = 0;
     val = Pins::PinRead();
-    ASSERT_EQUAL(val, 0);
+    EXPECT_EQ(val, 0);
 
     Port::template Write<0>();
-    ASSERT_EQUAL(Port::OutReg, 0);
+    EXPECT_EQ(Port::OutReg, 0);
 
     Pins::template Set<listValue>();
-    ASSERT_EQUAL(Port::OutReg, portValue);
+    EXPECT_EQ(Port::OutReg, portValue);
 
     Pins::template Clear<listValue>();
-    ASSERT_EQUAL(Port::OutReg, 0);
+    EXPECT_EQ(Port::OutReg, 0);
 
-    Pins::template SetConfiguration<Pins::In, 0xff>();
-    ASSERT_EQUAL(Port::DirReg, 0);
+    Pins::template SetConfiguration<0xff, Pins::In>();
+    EXPECT_EQ(Port::DirReg, 0);
 
     cout << "\tOK" << endl;
 }
@@ -221,31 +200,31 @@ void Test2PortConfiguration(unsigned listValue, unsigned portValue, unsigned por
     cout << __FUNCTION__ << "\t";
     PrintPinList<Pins>::Print();
     Pins::Write(listValue);
-    ASSERT_EQUAL(Port1::OutReg, portValue);
-    ASSERT_EQUAL(Port2::OutReg, portValue2);
+    EXPECT_EQ(Port1::OutReg, portValue);
+    EXPECT_EQ(Port2::OutReg, portValue2);
     val = Pins::Read();
-    ASSERT_EQUAL(val, listValue);
+    EXPECT_EQ(val, listValue);
 
     Port1::OutReg = 0;
     Pins::Set(listValue);
-    ASSERT_EQUAL(Port1::OutReg, portValue);
-    ASSERT_EQUAL(Port2::OutReg, portValue2);
+    EXPECT_EQ(Port1::OutReg, portValue);
+    EXPECT_EQ(Port2::OutReg, portValue2);
     val = Pins::Read();
-    ASSERT_EQUAL(val, listValue);
+    EXPECT_EQ(val, listValue);
 
     Pins::Clear(listValue);
-    ASSERT_EQUAL(Port1::OutReg, 0);
-    ASSERT_EQUAL(Port2::OutReg, 0);
+    EXPECT_EQ(Port1::OutReg, 0);
+    EXPECT_EQ(Port2::OutReg, 0);
     val = Pins::Read();
-    ASSERT_EQUAL(val, 0);
+    EXPECT_EQ(val, 0);
 
     Pins::SetConfiguration(Pins::Out, listValue);
-    ASSERT_EQUAL(Port1::DirReg, portValue);
-    ASSERT_EQUAL(Port2::DirReg, portValue2);
+    EXPECT_EQ(Port1::DirReg, portValue);
+    EXPECT_EQ(Port2::DirReg, portValue2);
     cout << "\tOK" << endl;
 }
 
-void PinsTests()
+TEST(GPIO, PinsTests)
 {
 	PinTest<Pa0>();
 	PinTest<Pa1>();
@@ -281,10 +260,8 @@ void PinsTests()
 	PinTest<Pa31>();
 }
 
-int main()
+TEST(GPIO, PinListTest)
 {
-	PinsTests();
-
     for(int i=0; i< 16; i++)
     {
         cout << "Writing value: " << i << endl;
@@ -302,7 +279,7 @@ int main()
     TestOnePortPinList<PinList<Pa2, Pa1, Pa3, Pa4, Pa6, Pa8, Pa7, Pa0, Pa5> >(0x1ff, 0x1ff);
 
     TestOnePortPinList<PinList<Pa0, Pa1, Pa2, Pa3, Pa4, Pa5, Pa6, Pa7, Pa8>::Slice<5, 4> >(0x1e0, 0x1e0);
-    cout << "Length = \t" <<PinList<Pa0, Pa1, Pa2, Pa3, Pa4, Pa5, Pa6, Pa7, Pa8>::Slice<5, 4>::Length;
+    cout << "Length = \t" <<PinList<Pa0, Pa1, Pa2, Pa3, Pa4, Pa5, Pa6, Pa7, Pa8>::Slice<5, 4>::Length << std::endl;
     TestOnePortPinList<PinList<Pa0, Pa1, Pa2, Pa3, Pa4, Pa5, Pa6, Pa7, Pa8>::Slice<0, 4> >(0x0f, 0x0f);
 
     TestOnePortPinList<PinList<Pa4, Pa1, Pa6, Pa3, Pa7, Pa5, Pa0 > >(0x7f, 0xfb);
@@ -327,9 +304,4 @@ int main()
 
     Test2PortConfiguration<PinList<Pa1, Pa3, Pa2, Pa0, Pb1, Pb3, Pb2, Pb0>, Porta, Portb>(0xff, 0x0f, 0x0f);
     Test2PortConfiguration<PinList<Pa1, Pa2, Pa3, Pa0, Pb0, Pb1, Pb2, Pb3>, Porta, Portb>(0xff, 0x0f, 0x0f);
-
-	std::cout << "=======================================================";
-    std::cout << "\n\t\tTests passed\n";
-    std::cout << "=======================================================";
-    return 0;
 }
