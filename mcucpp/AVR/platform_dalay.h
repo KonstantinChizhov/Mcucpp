@@ -9,9 +9,19 @@ enum
 	PlatformCyslesPerDelayLoop8 = 3
 };
 
-inline void PlatformDelayCycle32(volatile uint32_t delayLoops)
+inline void PlatformDelayCycle16(uint16_t delayLoops);
+
+
+inline void PlatformDelayCycle32(uint32_t delayLoops)
 {		
-do{}while(--delayLoops);
+	__asm volatile (
+		"1: subi %A0, 1" "\n\t"
+		"sbci %B0, 0"  "\n\t"
+		"sbci %C0, 0"  "\n\t"
+		"sbci %D0, 0"  "\n\t"
+		"brne 1b"
+		: "+d" (delayLoops)
+	);
 }
 
 inline void PlatformDelayCycle16(uint16_t delayLoops)
