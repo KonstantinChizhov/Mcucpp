@@ -12,12 +12,12 @@ inline  PtrT __flash* FLASH_PTR( PtrT __flash* ptr){return ptr;}
 
 #include <avr/pgmspace.h>
 
-template<class T, class PtrType = T*>
+template<class T, class PtrType = const T*>
 class ProgmemPtr
 {
 	typedef ProgmemPtr Self;
 public:
-	ProgmemPtr(T *address=0)
+	ProgmemPtr(const T *address=0)
 		:_address(address)
 	{
 	}
@@ -93,6 +93,16 @@ public:
 	inline operator bool() const
 	{
 		return _address != 0;
+	}
+	
+	inline T operator [](int index)
+	{
+		T result;
+		uint8_t *ptr = static_cast<uint8_t*>(&result);
+		
+		for(unsigned i = 0; i<sizeof(T); ++i)
+			ptr[i] = pgm_read_byte((const uint8_t* const)(_address + index) + i);
+		return result;
 	}
 
 	inline const T operator *()const
