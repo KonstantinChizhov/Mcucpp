@@ -36,6 +36,7 @@
 		<Unit filename="..\..\gtest\gtest_main.cc" />
 		<Unit filename="FormatWriter.cpp" />
 		<Unit filename="PinList.cpp" />
+		<Unit filename="containers.cpp" />
 		<Unit filename="timers.cpp" />
 		<Extensions>
 			<code_completion />
