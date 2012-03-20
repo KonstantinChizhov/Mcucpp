@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <tiny_ios.h>
 
+namespace Mcucpp
+{
 namespace IO
 {
 	template<class OutputPolicy,
@@ -92,7 +94,7 @@ namespace IO
 			write(str, outputSize);
 			FieldFill(outputSize, IOS::left);
 		}
-		
+
 		template<class CharPtr>
 		void puts(CharPtr str)
 		{
@@ -100,7 +102,7 @@ namespace IO
 			while(*strEnd) ++strEnd;
 			streamsize_t outputSize = strEnd - str;
             FieldFill(outputSize, IOS::right);
-			 
+
 			while(CharT c = *str)
 			{
 				put(c);
@@ -140,5 +142,6 @@ namespace IO
 		os.put('\0');
 		return os;
 	}
+}
 }
 #include <impl/tiny_ostream.h>

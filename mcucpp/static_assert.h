@@ -1,9 +1,10 @@
 #pragma once
 
 
-
+#ifndef CONCAT 
 #define CONCAT2(First, Second) (First ## Second)
 #define CONCAT(First, Second) CONCAT2(First, Second)
+#endif 
 
 #ifdef __cplusplus
 

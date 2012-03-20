@@ -1,6 +1,11 @@
 #ifndef TINY_IOS_H__
 #define TINY_IOS_H__
 
+#include <string.h>
+#include <enum.h>
+
+namespace Mcucpp
+{
 namespace IO
 {
     template<class CharT>
@@ -167,6 +172,6 @@ namespace IO
 	typedef basic_ios<char> ios;
 	typedef basic_ios<wchar_t> wios;
 }
-
+}
 #include <impl/tiny_ios.h>
 #endif

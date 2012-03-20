@@ -1,4 +1,6 @@
 #pragma once
+namespace Mcucpp
+{
 namespace IO
 {
 	template<class Stream, FormatMode Mode, class FormatStrPtrType>
@@ -86,3 +88,5 @@ namespace IO
 		}
 	}
 }
+}
+

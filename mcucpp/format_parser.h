@@ -2,6 +2,8 @@
 
 #include <tiny_iomanip.h>
 
+namespace Mcucpp
+{
 namespace IO
 {
 	enum FormatMode
@@ -36,8 +38,8 @@ namespace IO
 
 	public:
 		FormatParser(Stream &stream, FormatStrPtrType format)
-			:out(stream),
-			_formatSrting(format)
+			:_formatSrting(format),
+			out(stream)
 		{
 			if(_formatSrting)
 				ProcessFormat();
@@ -97,5 +99,5 @@ namespace IO
 		return FormatParser<Stream, Mode, FormatStr>(stream, format.FormatSrting);
 	}
 }
-
+}
 #include <impl/format_parser.h>

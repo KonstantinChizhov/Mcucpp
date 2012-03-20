@@ -1,6 +1,8 @@
 #pragma once
 #include <tiny_ostream.h>
 
+namespace Mcucpp
+{
 namespace IO
 {
 
@@ -57,4 +59,5 @@ IO_DECLARE_STREAM_UNSET_MANIPULATOR(nounitbuf, IOS::unitbuf)
         os.width(f.width);
         return os;
     }
+}
 }

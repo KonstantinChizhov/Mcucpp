@@ -1,4 +1,7 @@
 
+
+namespace Mcucpp
+{
 namespace IO
 {
     ios_base::fmtflags ios_base::flags ( ) const
@@ -110,4 +113,5 @@ namespace IO
         _fillch = fillch;
         return tmp;
     }
+}
 }

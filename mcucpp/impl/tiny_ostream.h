@@ -1,5 +1,7 @@
 #include <stdlib.h>
 
+namespace Mcucpp
+{
 namespace IO
 {
 	namespace Impl
@@ -43,7 +45,7 @@ namespace IO
 			T result = 0;
 			while(isdigit(*str))
 			{
-				
+
 				result = result * 10 + (*str - '0');
 				str++;
 			}
@@ -144,7 +146,7 @@ namespace IO
 		typedef typename Util::Unsigned<T>::Result UT;
 		UT uvalue = static_cast<UT>(value);
 		CharT * str = Impl::IntToString(uvalue, buffer + bufferSize, Base());
-		
+
 		int outputSize = buffer + bufferSize - str + prefix + maxPrefixSize - prefixPtr;
 
 		FieldFill(outputSize, IOS::right);
@@ -178,4 +180,5 @@ namespace IO
 			FieldFill(1, IOS::left);
 		}
 	}
+}
 }

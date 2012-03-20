@@ -35,6 +35,8 @@ private:
 	char _buffer[BufSize];
 };
 
+using namespace Mcucpp;
+
 typedef IO::basic_ostream<MyWriter > my_ostream;
 
 TEST(Format, Stream)
