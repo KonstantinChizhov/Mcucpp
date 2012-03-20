@@ -69,8 +69,8 @@ namespace Mcucpp
 		}while(Private::STREX(newValue, (T*)ptr));       \
 		return oldValue;                                 \
 	}                                                    \
-	static template<class T, class T2>                   \
-	T OP_NAME ## AndFetch(volatile T * ptr, T2 value)    \
+	template<class T, class T2>                   \
+	static T OP_NAME ## AndFetch(volatile T * ptr, T2 value)    \
 	{                                                    \
 		T oldValue, newValue;                            \
 		do                                               \
@@ -94,9 +94,10 @@ namespace Mcucpp
 		template<class T>
 		static T Fetch(volatile T * ptr)
 		{
+			T value;
 			do
 			{
-				T value = Private::LDREX((T*)ptr);
+				value = Private::LDREX((T*)ptr);
 			}while(Private::STREX(value, (T*)ptr));
 		}
 	

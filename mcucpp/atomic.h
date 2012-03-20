@@ -9,14 +9,14 @@ namespace Mcucpp
 {
 	#define DECLARE_OP(OPERATION, OP_NAME) \
 	template<class T, class T2>\
-	static T FetchAnd ## OP_NAME (T * ptr, T2 value)\
+	static inline T FetchAnd ## OP_NAME (T * ptr, T2 value)\
 	{\
 		T tmp = *ptr;\
 		*ptr = tmp OPERATION value;\
 		return tmp;\
 	}\
 	template<class T, class T2>\
-	static T OP_NAME ## AndFetch(T * ptr, T2 value)\
+	static inline T OP_NAME ## AndFetch(T * ptr, T2 value)\
 	{\
 			*ptr = *ptr OPERATION value;\
 			return *ptr;\
@@ -33,13 +33,13 @@ namespace Mcucpp
 		DECLARE_OP(^, Xor)
 
 		template<class T>
-		static T Fetch(T * ptr)
+		static inline T Fetch(T * ptr)
 		{
 			return *ptr;
 		}
 
 		template<class T, class T2>
-		static bool CompareExchange(T * ptr, T2 oldValue, T2 newValue)
+		static inline bool CompareExchange(T * ptr, T2 oldValue, T2 newValue)
 		{
 			if(*ptr != oldValue)
 				return false;

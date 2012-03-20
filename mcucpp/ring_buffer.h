@@ -67,6 +67,7 @@ namespace Containers
 		reference back();
 		const_reference back()const;
 		bool push_back(const T& x);
+		bool push_back();
 		bool pop_front();
 		void clear();
 		inline reference operator[] (size_type i);
@@ -85,6 +86,15 @@ namespace Containers
 		if(full())
 			return 0;
 		_data[_writeCount++ & _mask] = value;
+		return true;
+	}
+	
+	template<size_t SIZE, class T, class Atomic>
+	bool RingBufferPO2<SIZE, T, Atomic>::push_back()
+	{
+		if(full())
+			return 0;
+		new(&_data[_writeCount++ & _mask]) T();
 		return true;
 	}
 
@@ -193,6 +203,7 @@ namespace Containers
 		reference back();
 		const_reference back()const;
 		bool push_back(const T& x);
+		bool push_back();
 		bool pop_front();
 		void clear();
 		inline reference operator[] (size_type i);
@@ -265,6 +276,19 @@ namespace Containers
 		if(offset >= SIZE)
 			offset -= SIZE;
 		return _data[offset];
+	}
+	
+	template<size_t SIZE, class T, class Atomic>
+	bool RingBuffer<SIZE, T, Atomic>::push_back()
+	{
+		if(Atomic::Fetch(&_count) == SIZE)
+			return false;
+		new (&_data[_last]) T();
+		_last++;
+		if(_last >= SIZE)
+			_last = 0;
+		Atomic::AddAndFetch(&_count, 1);
+		return true;
 	}
 
 	template<size_t SIZE, class T, class Atomic>

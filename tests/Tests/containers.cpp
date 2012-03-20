@@ -67,6 +67,9 @@ TEST(Containers, RingBuffer2)
 	EXPECT_TRUE(buf1.push_back(100));
 	EXPECT_FALSE(buf1.empty());
 	EXPECT_EQ(buf1.front(), 100);
+	EXPECT_TRUE(buf1.push_back());
+	EXPECT_EQ(buf1.back(), 0);
+	EXPECT_TRUE(buf1.pop_front());
 	EXPECT_TRUE(buf1.pop_front());
 	EXPECT_TRUE(buf1.empty());
 	EXPECT_FALSE(buf1.pop_front());
