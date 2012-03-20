@@ -9,14 +9,14 @@ namespace Mcucpp
 {
 	#define DECLARE_OP(OPERATION, OP_NAME) \
 	template<class T, class T2>\
-	static T FetchAnd ## OP_NAME (volatile T * ptr, T2 value)\
+	static T FetchAnd ## OP_NAME (T * ptr, T2 value)\
 	{\
 		T tmp = *ptr;\
 		*ptr = tmp OPERATION value;\
 		return tmp;\
 	}\
 	template<class T, class T2>\
-	static T OP_NAME ## AndFetch(volatile T * ptr, T2 value)\
+	static T OP_NAME ## AndFetch(T * ptr, T2 value)\
 	{\
 			*ptr = *ptr OPERATION value;\
 			return *ptr;\

@@ -139,7 +139,7 @@ void PinLists()
 	// They are much faster and smaller, since most of things are evaluated
 	// at compile time and only actual Read/Modify/Write operation will take place in runtime.
 
-	Group1::SetConfiguration<Group1::Out, 0xff>();
+	Group1::SetConfiguration<Group1::Out>();
 	Group1::Write<0x55>();
 	Group1::Set<0xAA>();
 	Group1::Clear<0xF0>();

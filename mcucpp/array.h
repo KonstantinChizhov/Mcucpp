@@ -32,6 +32,7 @@
 
 #include <stddef.h>
 #include <atomic.h>
+#include <debug.h>
 
 // TODO: STL consistent iterators begin(), end(), rbegin(), rend() and etc.
 
@@ -95,36 +96,42 @@ namespace Containers
 	template<size_t SIZE, class T, class Atomic>
 	const T& FixedArray<SIZE, T, Atomic>::front()const
 	{
+		MCUCPP_ASSERT(!empty());
 		return _data[0];
 	}
 
 	template<size_t SIZE, class T, class Atomic>
 	const T& FixedArray<SIZE, T, Atomic>::back()const
 	{
+		MCUCPP_ASSERT(!empty());
 		return _data[Atomic::Fetch(&_bottom) - 1];
 	}
 
 	template<size_t SIZE, class T, class Atomic>
 	T& FixedArray<SIZE, T, Atomic>::front()
 	{
+		MCUCPP_ASSERT(!empty());
 		return _data[0];
 	}
 
 	template<size_t SIZE, class T, class Atomic>
 	T& FixedArray<SIZE, T, Atomic>::back()
 	{
+		MCUCPP_ASSERT(!empty());
 		return _data[Atomic::Fetch(&_bottom) - 1];
 	}
 
 	template<size_t SIZE, class T, class Atomic>
 	T& FixedArray<SIZE, T, Atomic>::operator[] (size_type i)
 	{
+		MCUCPP_ASSERT(i < SIZE);
 		return _data[i];
 	}
 
 	template<size_t SIZE, class T, class Atomic>
 	const T& FixedArray<SIZE, T, Atomic>::operator[] (size_type i)const
 	{
+		MCUCPP_ASSERT(i < SIZE);
 		return _data[i];
 	}
 

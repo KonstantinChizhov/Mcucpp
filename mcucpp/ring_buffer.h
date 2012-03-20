@@ -30,6 +30,7 @@
 #include "static_assert.h"
 #include <stddef.h>
 #include <atomic.h>
+#include <debug.h>
 
 // TODO: STL consistent iterators begin(), end(), rbegin(), rend() and etc.
 
@@ -99,36 +100,42 @@ namespace Containers
 	template<size_t SIZE, class T, class Atomic>
 	const T& RingBufferPO2<SIZE, T, Atomic>::front()const
 	{
+		MCUCPP_ASSERT(!empty());
 		return _data[_readCount & _mask];
 	}
 
 	template<size_t SIZE, class T, class Atomic>
 	const T& RingBufferPO2<SIZE, T, Atomic>::back()const
 	{
+		MCUCPP_ASSERT(!empty());
 		return _data[(_writeCount-1) & _mask];
 	}
 
 	template<size_t SIZE, class T, class Atomic>
 	T& RingBufferPO2<SIZE, T, Atomic>::front()
 	{
+		MCUCPP_ASSERT(!empty());
 		return _data[_readCount & _mask];
 	}
 
 	template<size_t SIZE, class T, class Atomic>
 	T& RingBufferPO2<SIZE, T, Atomic>::back()
 	{
+		MCUCPP_ASSERT(!empty());
 		return _data[(_writeCount-1) & _mask];
 	}
 
 	template<size_t SIZE, class T, class Atomic>
 	T& RingBufferPO2<SIZE, T, Atomic>::operator[] (size_type i)
 	{
+		MCUCPP_ASSERT(i < SIZE);
 		return _data[(_readCount + i) & _mask];
 	}
 
 	template<size_t SIZE, class T, class Atomic>
 	const T& RingBufferPO2<SIZE, T, Atomic>::operator[] (size_type i)const
 	{
+		MCUCPP_ASSERT(i < SIZE);
 		return _data[(_readCount + i) & _mask];
 	}
 
@@ -195,6 +202,7 @@ namespace Containers
 	template<size_t SIZE, class T, class Atomic>
 	T& RingBuffer<SIZE, T, Atomic>::front()
 	{
+		MCUCPP_ASSERT(!empty());
 		return _data[_first];
 	}
 
@@ -221,24 +229,28 @@ namespace Containers
 	template<size_t SIZE, class T, class Atomic>
 	const T& RingBuffer<SIZE, T, Atomic>::front()const
 	{
+		MCUCPP_ASSERT(!empty());
 		return _data[_first];
 	}
 
 	template<size_t SIZE, class T, class Atomic>
 	T& RingBuffer<SIZE, T, Atomic>::back()
 	{
+		MCUCPP_ASSERT(!empty());
 		return _data[_last-1];
 	}
 
 	template<size_t SIZE, class T, class Atomic>
 	const T& RingBuffer<SIZE, T, Atomic>::back()const
 	{
+		MCUCPP_ASSERT(!empty());
 		return _data[_last-1];
 	}
 
 	template<size_t SIZE, class T, class Atomic>
 	T& RingBuffer<SIZE, T, Atomic>::operator[](size_type index)
 	{
+		MCUCPP_ASSERT(index < SIZE);
 		size_type offset = _first + index;
 		if(offset >= SIZE)
 			offset -= SIZE;
@@ -248,6 +260,7 @@ namespace Containers
 	template<size_t SIZE, class T, class Atomic>
 	const T& RingBuffer<SIZE, T, Atomic>::operator[](size_type index)const
 	{
+		MCUCPP_ASSERT(index < SIZE);
 		size_type offset = _first + index;
 		if(offset >= SIZE)
 			offset -= SIZE;

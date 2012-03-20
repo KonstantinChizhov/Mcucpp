@@ -1,4 +1,7 @@
 #include <iostream>
+
+#define DEBUG 1
+
 #include <ring_buffer.h>
 #include <stack.h>
 #include <array.h>
@@ -35,19 +38,19 @@ TEST(Containers, RingBuffer1)
 	EXPECT_EQ(buf1.size(), 0);
 	EXPECT_TRUE(buf1.empty());
 
-	for(int i=0; i< buf1.capacity(); i++)
+	for(unsigned i=0; i < buf1.capacity(); i++)
 		EXPECT_TRUE(buf1.push_back(i));
 	EXPECT_FALSE(buf1.push_back(-1));
 	EXPECT_TRUE(buf1.full());
 	EXPECT_TRUE(cref.full());
 
-	for(int i=0; i < buf1.capacity(); i++)
+	for(unsigned i=0; i < buf1.capacity(); i++)
 	{
 		EXPECT_EQ(buf1[i], i);
 		EXPECT_EQ(cref[i], i);
 	}
 
-	for(int i=0; i < buf1.capacity(); i++)
+	for(unsigned i=0; i < buf1.capacity(); i++)
 	{
 		EXPECT_EQ(buf1.front(), i);
 		EXPECT_EQ(cref.front(), i);
@@ -82,19 +85,19 @@ TEST(Containers, RingBuffer2)
 	EXPECT_EQ(buf1.size(), 0);
 	EXPECT_TRUE(buf1.empty());
 
-	for(int i=0; i< buf1.capacity(); i++)
+	for(unsigned i=0; i< buf1.capacity(); i++)
 		EXPECT_TRUE(buf1.push_back(i));
 	EXPECT_FALSE(buf1.push_back(-1));
 	EXPECT_TRUE(buf1.full());
 	EXPECT_TRUE(cref.full());
 
-	for(int i=0; i < buf1.capacity(); i++)
+	for(unsigned i=0; i < buf1.capacity(); i++)
 	{
 		EXPECT_EQ(buf1[i], i);
 		EXPECT_EQ(cref[i], i);
 	}
 
-	for(int i=0; i < buf1.capacity(); i++)
+	for(unsigned i=0; i < buf1.capacity(); i++)
 	{
 		EXPECT_EQ(buf1.front(), i);
 		EXPECT_EQ(cref.front(), i);
@@ -135,17 +138,17 @@ TEST(Containers, Stack)
 	EXPECT_EQ(stack.size(), 0);
 	EXPECT_TRUE(stack.empty());
 
-	for(int i=0; i< stack.capacity(); i++)
+	for(unsigned i=0; i< stack.capacity(); i++)
 		EXPECT_TRUE(stack.push_front(i));
 	EXPECT_FALSE(stack.push_front(-1));
 
-	for(int i=0; i < stack.capacity(); i++)
+	for(unsigned i=0; i < stack.capacity(); i++)
 	{
 		EXPECT_EQ(stack[i], stack.capacity() - 1 - i);
 		EXPECT_EQ(cref[i], cref.capacity() - 1 - i);
 	}
 
-	for(int i=0; i < stack.capacity(); i++)
+	for(unsigned i=0; i < stack.capacity(); i++)
 	{
 		EXPECT_EQ(stack.front(), stack.capacity() - 1 - i);
 		EXPECT_EQ(cref.front(), cref.capacity() - 1 - i);
@@ -187,17 +190,17 @@ TEST(Containers, Array)
 	EXPECT_EQ(array.size(), 0);
 	EXPECT_TRUE(array.empty());
 
-	for(int i=0; i< array.capacity(); i++)
+	for(unsigned i=0; i< array.capacity(); i++)
 		EXPECT_TRUE(array.push_back(i));
 	EXPECT_FALSE(array.push_back(-1));
 
-	for(int i=0; i < array.capacity(); i++)
+	for(unsigned i=0; i < array.capacity(); i++)
 	{
 		EXPECT_EQ(array[i], i);
 		EXPECT_EQ(cref[i], i);
 	}
 
-	for(int i=0; i < array.capacity(); i++)
+	for(unsigned i=0; i < array.capacity(); i++)
 	{
 		EXPECT_EQ(array.back(), array.capacity() - 1 - i);
 		EXPECT_EQ(cref.back(), cref.capacity() - 1 - i);
