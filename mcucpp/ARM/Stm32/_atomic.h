@@ -1,7 +1,7 @@
 #pragma once
 #include <core_cm3.h>
 
-namespace Atomic
+namespace Mcucpp
 {
 	class DisableInterrupts
 	{
@@ -21,7 +21,7 @@ namespace Atomic
 		uint32_t _sreg;
 	};
 
-#define ATOMIC if(Atomic::DisableInterrupts di = Atomic::DisableInterrupts()){}else
+#define ATOMIC if(Mcucpp::DisableInterrupts di = Mcucpp::DisableInterrupts()){}else
 
 	namespace Private
 	{
@@ -59,7 +59,7 @@ namespace Atomic
 // TODO: reimplement it with LDREX/STREX
 #define DECLARE_OP(OPERATION, OP_NAME) \
 	template<class T, class T2>\
-	T FetchAnd ## OP_NAME (volatile T * ptr, T2 value)   \
+	static T FetchAnd ## OP_NAME (volatile T * ptr, T2 value)\
 	{                                                    \
 		T oldValue, newValue;                            \
 		do                                               \
@@ -69,7 +69,7 @@ namespace Atomic
 		}while(Private::STREX(newValue, (T*)ptr));       \
 		return oldValue;                                 \
 	}                                                    \
-	template<class T, class T2>                          \
+	static template<class T, class T2>                   \
 	T OP_NAME ## AndFetch(volatile T * ptr, T2 value)    \
 	{                                                    \
 		T oldValue, newValue;                            \
@@ -80,20 +80,33 @@ namespace Atomic
 		}while(Private::STREX(newValue, (T*)ptr));       \
 		return newValue;                                 \
 	}
-
-	DECLARE_OP(+, Add)
-	DECLARE_OP(-, Sub)
-	DECLARE_OP(|, Or)
-	DECLARE_OP(&, And)
-	DECLARE_OP(^, Xor)
 	
-	template<class T, class T2>
-	bool CompareExchange(T * ptr, T2 oldValue, T2 newValue)
+	class Atomic 
 	{
-		if(Private::LDREX(ptr) == oldValue)
-		return Private::STREX(newValue, ptr) == 0;
-		__CLREX();
-		return false;
-	}
-
+		Atomic();
+	public:
+		DECLARE_OP(+, Add)
+		DECLARE_OP(-, Sub)
+		DECLARE_OP(|, Or)
+		DECLARE_OP(&, And)
+		DECLARE_OP(^, Xor)
+		
+		template<class T>
+		static T Fetch(volatile T * ptr)
+		{
+			do
+			{
+				T value = Private::LDREX((T*)ptr);
+			}while(Private::STREX(value, (T*)ptr));
+		}
+	
+		template<class T, class T2>
+		static bool CompareExchange(T * ptr, T2 oldValue, T2 newValue)
+		{
+			if(Private::LDREX(ptr) == oldValue)
+				return Private::STREX(newValue, ptr) == 0;
+			__CLREX();
+			return false;
+		}
+	};
 }
