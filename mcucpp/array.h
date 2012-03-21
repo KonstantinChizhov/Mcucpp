@@ -33,6 +33,7 @@
 #include <stddef.h>
 #include <atomic.h>
 #include <debug.h>
+#include <select_size.h>
 
 // TODO: STL consistent iterators begin(), end(), rbegin(), rend() and etc.
 
@@ -44,7 +45,7 @@ namespace Containers
 	class FixedArray
 	{
 	public:
-		typedef size_t size_type;
+		typedef typename SelectSizeForLength<SIZE>::Result size_type;
 		typedef T value_type;
 		typedef T& reference;
 		typedef const T& const_reference;

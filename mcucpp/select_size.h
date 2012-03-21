@@ -24,7 +24,7 @@
 
 		typedef typename StaticIf<
 				LessOrEq8,
-				uint8_t,
-				typename StaticIf<LessOrEq16, uint16_t, uint32_t>::Result>
+				uint_fast8_t,
+				typename StaticIf<LessOrEq16, uint_fast16_t, uint_fast32_t>::Result>
 				::Result Result;
 	};

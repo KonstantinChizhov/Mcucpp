@@ -1,6 +1,6 @@
 
-	_STACKSIZE = 256;
-	_HEAPSIZE = 64;
+	_STACKSIZE =1024;
+	_HEAPSIZE = 128;
 
 /* Specify the memory areas */
 MEMORY
@@ -22,35 +22,25 @@ SECTIONS
 		*(.glue_7t) *(.glue_7) *(.vfp11_veneer)
 		KEEP(*(.fini))
 		*(.gcc_except_table)
-	} >FLASH
-	. = ALIGN(4);
-
-	/* .ctors .dtors are used for c++ constructors/destructors */
-	
-	.ctors :
-	{
-		PROVIDE(__ctors_start__ = .);
+        
+        PROVIDE(__ctors_start__ = .);
 		KEEP(*(SORT(.ctors.*)))
 		KEEP(*(.ctors))
 		PROVIDE(__ctors_end__ = .);
-	} >FLASH
-
-	.dtors :
-	{
+        
+        
 		PROVIDE(__dtors_start__ = .); 
 		KEEP(*(SORT(.dtors.*)))
 		KEEP(*(.dtors))
 		PROVIDE(__dtors_end__ = .);
-	} >FLASH
-   
-	/* .rodata section which is used for read-only data (constants) */
-
-	.rodata :
-	{
-		*(.rodata .rodata.*)
+        
+        *(.rodata .rodata.*)
 		*(.gnu.linkonce.r.*)
 	} >FLASH
 	. = ALIGN(4);
+    
+    _etext = .;
+	PROVIDE (etext = .);
 
 	.init_array :
 	{
@@ -79,8 +69,7 @@ SECTIONS
 	} >RAM
 	__exidx_end = .;
 
-	_etext = .;
-	PROVIDE (etext = .);
+	
 
 	/* .data section which is used for initialized data */
 
