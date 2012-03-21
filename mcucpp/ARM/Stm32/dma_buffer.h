@@ -5,7 +5,8 @@
 #include "clock.h"
 #include <static_assert.h>
 #include <enum.h>
-#include <ring_buffer.h>
+#include <containers.h>
+#include <debug.h>
 
 namespace Mcucpp
 {
@@ -61,6 +62,11 @@ namespace IO
 			ChannelRegs()->CPAR = reinterpret_cast<uint32_t>(periph);
 			ChannelRegs()->CMAR = reinterpret_cast<uint32_t>(buffer);
 			ChannelRegs()->CCR = mode | DMA_CCR1_EN;
+		}
+		
+		static bool Enabled()
+		{
+			return ChannelRegs()->CCR & DMA_CCR1_EN;
 		}
 		
 		static void Disable()
@@ -138,14 +144,14 @@ namespace IO
 		static bool ChannelFlag()
 		{
 			BOOST_STATIC_ASSERT(ChannelNum > 0 && ChannelNum <= Channels);
-			return DmaRegs()->ISR & (1 << (ChannelNum - 1) * 4 + Flag);
+			return DmaRegs()->ISR & (1 << ((ChannelNum - 1) * 4 + Flag));
 		}
 		
 		template<int ChannelNum, int Flag>
 		static void ClearChannelFlag()
 		{
 			BOOST_STATIC_ASSERT(ChannelNum > 0 && ChannelNum <= Channels);
-			DmaRegs()->IFCR | (1 << (ChannelNum - 1) * 4 + Flag);
+			DmaRegs()->IFCR |= (1 << ((ChannelNum - 1) * 4 + Flag));
 		}
 		
 		public:
@@ -265,39 +271,67 @@ namespace IO
 	typedef DmaChannel<Dma2, Private::Dma2Channel5, 1> Dma1Channel5;
 #endif
 	
-	template<class PeriphModule, class _DataType, size_t NBlocks, size_t BlockSize>
+	template<class Dma, class _DataType, size_t NBlocks, size_t BlockSize>
 	class DmaWriteBuffer
 	{
 		BOOST_STATIC_ASSERT(sizeof(_DataType) <= 4);
-	public:
+	
 		typedef _DataType DataT;
-		static const DmaBase::Mode PSize = PeriphModule::Dma::ItemSize;
+		DmaBase::Mode PSize;
+		void *_periphPtr;
 		static const DmaBase::Mode MSize = sizeof(_DataType) > 8 ? 
 					(sizeof(_DataType) > 16 ? DmaBase::MSize32Bits : DmaBase::MSize16Bits) 
 					: DmaBase::MSize8Bits;
-		typedef typename PeriphModule::Dma::ChannelTx UsedDmaChannel;
-		
-		DmaWriteBuffer()
+	public:
+		template<class DestDataT>
+		DmaWriteBuffer(DestDataT *periphPtr)
 		{
-			_dmaBufferEnd = _writePtr = _buffer;
+			_periphPtr = (void*)periphPtr;
+			PSize = sizeof(DestDataT) > 8 ? 
+					(sizeof(DestDataT) > 16 ? DmaBase::PSize32Bits : DmaBase::PSize16Bits) 
+					: DmaBase::PSize8Bits;
 		}
 		
 		bool Write(DataT item)
 		{
-				UsedDmaChannel::Disable();// stop current DMA transaction if any
-							
-				PeriphModule::Dma::EnableTx();
-				
-				UsedDmaChannel::Init(DmaBase::Mem2Periph | PSize | MSize | DmaBase::MemIncriment | DmaBase::PriorityMedium, 
-					readPtr, 
-					PeriphModule::Dma::PAddress(), 
-					dmaTransactionSize);
-			return true;
+			bool result = true;
+			if(_txQueue.empty())
+				_txQueue.push_back();
+			
+			Block &currentBlock = _txQueue.back();
+			
+			if(!(_txQueue.full() && currentBlock.full()))
+			{
+				currentBlock.push_back(item);
+			
+				if(currentBlock.full())
+					_txQueue.push_back();
+			}
+			else result = false;
+		
+			if(Dma::TrasferComplete())
+			{
+				Dma::ClearTrasferComplete();
+				_txQueue.pop_front();
+			}
+			
+			if(Dma::RemainingTransfers() == 0 && _txQueue.front().full())
+			{
+				SendBlock(_txQueue.front());
+			}
+			return result;
 		}
 		
 	private:
+		typedef Containers::FixedArray<BlockSize, DataT> Block;
+		void SendBlock(Block &block)
+		{
+			Dma::Init(DmaBase::Mem2Periph | PSize | MSize | DmaBase::MemIncriment | DmaBase::PriorityMedium, 
+					&block[0],
+					_periphPtr, 
+					block.size());
+		}
 		
-		typedef Containers::Array<BlockSize, DataT> Block;
 		Containers::RingBuffer<NBlocks, Block> _txQueue;
 	};
 	
