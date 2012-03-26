@@ -1003,6 +1003,7 @@
         <option>
           <name>CCDefines</name>
           <state>NDEBUG</state>
+          <state>F_CPU=8000000</state>
         </option>
         <option>
           <name>CCPreprocFile</name>

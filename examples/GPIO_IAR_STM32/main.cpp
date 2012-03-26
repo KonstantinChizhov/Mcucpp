@@ -14,6 +14,7 @@
 
 // defination of PinList class
 #include <pinlist.h>
+#include <delay.h>
 
 // all IO stuff are in namespce
 using namespace IO;
@@ -54,6 +55,19 @@ void Ports()
 	const uint8_t outputValue2 = 0x03;
 	Porta::ClearAndSet<clearMask2, outputValue2>();
 }
+
+template<class Pin>
+class PinTest
+{
+public:
+  static void Pulse()
+  {
+	Pin::Set();
+	Util::delay_ms<10, F_CPU>();
+	Pin::Clear();
+  }
+};
+
 
 // working with individual pins
 void IndividualPins()
@@ -102,7 +116,23 @@ void IndividualPins()
 	{
 		// do something
 	}
+	
+	// pass pin1 to PinTest::Pulse();
+	PinTest<Pin1>::Pulse();
 }
+
+// PinLists can be passed to external code as tempalte parameters
+template<class Pins>
+class Test
+{
+public:
+  static void Foo()
+  {
+  	Pins::SetConfiguration(Pins::Out);
+	for(int i=0; i < 10; i++)
+	  Pins::Write(i);
+  }
+};
 
 // wotking with groups of pins - pin lists
 void PinLists()
@@ -137,7 +167,7 @@ void PinLists()
 	// They are much faster and smaller, since most of things are evaluated
 	// at compile time and only actual Read/Modify/Write operation will take place in runtime.
 
-	Group1::SetConfiguration<Group1::Out, 0xff>();
+	Group1::SetConfiguration<Group1::Out>();
 	Group1::Write<0x55>();
 	Group1::Set<0xAA>();
 	Group1::Clear<0xF0>();
@@ -159,6 +189,9 @@ void PinLists()
 	// Note that sliced pins will have they origin bit position in the input value.
 	// ie. other pins in group will be just masked out
 	LastTreePins::Write(0x70);
+	
+	// pass Group1 to Test as a tempalte parameter
+	Test<Group1>::Foo();
 }
 
 

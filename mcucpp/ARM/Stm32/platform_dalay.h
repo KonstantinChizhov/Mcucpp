@@ -33,14 +33,14 @@ inline void DelayLoop(uint32_t delayLoops)
 	// TODO: rewrite in assembly
 	 // __no_operation();
 	}while(delayLoops--);
-	
+}	
 enum
 {	
 	PlatformCyslesPerDelayLoop32 = 4,
 	PlatformCyslesPerDelayLoop16 = 4,
 	PlatformCyslesPerDelayLoop8 = 4
 };
-}
+
 #else
 #error Not supported compiler
 #endif
