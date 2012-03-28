@@ -35,7 +35,7 @@ namespace Timers
 			Div8 		= (1<<CS11), 
 			Div64 		= (1<<CS10) | (1<<CS11), 
 			Div256 		= (1<<CS12), 
-			Div1024 	= (1<<CS12) | (1<<CS00), 
+			Div1024 	= (1<<CS12) | (1<<CS10), 
 			ExtFalling	= (1<<CS12) | (1<<CS11), 
 			ExtRising	= (1<<CS12) | (1<<CS11) | (1<<CS10)
 		};
