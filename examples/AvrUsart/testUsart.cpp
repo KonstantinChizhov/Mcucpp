@@ -1,5 +1,7 @@
 #include "Usart.h"
 
+using namespace Mcucpp;
+
 // 8 bytes tx fifo buffer, 
 // 16 bytes rx fifo buffer
 // interrupt driven USART

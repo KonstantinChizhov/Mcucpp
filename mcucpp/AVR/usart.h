@@ -7,6 +7,9 @@
 #include "ring_buffer.h"
 #include <static_assert.h>
 
+namespace Mcucpp
+{
+
 #ifdef URSEL
 enum{ursel = 1 << URSEL};
 #else
@@ -192,68 +195,72 @@ public:
 
 	static bool Putch(uint8_t c)
 	{
-		if(_tx.IsEmpty())
+		if(_tx.empty())
 		{
 			while(!Regs::Ucsra::template BitIsSet<(UDRE)>() );
 			Regs::Udr::Set(c);
 			Regs::Ucsrb::Or(1 << UDRIE);
 			return true;
-		}else 
-		return _tx.Write(c);
+		}
+		return _tx.push_back(c);
 	}
 
 	static bool Getch(uint8_t &c)
 	{
-		return _rx.Read(c);
+		c = _rx.front();
+		return _rx.pop_front();
 	}
 
 	static inline void TxHandler()
 	{
 		uint8_t c;
-		if(_tx.Read(c))
-			Regs::Udr::Set(c);
-		else
+		if(_tx.empty())
 			Regs::Ucsrb::And( ~(1 << UDRIE) );
+		else
+		{
+			Regs::Udr::Set(_tx.front());
+			_tx.pop_front();
+
+		}
 	}
 
 	static inline void RxHandler()
 	{
-		if(!_rx.Write(Regs::Udr::Get() ))//buffer overlow
+		if(!_rx.push_back(Regs::Udr::Get()))//buffer overlow
 		{
 			//TODO: error handling
-			_rx.Clear();
+			_rx.clear();
 		}	
 	}
 
 	static void DropBuffers()
 	{
-		_rx.Clear();
+		_rx.clear();
 	}
 
 	static uint8_t BytesRecived()
 	{
-		return _rx.Count();
+		return _rx.size();
 	}
 
 	static void Disable()
 	{
 		
 		UsartBase<Regs>::Disable();
-		_rx.Clear();
-		_tx.Clear();
+		_rx.clear();
+		_tx.clear();
 	}
 
-
 private:
-	static RingBuffer<RxSize> _rx;
-	static RingBuffer<TxSize> _tx;
+	static Containers::RingBufferPO2<RxSize, char> _rx;
+	static Containers::RingBufferPO2<TxSize, char> _tx;
 };
 
 template<int TxSize, int RxSize, class Regs>
-	RingBuffer<RxSize> Usart<TxSize, RxSize, Regs>::_rx;
+	Containers::RingBufferPO2<RxSize, char> Usart<TxSize, RxSize, Regs>::_rx;
 template<int TxSize, int RxSize, class Regs>
-	RingBuffer<TxSize> Usart<TxSize, RxSize, Regs>::_tx;
+	Containers::RingBufferPO2<TxSize, char> Usart<TxSize, RxSize, Regs>::_tx;
 
-
+}
 
 #endif
