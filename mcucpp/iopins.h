@@ -139,6 +139,8 @@
 
 #endif
 
+namespace Mcucpp
+{
 namespace IO
 {
 	//Short pin definations
@@ -235,4 +237,5 @@ namespace IO
 	DECLARE_PORT_PINS(Port10, P10_)
 	#endif
 
+}
 }

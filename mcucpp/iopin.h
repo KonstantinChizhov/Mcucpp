@@ -30,6 +30,8 @@
 
 #include "static_assert.h"
 #include <stdint.h>
+namespace Mcucpp
+{
 namespace IO
 {
 
@@ -80,5 +82,5 @@ namespace IO
 	};
 
 }
-
+}
 #include <impl/iopin.h>

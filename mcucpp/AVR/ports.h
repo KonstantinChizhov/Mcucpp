@@ -108,7 +108,9 @@
 	IO_REG_WRAPPER(PORT ## PORT_LETTER, Out ## PORT_LETTER, uint8_t);\
 	IO_REG_WRAPPER(DDR ## PORT_LETTER, Dir ## PORT_LETTER, uint8_t);\
 	IO_REG_WRAPPER(PIN ## PORT_LETTER, In ## PORT_LETTER, uint8_t);
-
+	
+namespace Mcucpp
+{
 namespace IO
 {
 
@@ -360,6 +362,7 @@ namespace IO
 	#ifdef USE_PORTG
 	DECLARE_PORT(G, Portg, 6)
 	#endif
+}
 }
 
 #undef DECLARE_PORT

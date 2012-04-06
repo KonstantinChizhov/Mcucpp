@@ -1,4 +1,5 @@
-
+namespace Mcucpp
+{
 namespace IO
 {
 	template<class PORT, uint8_t PIN, class CONFIG_PORT>
@@ -92,4 +93,5 @@ namespace IO
 	{
 		Set(false);
 	}
+}
 }

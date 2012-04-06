@@ -2,6 +2,8 @@
 #include <static_if.h>
 #include <select_size.h>
 
+namespace Mcucpp
+{
 namespace IO
 {
 	using namespace Loki;
@@ -791,4 +793,5 @@ namespace IO
 			}
 		};
 	}
+}
 }

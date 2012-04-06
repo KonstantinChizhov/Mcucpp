@@ -1,5 +1,6 @@
 #pragma once
-
+namespace Mcucpp
+{
 #define IO_REG_WRAPPER(REG_NAME, CLASS_NAME, DATA_TYPE) \
 	struct CLASS_NAME\
 	{\
@@ -48,3 +49,5 @@ template<class DATA_TYPE = unsigned char>
 		template<int Bit>
 		static bool BitIsClear(){return true;}
 	};
+	
+}

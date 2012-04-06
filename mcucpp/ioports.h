@@ -36,7 +36,8 @@
 // Platform specific io ports implementation
 // Add appropriate platform specific folder to your include paths
 #include "ports.h"
-
+namespace Mcucpp
+{
 namespace IO
 {	
 	class NullPort :public GpioBase
@@ -96,5 +97,5 @@ namespace IO
 
 	typedef TPin<NullPort, 0> NullPin;
 }
-
+}
 #endif//IOPORTS_HPP

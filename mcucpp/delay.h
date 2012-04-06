@@ -4,6 +4,8 @@
 #include <platform_dalay.h>
 #include <clock.h>
 
+namespace Mcucpp
+{
 namespace Util
 {
 	template<unsigned long ns, unsigned long CpuFreq>
@@ -47,4 +49,5 @@ namespace Util
 	{
 		delay_us<ms * 1000, CpuFreq>();
 	}
+}
 }

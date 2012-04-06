@@ -137,12 +137,13 @@ enum StatusValues
 	TxFull			= 1
 };
 
+using namespace Mcucpp::Util;
 
 template<class Spi, class SlaveSelectPin, class EnablePin, class IrqPin>
 class Rfm70
 {
 private:
-
+	
 	static const AddressWidthValues AddressWidth = AW5Bytes;
 
 	static uint8_t ReadWriteCmd(uint8_t cmd, uint8_t value)
@@ -252,7 +253,7 @@ private:
 	static void SwitchBank(bool bank)
 	{
 	    EnablePin::Clear();
-	    Util::delay_ms<50, F_CPU>();
+	    delay_ms<50, F_CPU>();
 		bool isBank0 = (ReadReg(StatusReg) & RegBank) != 0;
 		if(bank != isBank0)
 		{
@@ -302,7 +303,7 @@ public:
 		IrqPin::SetDirRead();
 		IrqPin::Clear();
 
-		Util::delay_ms<50, F_CPU>();
+		delay_ms<50, F_CPU>();
 		ReadWriteCmd(ActivateCmd, 0x73);
 
 		InitBank1Regs();
@@ -310,7 +311,7 @@ public:
 		SwitchBank(0);
 
 		WriteReg(ConfigReg, EnableCrc | Crc2bytes | PowerUpBit);
-		Util::delay_ms<50, F_CPU>();
+		delay_ms<50, F_CPU>();
 		WriteReg(SetupAdressWidthReg, AddressWidth);
         RfSetup(DataRate1Mbps | OutputPower5dBm | LnaHighGain);
 		WriteReg(SetupRetryReg, Wait1000us | 15);

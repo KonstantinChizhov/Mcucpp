@@ -4,6 +4,8 @@
 #ifndef IOPORTBASE_HPP
 #define IOPORTBASE_HPP
 
+namespace Mcucpp
+{
 namespace IO
 {
 
@@ -38,5 +40,6 @@ namespace IO
 		// define 'Configuration' to this type to indicate that derived port class does not need any configuration
 		enum DontCareConfiguration{None};
 	};	
+}
 }
 #endif

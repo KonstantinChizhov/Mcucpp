@@ -7,6 +7,8 @@
 #define DEFAULT_TIMER_CLOCK_FREQ
 #endif
 
+namespace Mcucpp
+{
 namespace Timers
 {
 	namespace Private
@@ -62,4 +64,5 @@ namespace Timers
 		static const unsigned long error = ReloadValueHolder::error;
 	};
 
+}
 }
