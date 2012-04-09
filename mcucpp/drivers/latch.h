@@ -2,27 +2,12 @@
 #ifndef LATCH_H
 #define LATCH_H
 
-#include "gpiobase.h"
+#include "ioports.h"
 namespace Mcucpp
 {
-//serial-in, parallel-out shift register with output latches, somthing like 74HC595
-	class LatchBase : public IO::GpioBase
-	{
-		public:
-		//typedef IO::GpioBase Base;
-		typedef LatchBase Base;
-		//SetConfiguration is do nothing function 
-		// and accepts any configuration type
-		typedef DontCareConfiguration Configuration;
-		//enum Configuration{Out};
-		static Configuration MapConfiguration(GenericConfiguration config)
-		{
-			return Configuration();
-		}
-	};
 	
 	template<class ClockPin, class DataPin, class LatchPin, unsigned ID, class T = uint8_t>
-	class ThreePinLatch :public LatchBase
+	class ThreePinLatch :public IO::NativePortBase
 	{
 		public:
 		
@@ -97,7 +82,7 @@ namespace Mcucpp
 		static void SetConfiguration()
 		{}
 		
-		template<int configuration>
+		template<Configuration configuration>
 		static void SetConfiguration()
 		{}
 		protected:

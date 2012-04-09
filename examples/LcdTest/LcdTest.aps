@@ -2,7 +2,7 @@
 	<MANAGEMENT>
 		<ProjectName>LcdTest</ProjectName>
 		<Created>22-Mar-2010 14:35:37</Created>
-		<LastEdit>16-Feb-2011 19:56:41</LastEdit>
+		<LastEdit>09-Apr-2012 23:03:43</LastEdit>
 		<ICON>241</ICON>
 		<ProjectType>0</ProjectType>
 		<Created>22-Mar-2010 14:35:37</Created>
@@ -13,7 +13,7 @@
 	<CODE_CREATION>
 		<ObjectFile>default\LcdTest.elf</ObjectFile>
 		<EntryFile></EntryFile>
-		<SaveFolder>D:\Projects\McuProjects\TestsAndSamples\LcdTest\</SaveFolder></CODE_CREATION>
+		<SaveFolder>G:\Projects\Mcucpp\examples\LcdTest\</SaveFolder></CODE_CREATION>
 	<DEBUG_TARGET>
 		<CURRENT_TARGET>AVR Simulator</CURRENT_TARGET>
 		<CURRENT_PART>ATmega16.xml</CURRENT_PART>
@@ -29,7 +29,7 @@
 		<FILES>
 			<SOURCEFILE>LcdTest.cpp</SOURCEFILE><OTHERFILE>default\LcdTest.lss</OTHERFILE><OTHERFILE>default\LcdTest.map</OTHERFILE></FILES>
 		<CONFIGS>
-			<CONFIG><NAME>default</NAME><USESEXTERNALMAKEFILE>NO</USESEXTERNALMAKEFILE><EXTERNALMAKEFILE></EXTERNALMAKEFILE><PART>atmega16</PART><HEX>1</HEX><LIST>1</LIST><MAP>1</MAP><OUTPUTFILENAME>LcdTest.elf</OUTPUTFILENAME><OUTPUTDIR>default\</OUTPUTDIR><ISDIRTY>0</ISDIRTY><OPTIONS/><INCDIRS><INCLUDE>..\..\mcucpp\</INCLUDE><INCLUDE>..\..\mcucpp\AVR\</INCLUDE></INCDIRS><LIBDIRS/><LIBS/><LINKOBJECTS/><OPTIONSFORALL>-Wall -gdwarf-2 -std=gnu99 -Os -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums</OPTIONSFORALL><LINKEROPTIONS></LINKEROPTIONS><SEGMENTS/></CONFIG></CONFIGS>
+			<CONFIG><NAME>default</NAME><USESEXTERNALMAKEFILE>NO</USESEXTERNALMAKEFILE><EXTERNALMAKEFILE></EXTERNALMAKEFILE><PART>atmega16</PART><HEX>1</HEX><LIST>1</LIST><MAP>1</MAP><OUTPUTFILENAME>LcdTest.elf</OUTPUTFILENAME><OUTPUTDIR>default\</OUTPUTDIR><ISDIRTY>0</ISDIRTY><OPTIONS/><INCDIRS><INCLUDE>..\..\mcucpp\</INCLUDE><INCLUDE>..\..\mcucpp\AVR\</INCLUDE></INCDIRS><LIBDIRS/><LIBS/><LINKOBJECTS/><OPTIONSFORALL>-Wall -gdwarf-2 -std=gnu99 -DF_CPU=16000000UL -Os -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums</OPTIONSFORALL><LINKEROPTIONS></LINKEROPTIONS><SEGMENTS/></CONFIG></CONFIGS>
 		<LASTCONFIG>default</LASTCONFIG>
-		<USES_WINAVR>1</USES_WINAVR><GCC_LOC>C:\WinAVR-20100110\bin\avr-gcc.exe</GCC_LOC><MAKE_LOC>C:\WinAVR-20100110\utils\bin\make.exe</MAKE_LOC></AVRGCCPLUGIN>
-	<IOView><usergroups/><sort sorted="0" column="0" ordername="1" orderaddress="1" ordergroup="1"/></IOView><Files><File00000><FileId>00000</FileId><FileName>LcdTest.cpp</FileName><Status>1</Status></File00000><File00001><FileId>00001</FileId><FileName>default\LcdTest.lss</FileName><Status>1</Status></File00001><File00002><FileId>00002</FileId><FileName>D:\Projects\McuProjects\mcucpp\iopins.h</FileName><Status>1</Status></File00002><File00003><FileId>00003</FileId><FileName>D:\Projects\McuProjects\mcucpp\ioports.h</FileName><Status>1</Status></File00003><File00004><FileId>00004</FileId><FileName>D:\Projects\McuProjects\mcucpp\pinlist.h</FileName><Status>1</Status></File00004><File00005><FileId>00005</FileId><FileName>D:\Projects\McuProjects\mcucpp\latch.h</FileName><Status>1</Status></File00005><File00006><FileId>00006</FileId><FileName>d:\Projects\mcuprojects\mcucpp\HD44780.h</FileName><Status>1</Status></File00006><File00007><FileId>00007</FileId><FileName>D:\Projects\McuProjects\mcucpp\loki\TypeManip.h</FileName><Status>1</Status></File00007><File00008><FileId>00008</FileId><FileName>D:\Projects\McuProjects\mcucpp\loki\Typelist.h</FileName><Status>1</Status></File00008><File00009><FileId>00009</FileId><FileName>d:\Projects\mcuprojects\mcucpp\AVR\ports.h</FileName><Status>1</Status></File00009><File00010><FileId>00010</FileId><FileName>c:\winavr-20100110\avr\include\util\delay.h</FileName><Status>1</Status></File00010></Files><Events><Bookmarks></Bookmarks></Events><Trace><Filters></Filters></Trace></AVRStudio>
+		<USES_WINAVR>1</USES_WINAVR><GCC_LOC>C:\AVR_Toolchain\bin\avr-gcc.exe</GCC_LOC><MAKE_LOC>C:\AVR_Toolchain\bin\make.exe</MAKE_LOC></AVRGCCPLUGIN>
+	<IOView><usergroups/><sort sorted="0" column="0" ordername="0" orderaddress="0" ordergroup="0"/></IOView><Files><File00000><FileId>00000</FileId><FileName>LcdTest.cpp</FileName><Status>1</Status></File00000><File00001><FileId>00001</FileId><FileName>g:\Projects\Mcucpp\mcucpp\drivers\HD44780.h</FileName><Status>1</Status></File00001><File00002><FileId>00002</FileId><FileName>G:\Projects\Mcucpp\mcucpp\pinlist.h</FileName><Status>1</Status></File00002><File00003><FileId>00003</FileId><FileName>G:\Projects\Mcucpp\mcucpp\drivers\latch.h</FileName><Status>1</Status></File00003><File00004><FileId>00004</FileId><FileName>G:\Projects\Mcucpp\mcucpp\AVR\ports.h</FileName><Status>1</Status></File00004><File00005><FileId>00005</FileId><FileName>G:\Projects\Mcucpp\mcucpp\AVR\platform_dalay.h</FileName><Status>1</Status></File00005></Files><Events><Bookmarks></Bookmarks></Events><Trace><Filters></Filters></Trace></AVRStudio>

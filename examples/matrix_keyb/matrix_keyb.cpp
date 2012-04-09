@@ -50,7 +50,7 @@ public:
 
 
 
-using namespace IO;
+using namespace Mcucpp::IO;
 
 typedef PinList<Pb0Inv, Pb1Inv, Pb2Inv, Pb3Inv> KeybRows;
 typedef PinList<Pa4Inv, Pa5Inv, Pa6Inv, Pa7Inv> KeybCols;

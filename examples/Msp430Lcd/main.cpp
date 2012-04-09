@@ -22,7 +22,7 @@ _delay_us(unsigned __us)
 
 #include "HD44780.h"
 
-using namespace IO;
+using namespace Mcucpp::IO;
 typedef PinList<P1_0, NullPin, P1_1, P1_2, P1_3, P1_4, P1_5> LcdBus;
 typedef Lcd<LcdBus> MyLcd;
 

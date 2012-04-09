@@ -1,5 +1,4 @@
 #include <avr/io.h>
-#include <util/delay.h>
 #include "iopins.h"
 #include "pinlist.h"
 #include "drivers/latch.h"
@@ -27,10 +26,10 @@ typedef Lcd<L0, L1, L2, L3, L4, L5, L6 > Lcd2;
 int main()
 {
 
-	Lcd1::Init();
+	//Lcd1::Init();
  	//Lcd1::Puts("Hello world!", 12);
 
-//	Lcd2::Init();
+	Lcd2::Init();
  	//Lcd2::Puts("Hello world!", 12);
 
 	while(1)
