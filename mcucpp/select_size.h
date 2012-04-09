@@ -1,7 +1,8 @@
 #pragma once
 #include "static_if.h"
 #include <stdint.h>
-
+namespace Mcucpp
+{
 	template<unsigned sizeBits>
 	struct SelectSize
 	{
@@ -28,3 +29,4 @@
 				typename StaticIf<LessOrEq16, uint_fast16_t, uint_fast32_t>::Result>
 				::Result Result;
 	};
+}

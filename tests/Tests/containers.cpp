@@ -211,3 +211,54 @@ TEST(Containers, Array)
 	}
 }
 
+
+TEST(Containers, ArrayBool)
+{
+	FixedArray<20, bool> array;
+	FixedArray<20, bool> &cref = array;
+
+	EXPECT_TRUE(array.empty());
+	EXPECT_TRUE(cref.empty());
+	EXPECT_EQ(array.size(), 0);
+	EXPECT_EQ(cref.size(), 0);
+
+	EXPECT_TRUE(array.push_back(true));
+	EXPECT_FALSE(array.empty());
+	EXPECT_FALSE(cref.empty());
+	EXPECT_EQ(array.front(), true);
+	EXPECT_EQ(cref.front(), true);
+	EXPECT_TRUE(array.pop_back());
+	EXPECT_FALSE(array.pop_back());
+	EXPECT_TRUE(array.empty());
+	EXPECT_TRUE(cref.empty());
+
+	EXPECT_TRUE(array.push_back(false));
+	EXPECT_TRUE(array.push_back(true));
+	EXPECT_EQ(array.front(), false);
+	EXPECT_EQ(cref.front(), false);
+	EXPECT_EQ(array.back(), true);
+	EXPECT_EQ(cref.back(), true);
+	EXPECT_EQ(array.size(), 2);
+	EXPECT_EQ(cref.size(), 2);
+
+	array.clear();
+	EXPECT_EQ(array.size(), 0);
+	EXPECT_TRUE(array.empty());
+
+	for(unsigned i=0; i< array.capacity(); i++)
+		EXPECT_TRUE(array.push_back(i & 1));
+	EXPECT_FALSE(array.push_back(-1));
+
+	for(unsigned i=0; i < array.capacity(); i++)
+	{
+		EXPECT_EQ(array[i], i & 1);
+		EXPECT_EQ(cref[i], i & 1);
+	}
+
+	for(unsigned i=0; i < array.capacity(); i++)
+	{
+		EXPECT_EQ(array.back(), (array.capacity() - 1 - i) & 1);
+		EXPECT_EQ(cref.back(), (cref.capacity() - 1 - i) & 1);
+		EXPECT_TRUE(array.pop_back());
+	}
+}

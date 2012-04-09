@@ -73,8 +73,10 @@
 #endif
 
 
-namespace IO
+namespace Mcucpp
 {
+	namespace IO
+	{
 
 	//Port definitions for MSP430 families.
 	class NativePortBase :public GpioBase
@@ -472,6 +474,6 @@ namespace IO
 #else
 	#include "port_def_mspgcc.h"
 #endif
+	}
 }
-
 #endif

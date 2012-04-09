@@ -3,7 +3,8 @@
 #define LATCH_H
 
 #include "gpiobase.h"
-
+namespace Mcucpp
+{
 //serial-in, parallel-out shift register with output latches, somthing like 74HC595
 	class LatchBase : public IO::GpioBase
 	{
@@ -95,11 +96,15 @@
 		template<DataT mask, Configuration configuration>
 		static void SetConfiguration()
 		{}
+		
+		template<int configuration>
+		static void SetConfiguration()
+		{}
 		protected:
 		static DataT _currentValue;
 	};
 
 	template<class ClockPin, class DataPin, class LatchPin, unsigned ID, class T>
 	T ThreePinLatch<ClockPin, DataPin, LatchPin, ID, T>::_currentValue = 0;
-
+}
 #endif

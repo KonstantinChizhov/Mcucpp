@@ -159,6 +159,156 @@ namespace Containers
 	{
 		_bottom = 0;
 	}
+
+//==========================================================================================
+	template<size_t SIZE, class Atomic>
+	class FixedArray<SIZE, bool, Atomic>
+	{
+	public:
+		typedef typename SelectSizeForLength<SIZE>::Result size_type;
+		typedef bool value_type;
+		class reference
+		{
+		public:
+			reference(unsigned char* byte, unsigned char mask)
+			:_byte(byte), _mask(mask)
+			{}
+			operator bool() const
+			{
+				return (*_byte & _mask) != 0;
+			}
+			reference &operator=(bool value)
+			{
+				if(value)
+					*_byte |= _mask;
+				else
+					*_byte &= ~_mask;
+				return *this;
+			}
+		private:
+			unsigned char* _byte;
+			unsigned char _mask;
+		};
+
+		typedef const bool const_reference;
+	private:
+		unsigned char _data[SIZE / 8 + 1];
+		volatile size_type _bottom;
+	public:
+		FixedArray();
+
+		size_type size()const;
+		size_type max_size()const {return SIZE;}
+		size_type capacity()const {return SIZE;}
+		bool empty()const;
+		bool full()const;
+		reference front();
+		const_reference front()const;
+		reference back();
+		const_reference back()const;
+		bool push_back(bool x);
+		bool pop_back();
+		void clear();
+		inline reference operator[] (size_type i);
+		inline const_reference operator[] (size_type i)const;
+	};
+
+	template<size_t SIZE, class Atomic>
+	FixedArray<SIZE, bool, Atomic>::FixedArray()
+		:_bottom(0)
+	{}
+
+	template<size_t SIZE, class Atomic>
+	bool FixedArray<SIZE, bool, Atomic>::push_back(const bool value)
+	{
+		if(full())
+			return false;
+		size_type bottom = Atomic::FetchAndAdd(&_bottom, 1);
+		unsigned char mask = 1 << (bottom & 7);
+		size_type index = bottom >> 3;
+		if(value)
+			_data[index] |= mask;
+		else
+			_data[index] &= ~mask;
+		return true;
+	}
+
+	template<size_t SIZE, class Atomic>
+	bool FixedArray<SIZE, bool, Atomic>::pop_back()
+	{
+		if(empty())
+			return false;
+		Atomic::SubAndFetch(&_bottom, 1);
+		return true;
+	}
+
+	template<size_t SIZE, class Atomic>
+	typename FixedArray<SIZE, bool, Atomic>::const_reference FixedArray<SIZE, bool, Atomic>::front()const
+	{
+		MCUCPP_ASSERT(!empty());
+		return reference(&_data[0], 1);
+	}
+
+	template<size_t SIZE, class Atomic>
+	typename FixedArray<SIZE, bool, Atomic>::const_reference FixedArray<SIZE, bool, Atomic>::back()const
+	{
+		MCUCPP_ASSERT(!empty());
+		size_type back = Atomic::Fetch(&_bottom) - 1;
+		return reference(&_data[back >> 3], 1 << (back & 7));
+	}
+
+	template<size_t SIZE, class Atomic>
+	typename FixedArray<SIZE, bool, Atomic>::reference FixedArray<SIZE, bool, Atomic>::front()
+	{
+		MCUCPP_ASSERT(!empty());
+		return reference(&_data[0], 1);
+	}
+
+	template<size_t SIZE, class Atomic>
+	typename FixedArray<SIZE, bool, Atomic>::reference FixedArray<SIZE, bool, Atomic>::back()
+	{
+		MCUCPP_ASSERT(!empty());
+		size_type back = Atomic::Fetch(&_bottom) - 1;
+		return reference(&_data[back >> 3], 1 << (back & 7));
+	}
+
+	template<size_t SIZE, class Atomic>
+	typename FixedArray<SIZE, bool, Atomic>::reference FixedArray<SIZE, bool, Atomic>::operator[] (size_type i)
+	{
+		MCUCPP_ASSERT(i < SIZE);
+		return reference(&_data[i >> 3], 1 << (i & 7));
+	}
+
+	template<size_t SIZE, class Atomic>
+	typename FixedArray<SIZE, bool, Atomic>::const_reference FixedArray<SIZE, bool, Atomic>::operator[] (size_type i)const
+	{
+		MCUCPP_ASSERT(i < SIZE);
+		return reference(&_data[i >> 3], 1 << (i & 7));
+	}
+
+	template<size_t SIZE, class Atomic>
+	bool FixedArray<SIZE, bool, Atomic>::empty()const
+	{
+		return Atomic::Fetch(&_bottom) == 0;
+	}
+
+	template<size_t SIZE, class Atomic>
+	bool FixedArray<SIZE, bool, Atomic>::full()const
+	{
+		return Atomic::Fetch(&_bottom) == SIZE;
+	}
+
+	template<size_t SIZE, class Atomic>
+	typename FixedArray<SIZE, bool, Atomic>::size_type FixedArray<SIZE,bool, Atomic>::size()const
+	{
+		return Atomic::Fetch(&_bottom);
+	}
+
+	template<size_t SIZE, class Atomic>
+	void FixedArray<SIZE, bool, Atomic>::clear()
+	{
+		_bottom = 0;
+	}
 }
 }
 

@@ -6,6 +6,7 @@
 
 FLASH char str1[] = "Str = %|-12|\nPORTA = %|-x10|\n";
 FLASH char str2[] = "Hello world!!";
+using namespace Mcucpp;
 
 typedef Usart<16, 16> MyUsart;
 
@@ -24,7 +25,7 @@ struct RawWriter
 	}
 };
 
-typedef IO::basic_ostream<RawWriter<MyUsart> > ostream;
+typedef basic_ostream<RawWriter<MyUsart> > ostream;
 
 
 ostream& operator<<(ostream &s, ProgmemPtr<char> str)
@@ -43,7 +44,7 @@ int main()
 	MyUsart::Init<115200>();
 	sei ();
 // Format string stored in flash
-	cout % IO::Format(FLASH_PTR(str1)) % FLASH_PTR(str2) % PORTA;
+	cout % Format(FLASH_PTR(str1)) % FLASH_PTR(str2) % PORTA;
 //  Format string stored in ram
 //	cout % IO::Format("%|-20| -- %|10|\n") % "Hello world" % 12345;
 	while(1)

@@ -10,8 +10,6 @@
 
 namespace Mcucpp
 {
-namespace IO
-{
 	class DmaBase
 	{
 	public:
@@ -334,6 +332,4 @@ namespace IO
 		
 		Containers::RingBuffer<NBlocks, Block> _txQueue;
 	};
-	
-}
 }

@@ -2,8 +2,6 @@
 
 namespace Mcucpp
 {
-namespace IO
-{
 	namespace Impl
 	{
 		template<class T, class CharT>
@@ -180,5 +178,4 @@ namespace IO
 			FieldFill(1, IOS::left);
 		}
 	}
-}
 }

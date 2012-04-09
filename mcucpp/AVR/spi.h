@@ -2,8 +2,6 @@
 #include <avr/io.h>
 namespace Mcucpp
 {
-namespace IO
-{
 	class Spi
 	{
 		enum{SPI2X_shift = 2};
@@ -40,5 +38,4 @@ namespace IO
 			return SPDR;
 		}
 	};
-}
 }

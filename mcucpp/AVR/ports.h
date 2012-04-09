@@ -111,8 +111,8 @@
 	
 namespace Mcucpp
 {
-namespace IO
-{
+	namespace IO
+	{
 
 	class NativePortBase :public GpioBase
 	{
@@ -362,7 +362,7 @@ namespace IO
 	#ifdef USE_PORTG
 	DECLARE_PORT(G, Portg, 6)
 	#endif
-}
+	}
 }
 
 #undef DECLARE_PORT

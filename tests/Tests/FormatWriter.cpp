@@ -37,7 +37,7 @@ private:
 
 using namespace Mcucpp;
 
-typedef IO::basic_ostream<MyWriter > my_ostream;
+typedef basic_ostream<MyWriter > my_ostream;
 
 TEST(Format, Stream)
 {
@@ -66,29 +66,29 @@ TEST(Format, Stream)
 	EXPECT_STREQ(my_cout.c_str(), "-12345678");
 	my_cout.Clear();
 
-	my_cout << IO::hex << 0x12345678;
+	my_cout << hex << 0x12345678;
 	EXPECT_STREQ(my_cout.c_str(), "12345678");
 	my_cout.Clear();
 
-	my_cout << IO::hex << IO::showbase << 0x12345678;
+	my_cout << hex << showbase << 0x12345678;
 	EXPECT_STREQ(my_cout.c_str(), "0x12345678");
 	my_cout.Clear();
 
-	my_cout << IO::setw(16) << IO::hex << IO::showbase;
-	my_cout << IO::left << 0x12345678;
+	my_cout << setw(16) << hex << showbase;
+	my_cout << left << 0x12345678;
 	EXPECT_STREQ(my_cout.c_str(), "0x12345678      ");
 	my_cout.Clear();
 
-	my_cout << IO::setw(16) << IO::right << 0x12345678;
+	my_cout << setw(16) << right << 0x12345678;
 	EXPECT_STREQ(my_cout.c_str(), "      0x12345678");
 	my_cout.Clear();
 
 	my_cout.fill('0');
-	my_cout << IO::setw(16) << IO::internal << 0x12345678;
+	my_cout << setw(16) << internal << 0x12345678;
 	EXPECT_STREQ(my_cout.c_str(), "0x00000012345678");
 	my_cout.Clear();
 
-	my_cout << IO::setw(0);
+	my_cout << setw(0);
 	my_cout << true;
 	EXPECT_STREQ(my_cout.c_str(), "1");
 	my_cout.Clear();
@@ -97,7 +97,7 @@ TEST(Format, Stream)
 	EXPECT_STREQ(my_cout.c_str(), "0");
 	my_cout.Clear();
 
-	my_cout << IO::boolalpha;
+	my_cout << boolalpha;
 	my_cout << true;
 	EXPECT_STREQ(my_cout.c_str(), "true");
 	my_cout.Clear();
@@ -111,15 +111,15 @@ TEST(Format, String)
 {
 	my_ostream my_cout;
 
-	my_cout % IO::Format("Hello, %!") % "world";
+	my_cout % Format("Hello, %!") % "world";
 	EXPECT_STREQ(my_cout.c_str(), "Hello, world!");
 	my_cout.Clear();
 
-	my_cout % IO::Format("Foo = %") % 1000;
+	my_cout % Format("Foo = %") % 1000;
 	EXPECT_STREQ(my_cout.c_str(), "Foo = 1000");
 	my_cout.Clear();
 
-	my_cout % IO::Format("Foo = %|#0x10|%%") % 0x1234;
+	my_cout % Format("Foo = %|#0x10|%%") % 0x1234;
 	EXPECT_STREQ(my_cout.c_str(), "Foo = 0x00001234%");
 	my_cout.Clear();
 }

@@ -17,7 +17,7 @@
 #include <delay.h>
 
 // all IO stuff are in namespce
-using namespace IO;
+using namespace Mcucpp::IO;
 // working with ports
 
 void Ports()

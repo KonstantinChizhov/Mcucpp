@@ -25,10 +25,11 @@
 #include <iopins.h>
 #include <delay.h>
 #include <tiny_ostream.h>
-#include <tiny_iomainp.h>
+#include <tiny_iomanip.h>
 #include <format_parser.h>
 #include <drivers/HD44780.h>
 
+using namespace Mcucpp;
 using namespace IO;
 
 class MyStreamBase
@@ -146,7 +147,7 @@ static void SetUpClock()
 	Set_DCO(F_CPU / 4096);
 }
 
-typedef FormatWriter<MyStreamBase> AbstractStream;
+typedef basic_ostream<MyStreamBase> AbstractStream;
 
 typedef SoftUsart<P1_1, 9600, AbstractStream> MyUsartStream;
 
@@ -207,7 +208,7 @@ void PrintTemp(int temp, AbstractStream &out)
 {
 	unsigned tempC = temp / 10;
    	unsigned temp10 = temp % 10;
-  	out % IO::Format("Temp =%|+4|.% C\n") % tempC % temp10;
+  	out % Format("Temp =%|+4|.% C\n") % tempC % temp10;
    	//out << "Temp =" << IO::showpos << tempC << "." << IO::noshowpos << temp10 << " C\n";
 }
 

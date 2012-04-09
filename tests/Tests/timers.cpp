@@ -6,6 +6,7 @@ using namespace std;
 
 #include <Timer.h>
 #include <timer_utils.h>
+using namespace Mcucpp;
 using namespace Timers;
 
 TEST(TimerTests, TimerSetupTest)

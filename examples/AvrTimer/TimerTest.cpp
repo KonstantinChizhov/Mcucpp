@@ -4,7 +4,7 @@
 
 #include <timers.h>
 #include <iopins.h>
-
+using namespace Mcucpp;
 using namespace Timers;
 typedef IO::Pb0 Led;
 

@@ -4,9 +4,8 @@
 #include "stm32f10x.h"
 #include "clock.h"
 
-namespace HAL
+namespace Mcucpp
 {
-
 	namespace Private
 	{
 		class SpiBase

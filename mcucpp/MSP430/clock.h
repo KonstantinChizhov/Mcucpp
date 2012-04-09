@@ -3,22 +3,25 @@
 #ifndef F_CPU
 #error F_CPU must be defined to proper cpu frequency
 #endif
-namespace Clock
+namespace Mcucpp
 {
-	class SysClock
+	namespace Clock
 	{
-	public:
-		static unsigned long FCore()
+		class SysClock
 		{
-			return F_CPU;
-		}
+		public:
+			static unsigned long FCore()
+			{
+				return F_CPU;
+			}
+			
+			static unsigned long FPeriph()
+			{
+				return F_CPU;
+			}
+			
+			static const unsigned long CpuFreq = F_CPU;
+		};
 		
-		static unsigned long FPeriph()
-		{
-			return F_CPU;
-		}
-		
-		static const unsigned long CpuFreq = F_CPU;
-	};
-	
+	}
 }

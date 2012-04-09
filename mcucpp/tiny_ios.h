@@ -6,9 +6,8 @@
 
 namespace Mcucpp
 {
-namespace IO
-{
-    template<class CharT>
+	
+	template<class CharT>
 	class CharTrates;
 
 	template<>
@@ -54,9 +53,9 @@ namespace IO
 		}
 		static int SrtLen(const wchar_t *str)
 		{
-		    const wchar_t *ptr = str;
-		    while(*ptr++);
-		    return ptr - str - 1;
+			const wchar_t *ptr = str;
+			while(*ptr++);
+			return ptr - str - 1;
 		}
 
 		static const wchar_t * False(){return L"false";}
@@ -126,26 +125,26 @@ namespace IO
 			trunc  = 1 << 5
 		};
 
-        inline fmtflags flags ( ) const;
+		inline fmtflags flags ( ) const;
 		inline fmtflags flags ( fmtflags fmtfl );
 		inline fmtflags setf ( fmtflags fmtfl );
 		inline fmtflags setf ( fmtflags fmtfl, fmtflags mask );
 		inline fmtflags unsetf ( fmtflags mask );
-        inline streamsize_t width ( ) const;
+		inline streamsize_t width ( ) const;
 		inline streamsize_t width ( streamsize_t width );
 		inline streamsize_t precision ( ) const;
 		inline streamsize_t precision ( streamsize_t prec );
 
 		private:
-            fmtflags _flags;
-            streamsize_t _width;
+			fmtflags _flags;
+			streamsize_t _width;
 			streamsize_t _prec;
 	};
 
-    DECLARE_ENUM_OPERATIONS(ios_base::fmtflags)
+	DECLARE_ENUM_OPERATIONS(ios_base::fmtflags)
 	DECLARE_ENUM_OPERATIONS(ios_base::iostate)
 
-    template<class CharT>
+	template<class CharT>
 	class basic_ios :public ios_base
 	{
 	public:
@@ -171,7 +170,6 @@ namespace IO
 
 	typedef basic_ios<char> ios;
 	typedef basic_ios<wchar_t> wios;
-}
 }
 #include <impl/tiny_ios.h>
 #endif

@@ -1,6 +1,9 @@
 #pragma once
 #include <static_assert.h>
 
+namespace Mcucpp
+{
+
 template<class DataT, class Pins1, class Pins2>
 class Encoder
 {
@@ -66,3 +69,4 @@ private:
 
 	template<class DataT, class Pins1, class Pins2>
 	typename Encoder<DataT, Pins1, Pins2>::PortType Encoder<DataT, Pins1, Pins2>::_x2;
+}

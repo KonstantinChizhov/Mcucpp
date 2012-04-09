@@ -36,8 +36,12 @@
 
 #include "impl/pinlist.h"
 
+namespace Mcucpp
+{
 namespace IO
 {
+	using namespace IoPrivate;
+
 		template<class PINS>
 		class PinListProperties
 		{
@@ -282,4 +286,5 @@ namespace IO
         >
     {	};
 
+}
 }

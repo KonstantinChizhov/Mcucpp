@@ -1,21 +1,24 @@
 #pragma once
 
-namespace Clock
+namespace Mcucpp
 {
-	class SysClock
+	namespace Clock
 	{
-	public:
-		static unsigned long FCore()
+		class SysClock
 		{
-			return CpuFreq;
-		}
+		public:
+			static unsigned long FCore()
+			{
+				return CpuFreq;
+			}
+			
+			static unsigned long FPeriph()
+			{
+				return CpuFreq;
+			}
+			
+			static const unsigned long CpuFreq = 10000000;
+		};
 		
-		static unsigned long FPeriph()
-		{
-			return CpuFreq;
-		}
-		
-		static const unsigned long CpuFreq = 10000000;
-	};
-	
+	}
 }

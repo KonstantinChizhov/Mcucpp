@@ -33,149 +33,151 @@
 #include <delay.h>
 #include <pinlist.h>
 
-class LcdBase
+namespace Mcucpp
 {
-	protected:
-	static void Delay()
+	class LcdBase
 	{
-		Util::delay_us<200, F_CPU>();
-	}
-};
-
-
-
-template<
-    class RS,
-    class RW,
-    class E,
-    class D4,
-    class D5,
-    class D6,
-    class D7,
-    uint8_t LINE_WIDTH=8,
-    uint8_t LINES=2
-    >
-class Lcd: public LcdBase
-{
-	typedef IO::PinList<D4, D5, D6, D7> DataBus;
-    typedef IO::PinList<RS, RW, E, D4, D5, D6, D7> LcdPins;
-
-public:
-	static uint8_t LineWidth()
-	{
-		return LINE_WIDTH;
-	}
-
-	static uint8_t Lines()
-	{
-		return LINES;
-	}
-
-	static void Init()
-	{
-		LcdPins:: template SetConfiguration<LcdPins::Out, 0xff>();
-		IO::PinList<RS, RW>::template Clear<0x03>();
-		DataBus::template Write<0x03>();
-		Strobe();
-		Strobe();
-		Strobe();
-		Util::delay_ms<60, F_CPU>();
-		DataBus::template Write<0x02>(); // set 4 bit mode
-		Strobe();
-		Write(0x28); // 4 bit mode, 1/16 duty, 5x8 font
-
-		Write(0x08); // display off
-		Write(0x0E); // display on, blink curson on
-		Write(0x06); // entry mode
-	}
-
-	Lcd()
-	{
-		Init();
-	}
-
-	static void Clear(void)
-	{
-		RS::Clear();
-		Write(0x01);
-		Write(0x02);
-	}
-
-	static void Goto(uint8_t pos)
-	{
-		RS::Clear();
-		Write(0x80+pos);
-	}
-
-	static void Goto(uint8_t x, uint8_t y)
-	{
-		RS::Clear();
-		if(y == 1)
-			x += 0x40;
-		Write(0x80+x);
-	}
-
-	static void Home(void)
-	{
-		RS::Clear();
-		Write(0x02);
-	}
-
-	static void Puts(const char *s, uint8_t len)
-	{
-		RS::Set(); // write characters
-		while(len-- && *s){
-			Write(*s++);
+		protected:
+		static void Delay()
+		{
+			Util::delay_us<200, F_CPU>();
 		}
-	}
+	};
 
-	static void Putch(char c)
+
+
+	template<
+		class RS,
+		class RW,
+		class E,
+		class D4,
+		class D5,
+		class D6,
+		class D7,
+		uint8_t LINE_WIDTH=8,
+		uint8_t LINES=2
+		>
+	class Lcd: public LcdBase
 	{
-		RS::Set();
-		Write(c);
-	}
+		typedef IO::PinList<D4, D5, D6, D7> DataBus;
+		typedef IO::PinList<RS, RW, E, D4, D5, D6, D7> LcdPins;
 
-	static bool Busy()
-	{
-		RS::Clear();
-		return Read() & 0x80;
-	}
+	public:
+		static uint8_t LineWidth()
+		{
+			return LINE_WIDTH;
+		}
 
-protected:
-	static void Strobe()//__attribute__ ((noinline))
-	{
-		E::Set();
-		Delay();
-		E::Clear();
-		Delay();
-	}
+		static uint8_t Lines()
+		{
+			return LINES;
+		}
 
-	static void Write(uint8_t c)//__attribute__ ((noinline))
-	{
-		RW::Clear();
-		DataBus::template SetConfiguration<DataBus::Out, 0xff>();
-		DataBus::Write(c>>4);
-		Strobe();
-		DataBus::Write(c);
-		Strobe();
-	}
+		static void Init()
+		{
+			LcdPins:: template SetConfiguration<LcdPins::Out>();
+			IO::PinList<RS, RW>::template Clear<0x03>();
+			DataBus::template Write<0x03>();
+			Strobe();
+			Strobe();
+			Strobe();
+			Util::delay_ms<60, F_CPU>();
+			DataBus::template Write<0x02>(); // set 4 bit mode
+			Strobe();
+			Write(0x28); // 4 bit mode, 1/16 duty, 5x8 font
 
-	static uint8_t Read() //__attribute__ ((noinline))
-	{
-		DataBus::template SetConfiguration<DataBus::In, 0xff>();
-		RW::Set();
-		E::Set();
-		//Delay();
-		uint8_t res = DataBus::Read() << 4;
-		E::Clear();
-		Delay();
-		E::Set();
-		res |= DataBus::Read();
-		E::Clear();
-		RW::Clear();
-		return res;
-	}
-};
+			Write(0x08); // display off
+			Write(0x0E); // display on, blink curson on
+			Write(0x06); // entry mode
+		}
 
+		Lcd()
+		{
+			Init();
+		}
+
+		static void Clear(void)
+		{
+			RS::Clear();
+			Write(0x01);
+			Write(0x02);
+		}
+
+		static void Goto(uint8_t pos)
+		{
+			RS::Clear();
+			Write(0x80+pos);
+		}
+
+		static void Goto(uint8_t x, uint8_t y)
+		{
+			RS::Clear();
+			if(y == 1)
+				x += 0x40;
+			Write(0x80+x);
+		}
+
+		static void Home(void)
+		{
+			RS::Clear();
+			Write(0x02);
+		}
+
+		static void Puts(const char *s, uint8_t len)
+		{
+			RS::Set(); // write characters
+			while(len-- && *s){
+				Write(*s++);
+			}
+		}
+
+		static void Putch(char c)
+		{
+			RS::Set();
+			Write(c);
+		}
+
+		static bool Busy()
+		{
+			RS::Clear();
+			return Read() & 0x80;
+		}
+
+	protected:
+		static void Strobe()//__attribute__ ((noinline))
+		{
+			E::Set();
+			Delay();
+			E::Clear();
+			Delay();
+		}
+
+		static void Write(uint8_t c)//__attribute__ ((noinline))
+		{
+			RW::Clear();
+			DataBus::template SetConfiguration<DataBus::Out>();
+			DataBus::Write(c>>4);
+			Strobe();
+			DataBus::Write(c);
+			Strobe();
+		}
+
+		static uint8_t Read() //__attribute__ ((noinline))
+		{
+			DataBus::template SetConfiguration<DataBus::In>();
+			RW::Set();
+			E::Set();
+			//Delay();
+			uint8_t res = DataBus::Read() << 4;
+			E::Clear();
+			Delay();
+			E::Set();
+			res |= DataBus::Read();
+			E::Clear();
+			RW::Clear();
+			return res;
+		}
+	};
+}
 
 #endif

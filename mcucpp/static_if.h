@@ -1,6 +1,7 @@
 
 #pragma once
-
+namespace Mcucpp
+{
 	template<bool condition, class TypeIfTrue, class TypeIfFale>
 	struct StaticIf
 	{
@@ -12,3 +13,4 @@
 	{
 		 typedef TypeIfFale Result;
 	};
+}

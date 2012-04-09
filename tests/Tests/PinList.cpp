@@ -5,6 +5,7 @@
 #include <gtest.h>
 
 using namespace std;
+using namespace Mcucpp;
 using namespace IO;
 using namespace IO::Test;
 

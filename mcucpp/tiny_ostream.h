@@ -8,12 +8,10 @@
 
 namespace Mcucpp
 {
-namespace IO
-{
 	template<class OutputPolicy,
-            class CharT = char,
-            class IOS = basic_ios<CharT>
-            >
+			class CharT = char,
+			class IOS = basic_ios<CharT>
+			>
 	class basic_ostream :public OutputPolicy, public IOS
 	{
 		typedef CharTrates<CharT> Trates;
@@ -89,8 +87,8 @@ namespace IO
 
 		void puts(const CharT *str)
 		{
-		    const size_t outputSize = Trates::SrtLen(str);
-            FieldFill(outputSize, IOS::right);
+			const size_t outputSize = Trates::SrtLen(str);
+			FieldFill(outputSize, IOS::right);
 			write(str, outputSize);
 			FieldFill(outputSize, IOS::left);
 		}
@@ -101,7 +99,7 @@ namespace IO
 			CharPtr strEnd = str;
 			while(*strEnd) ++strEnd;
 			streamsize_t outputSize = strEnd - str;
-            FieldFill(outputSize, IOS::right);
+			FieldFill(outputSize, IOS::right);
 
 			while(CharT c = *str)
 			{
@@ -142,6 +140,5 @@ namespace IO
 		os.put('\0');
 		return os;
 	}
-}
 }
 #include <impl/tiny_ostream.h>

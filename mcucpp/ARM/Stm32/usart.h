@@ -2,7 +2,7 @@
 #pragma once
 #include <clock.h>
 
-namespace HAL
+namespace Mcucpp
 {
 	class UsartBase
 	{

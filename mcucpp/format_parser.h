@@ -4,8 +4,7 @@
 
 namespace Mcucpp
 {
-namespace IO
-{
+
 	enum FormatMode
 	{
 		FmMinimal,
@@ -98,6 +97,5 @@ namespace IO
 	{
 		return FormatParser<Stream, Mode, FormatStr>(stream, format.FormatSrting);
 	}
-}
 }
 #include <impl/format_parser.h>

@@ -28,214 +28,217 @@
 
 #pragma once
 
-namespace IO
+namespace Mcucpp
 {
-    class TestPortBase :public GpioBase
-    {
-        public:
-        enum Configuration
-        {
-            AnalogIn = 0,
-            In = 0x00,
-            PullUpOrDownIn = 0x00,
-            Out = 0x01,
-            AltOut = 0x01,
-        };
-
-        static Configuration MapConfiguration(GenericConfiguration config)
-        {
-            if(config & GpioBase::Out)
-                return Out;
-            return In;
-        }
-
-        template<GenericConfiguration config>
-        struct MapConfigurationConst
-        {
-            static const Configuration value = In;
-        };
-	};
-
-	template<> struct TestPortBase::MapConfigurationConst<GpioBase::Out>{static const Configuration value = Out;};
-	template<> struct TestPortBase::MapConfigurationConst<GpioBase::OpenDrainOut>{static const Configuration value = Out;};
-	template<> struct TestPortBase::MapConfigurationConst<GpioBase::AltOut>{static const Configuration value = Out;};
-	template<> struct TestPortBase::MapConfigurationConst<GpioBase::AltOpenDrain>{static const Configuration value = Out;};
-
-	class NullCallback
+	namespace IO
 	{
-	public:
-		template<class PortT>
-		void PortChanged()
+		class TestPortBase :public GpioBase
 		{
-		
-		}
-	};
-	
-	namespace Test
-	{
-		template<class DataType, unsigned Identity, class CallbackT = NullCallback>
-		class TestPort :public TestPortBase
-		{
-			typedef TestPort<DataType, Identity, CallbackT> Self;
-			static void StoreRegs()
-			{
-				PrevDirReg = DirReg;
-				PrevOutReg = OutReg;
-			}
-			
-			static void PortCallback()
-			{
-				if(callback)
-				callback->template PortChanged<Self>();
-			}
-			
 			public:
-
-            typedef DataType DataT;
-            typedef TestPortBase Base;
-			template<unsigned pin>
-			static void SetPinConfiguration(Configuration configuration)
+			enum Configuration
 			{
-				StoreRegs();
-				BOOST_STATIC_ASSERT(pin < Width);
-				if(configuration)
-					DirReg |= 1 << pin;
-				else
-					DirReg &= ~(1 << pin);
-				PortCallback();
-			}
+				AnalogIn = 0,
+				In = 0x00,
+				PullUpOrDownIn = 0x00,
+				Out = 0x01,
+				AltOut = 0x01,
+			};
 
-			static void SetConfiguration(DataT mask, Configuration configuration)
+			static Configuration MapConfiguration(GenericConfiguration config)
 			{
-				StoreRegs();
-				if(configuration)
-					DirReg |= mask;
-				else
-					DirReg &= ~mask;
-				PortCallback();
+				if(config & GpioBase::Out)
+					return Out;
+				return In;
 			}
 
-			template<DataT mask, Configuration configuration>
-			static void SetConfiguration()
+			template<GenericConfiguration config>
+			struct MapConfigurationConst
 			{
-				StoreRegs();
-				if(configuration)
-					DirReg |= mask;
-				else
-					DirReg &= ~mask;
-				PortCallback();
-			}
-
-			static void Write(DataT value)
-			{
-				StoreRegs();
-				OutReg = value;
-				PortCallback();
-			}
-			static void ClearAndSet(DataT clearMask, DataT value)
-			{
-				StoreRegs();
-				OutReg &= ~clearMask;
-				OutReg |= value;
-				PortCallback();
-			}
-			static DataT Read()
-			{
-				return OutReg;
-			}
-			static void Set(DataT value)
-			{
-				StoreRegs();
-				OutReg |= value;
-				PortCallback();
-			}
-			static void Clear(DataT value)
-			{
-				StoreRegs();
-				OutReg &= ~value;
-				PortCallback();
-			}
-			static void Toggle(DataT value)
-			{
-				StoreRegs();
-				OutReg ^= value;
-				PortCallback();
-			}
-			static DataT PinRead()
-			{
-				return InReg;
-			}
-
-			template<DataT value>
-			static void Write()
-			{
-				StoreRegs();
-				OutReg = value;
-				PortCallback();
-			}
-
-			template<DataT clearMask, DataT value>
-			static void ClearAndSet()
-			{
-				StoreRegs();
-				OutReg &= ~clearMask;
-				OutReg |= value;
-				PortCallback();
-			}
-			
-			template<DataT value>
-			static void Set()
-			{
-				StoreRegs();
-				OutReg |= value;
-				PortCallback();
-			}
-
-			template<DataT value>
-			static void Clear()
-			{
-				StoreRegs();
-				OutReg &= ~value;
-				PortCallback();
-			}
-
-			template<DataT value>
-			static void Toggle()
-			{
-				StoreRegs();
-				OutReg ^= value;
-				PortCallback();
-			}
-
-			enum{Id = Identity};
-			enum{Width=sizeof(DataT)*8};
-			enum{Length=Width};
-
-			volatile static DataType OutReg;
-			volatile static DataType DirReg;
-			volatile static DataType InReg;
-			volatile static DataType PrevOutReg;
-			volatile static DataType PrevDirReg;
-			
-			static CallbackT *callback;
+				static const Configuration value = In;
+			};
 		};
 
-		template<class DataType, unsigned Identity, class CallbackT>
-		volatile DataType TestPort<DataType, Identity, CallbackT>::OutReg;
+		template<> struct TestPortBase::MapConfigurationConst<GpioBase::Out>{static const Configuration value = Out;};
+		template<> struct TestPortBase::MapConfigurationConst<GpioBase::OpenDrainOut>{static const Configuration value = Out;};
+		template<> struct TestPortBase::MapConfigurationConst<GpioBase::AltOut>{static const Configuration value = Out;};
+		template<> struct TestPortBase::MapConfigurationConst<GpioBase::AltOpenDrain>{static const Configuration value = Out;};
 
-		template<class DataType, unsigned Identity, class CallbackT>
-		volatile DataType TestPort<DataType, Identity, CallbackT>::DirReg;
+		class NullCallback
+		{
+		public:
+			template<class PortT>
+			void PortChanged()
+			{
 
-		template<class DataType, unsigned Identity, class CallbackT>
-		volatile DataType TestPort<DataType, Identity, CallbackT>::InReg;
-		
-		template<class DataType, unsigned Identity, class CallbackT>
-		volatile DataType TestPort<DataType, Identity, CallbackT>::PrevOutReg;
+			}
+		};
 
-		template<class DataType, unsigned Identity, class CallbackT>
-		volatile DataType TestPort<DataType, Identity, CallbackT>::PrevDirReg;
-		
-		template<class DataType, unsigned Identity, class CallbackT>
-                CallbackT *TestPort<DataType, Identity, CallbackT>::callback = 0;
+		namespace Test
+		{
+			template<class DataType, unsigned Identity, class CallbackT = NullCallback>
+			class TestPort :public TestPortBase
+			{
+				typedef TestPort<DataType, Identity, CallbackT> Self;
+				static void StoreRegs()
+				{
+					PrevDirReg = DirReg;
+					PrevOutReg = OutReg;
+				}
+
+				static void PortCallback()
+				{
+					if(callback)
+					callback->template PortChanged<Self>();
+				}
+
+				public:
+
+				typedef DataType DataT;
+				typedef TestPortBase Base;
+				template<unsigned pin>
+				static void SetPinConfiguration(Configuration configuration)
+				{
+					StoreRegs();
+					BOOST_STATIC_ASSERT(pin < Width);
+					if(configuration)
+						DirReg |= 1 << pin;
+					else
+						DirReg &= ~(1 << pin);
+					PortCallback();
+				}
+
+				static void SetConfiguration(DataT mask, Configuration configuration)
+				{
+					StoreRegs();
+					if(configuration)
+						DirReg |= mask;
+					else
+						DirReg &= ~mask;
+					PortCallback();
+				}
+
+				template<DataT mask, Configuration configuration>
+				static void SetConfiguration()
+				{
+					StoreRegs();
+					if(configuration)
+						DirReg |= mask;
+					else
+						DirReg &= ~mask;
+					PortCallback();
+				}
+
+				static void Write(DataT value)
+				{
+					StoreRegs();
+					OutReg = value;
+					PortCallback();
+				}
+				static void ClearAndSet(DataT clearMask, DataT value)
+				{
+					StoreRegs();
+					OutReg &= ~clearMask;
+					OutReg |= value;
+					PortCallback();
+				}
+				static DataT Read()
+				{
+					return OutReg;
+				}
+				static void Set(DataT value)
+				{
+					StoreRegs();
+					OutReg |= value;
+					PortCallback();
+				}
+				static void Clear(DataT value)
+				{
+					StoreRegs();
+					OutReg &= ~value;
+					PortCallback();
+				}
+				static void Toggle(DataT value)
+				{
+					StoreRegs();
+					OutReg ^= value;
+					PortCallback();
+				}
+				static DataT PinRead()
+				{
+					return InReg;
+				}
+
+				template<DataT value>
+				static void Write()
+				{
+					StoreRegs();
+					OutReg = value;
+					PortCallback();
+				}
+
+				template<DataT clearMask, DataT value>
+				static void ClearAndSet()
+				{
+					StoreRegs();
+					OutReg &= ~clearMask;
+					OutReg |= value;
+					PortCallback();
+				}
+
+				template<DataT value>
+				static void Set()
+				{
+					StoreRegs();
+					OutReg |= value;
+					PortCallback();
+				}
+
+				template<DataT value>
+				static void Clear()
+				{
+					StoreRegs();
+					OutReg &= ~value;
+					PortCallback();
+				}
+
+				template<DataT value>
+				static void Toggle()
+				{
+					StoreRegs();
+					OutReg ^= value;
+					PortCallback();
+				}
+
+				enum{Id = Identity};
+				enum{Width=sizeof(DataT)*8};
+				enum{Length=Width};
+
+				volatile static DataType OutReg;
+				volatile static DataType DirReg;
+				volatile static DataType InReg;
+				volatile static DataType PrevOutReg;
+				volatile static DataType PrevDirReg;
+
+				static CallbackT *callback;
+			};
+
+			template<class DataType, unsigned Identity, class CallbackT>
+			volatile DataType TestPort<DataType, Identity, CallbackT>::OutReg;
+
+			template<class DataType, unsigned Identity, class CallbackT>
+			volatile DataType TestPort<DataType, Identity, CallbackT>::DirReg;
+
+			template<class DataType, unsigned Identity, class CallbackT>
+			volatile DataType TestPort<DataType, Identity, CallbackT>::InReg;
+
+			template<class DataType, unsigned Identity, class CallbackT>
+			volatile DataType TestPort<DataType, Identity, CallbackT>::PrevOutReg;
+
+			template<class DataType, unsigned Identity, class CallbackT>
+			volatile DataType TestPort<DataType, Identity, CallbackT>::PrevDirReg;
+
+			template<class DataType, unsigned Identity, class CallbackT>
+					CallbackT *TestPort<DataType, Identity, CallbackT>::callback = 0;
+		}
 	}
 }
