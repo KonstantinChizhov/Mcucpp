@@ -51,7 +51,7 @@ namespace Mcucpp
 			typedef const T& const_reference;
 		private:
 			value_type _data[SIZE];
-			volatile size_type _top;
+			size_type _top;
 		public:
 
 			FixedStack();

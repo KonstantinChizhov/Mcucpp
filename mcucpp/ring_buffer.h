@@ -51,8 +51,8 @@ namespace Mcucpp
 		private:
 			BOOST_STATIC_ASSERT((SIZE&(SIZE-1))==0);//SIZE must be a power of 2
 			value_type _data[SIZE];
-			volatile size_type _writeCount;
-			volatile size_type _readCount;
+			size_type _writeCount;
+			size_type _readCount;
 			static const size_type _mask = SIZE - 1;
 		public:
 

@@ -51,7 +51,7 @@ namespace Containers
 		typedef const T& const_reference;
 	private:
 		value_type _data[SIZE];
-		volatile size_type _bottom;
+		size_type _bottom;
 	public:
 		FixedArray();
 
@@ -193,7 +193,7 @@ namespace Containers
 		typedef const bool const_reference;
 	private:
 		unsigned char _data[SIZE / 8 + 1];
-		volatile size_type _bottom;
+		size_type _bottom;
 	public:
 		FixedArray();
 
