@@ -110,4 +110,5 @@ namespace Mcucpp
 			return false;
 		}
 	};
+	#undef DECLARE_OP
 }

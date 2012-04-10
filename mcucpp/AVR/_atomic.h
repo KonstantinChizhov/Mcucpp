@@ -78,5 +78,5 @@ namespace Mcucpp
 			return true;
 		}
 	};
-
+#undef DECLARE_OP
 }
