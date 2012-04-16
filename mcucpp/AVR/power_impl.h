@@ -457,4 +457,9 @@ defined(__ATxmega16A4__) || defined(__ATxmega16D4__) || defined(__ATxmega32A4__)
 	{
 		Private::Sleep(Private::PowerDownMode);
 	}
+	
+	inline void Power::ExitSleepModeIrq()
+	{
+		// Nothing to do
+	}
 }
