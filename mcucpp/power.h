@@ -25,28 +25,33 @@
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
 
-
-	
 namespace Mcucpp
 {
 	class Power
 	{
 	public:
 		// Stop the CPU but all peripherals remains active.
-		static inline void CpuSleep(); 
+		static inline void CpuOff(); 
 		
 		// Stop the CPU but all peripherals running at lower freq if supported by traget MCU, if not its equ to CpuSleep.
-		static inline void SleepLowPower();
+		static inline void SleepLowFreq();
 		
-		// Stop the CPU and all peripherals. Main clock source kept running.
+		// Stop the CPU and all peripherals exept that rinning asynchronously.
 		//	Wakeup only by async events such as external interrupt,
+		//	or interrupts from asynchronously running modules such as timers with external clock.
 		//	External Reset or Watchdog Reset.
-		static inline void DeepSleep(); 
+		static inline void AsyncPeriphOlny();
+		
+		// Stop the CPU and all peripherals clocks. Main clock remains running for faster wakeup. 
+		//	If not supported by target MCU this mode is equ to PowerDown
+		//	Wakeup only by async events such as external interrupt.
+		//	External Reset or Watchdog Reset.
+		static inline void Standby();
 		
 		// Stop the CPU and all peripherals clocks. Main clock is source disabled. 
-		//	Wakeup only by async events such as external interrupt,
+		//	Wakeup only by async events such as external interrupt.
 		//	External Reset or Watchdog Reset.
-		static inline void PowerDown(); 
+		static inline void PowerDown();
 	};
 }
 
