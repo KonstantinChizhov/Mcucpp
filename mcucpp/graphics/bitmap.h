@@ -44,7 +44,12 @@ namespace Mcucpp
 			{
 				return BitRef<PtrT>(_data + y * _bytesPerLine + (x >> 3), 1 << (x & 7));
 			}
-		
+			
+			bool operator()(unsigned x, unsigned y)const
+			{
+				return (*(_data + y * _bytesPerLine + (x >> 3)) & (1 << (x & 7))) != 0;
+			}
+
 			unsigned Width(){return _dim1;};
 			unsigned Height(){return _dim2;};
 
@@ -70,6 +75,12 @@ namespace Mcucpp
 			{
 				return BitRef<PtrT>(_data + x * _bytesPerLine + (y >> 3), 1 << (y & 7));
 			}
+			
+			bool operator()(unsigned x, unsigned y)const
+			{
+				return (*(_data + x * _bytesPerLine + (y >> 3)) & (1 << (y & 7))) != 0;
+			}
+
 		
 			unsigned Width(){return _dim1;};
 			unsigned Height(){return _dim2;};

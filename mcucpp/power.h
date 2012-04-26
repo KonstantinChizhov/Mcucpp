@@ -52,6 +52,9 @@ namespace Mcucpp
 		//	Wakeup only by async events such as external interrupt.
 		//	External Reset or Watchdog Reset.
 		static inline void PowerDown();
+		
+		// Need to be called from interrupts to exit sleep mode on some paltforms
+		static inline void ExitSleepModeIrq();
 	};
 }
 
