@@ -3,6 +3,7 @@
 #define __MCUCPP_PAINTER_H__
 
 #include <template_utils.h>
+#include <static_assert.h>
 
 namespace Mcucpp
 {

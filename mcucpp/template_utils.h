@@ -71,9 +71,10 @@ namespace Mcucpp
 		template<> struct Unsigned<short> {typedef unsigned short Result;};
 		template<> struct Unsigned<long long> {typedef unsigned long long Result;};
 
-		template<class T> T max(T a, T b) {return a > b ? a : b;}
-		template<class T> T min(T a, T b) {return a > b ? b : a;}
-		template<class T> T abs(T a) {return a >= 0 ? a : -a;}
+		template<class T> T (max)(T a, T b) {return a > b ? a : b;}
+		template<class T> T (min)(T a, T b) {return a > b ? b : a;}
+		template<class T> T (abs)(T a) {return a >= 0 ? a : -a;}
+		template<class T> T (sqr)(T a) {return a*a;}
 
 	}
 }

@@ -50,8 +50,8 @@ namespace Mcucpp
 				return (*(_data + y * _bytesPerLine + (x >> 3)) & (1 << (x & 7))) != 0;
 			}
 
-			unsigned Width(){return _dim1;};
-			unsigned Height(){return _dim2;};
+			unsigned Width()const{return _dim1;};
+			unsigned Height()const{return _dim2;};
 
 		protected:
 			PtrT _data;
@@ -82,8 +82,8 @@ namespace Mcucpp
 			}
 
 		
-			unsigned Width(){return _dim1;};
-			unsigned Height(){return _dim2;};
+			unsigned Width()const{return _dim1;};
+			unsigned Height()const{return _dim2;};
 
 		protected:
 			PtrT _data;
