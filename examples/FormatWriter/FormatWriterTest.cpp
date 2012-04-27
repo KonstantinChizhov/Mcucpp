@@ -44,7 +44,7 @@ int main()
 	MyUsart::Init<115200>();
 	sei ();
 // Format string stored in flash
-	cout % Format(FLASH_PTR(str1)) % FLASH_PTR(str2) % PORTA;
+	cout % Format(MakeFlashPtr(str1)) % MakeFlashPtr(str2) % PORTA;
 //  Format string stored in ram
 //	cout % IO::Format("%|-20| -- %|10|\n") % "Hello world" % 12345;
 	while(1)

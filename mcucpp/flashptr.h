@@ -2,11 +2,12 @@
 
 #if defined(__ICCAVR__) 
 
-//#define FLASH_PTR(PTR) (PTR)
+#define FLASH_PTR(PTR_TYPE) PTR_TYPE __flash*
+
 #define FLASH __flash
 
 template<class PtrT>
-inline  PtrT __flash* FLASH_PTR( PtrT __flash* ptr){return ptr;}
+inline  PtrT __flash* MakeFlashPtr( PtrT __flash* ptr){return ptr;}
 
 #elif defined(__AVR__)
 
@@ -123,16 +124,17 @@ protected:
 	PtrType _address;
 };
 
-
-
 #define FLASH PROGMEM
+#define FLASH_PTR(PTR_TYPE) ProgmemPtr<PTR_TYPE>
 
 template<class PtrT>
-inline ProgmemPtr<PtrT> FLASH_PTR(PtrT *ptr){return ProgmemPtr<PtrT>(ptr);}
+inline ProgmemPtr<PtrT> MakeFlashPtr(PtrT *ptr){return ProgmemPtr<PtrT>(ptr);}
 
 #else
 
-inline const PtrT * FLASH_PTR(const PtrT *ptr){return ptr;}
-#define FLASH const
+template<class PtrT>
+inline const PtrT * MakeFlashPtr(const PtrT *ptr){return ptr;}
+#define FLASH
+#define FLASH_PTR(PTR_TYPE) const PTR_TYPE*
 
 #endif
