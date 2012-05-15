@@ -5,6 +5,7 @@
 #include <static_assert.h>
 #include <delay.h>
 #include <iopins.h>
+#include <pinlist.h>
 #include <template_utils.h>
 
 namespace Mcucpp
@@ -14,14 +15,14 @@ namespace Mcucpp
 
 	class KS0108Base
 	{
-	public:
+	protected:
 		enum ControlBusBits
 		{
 			Cs1Bit = 1,
 			Cs2Bit = 2,
 			RwBit = 8,
 			DiBit = 16
-				};
+		};
 
 		enum Commands
 		{
@@ -30,22 +31,32 @@ namespace Mcucpp
 			SetAddressCmd = 0x40,
 			SetPageCmd = 0xB8,
 			StartLineCmd = 0xC0
-					   };
+		};
 
+		enum Operations
+		{
+			OpAnd = 1,
+			OpXor = 2,
+			OpCopy = 4,
+			OpInvert = 8
+		};
+	public:
 		enum OutputMode
 		{
-			WriteMode,
-			XorMode,
-			AndMode
+			WriteMode = OpCopy,
+			XorMode = OpXor,
+			AndMode = OpAnd,
+			AndNotMode = OpAnd | OpInvert,
+			InvertMode = OpInvert | OpCopy
 		};
 
 		typedef int_fast16_t Coord;
 		typedef uint_fast8_t Color;
 		static const Color DefaultColor = 1;
+		static const Color DefaultBackground = 0;
 
 		static Coord Width() {return 128;}
 		static Coord Height() {return 64;}
-	protected:
 
 	};
 
@@ -56,18 +67,18 @@ namespace Mcucpp
 		BOOST_STATIC_ASSERT(DataBus::Length == 8);
 		typedef IO::PinList<Cs1, Cs2, Reset, Rw, Di, E> ControlBus;
 		typedef IO::PinList<Cs1, Cs2, IO::NullPin, Rw, Di> Controls;
-		using KS0108Base::OutputMode;
 		using KS0108Base::Commands;
 		using KS0108Base::ControlBusBits;
 		static const unsigned PulseDelay = 7; // microsec
 	public:
+		using KS0108Base::OutputMode;
 		using KS0108Base::Coord;
 		using KS0108Base::Color;
 		static void Init();
 		static void Fill(Color color);
 		static void PutPixel(Coord x, Coord y, Color color);
 		template<class BitmapT>
-		static void DrawBitmap(BitmapT &bitmap, Coord x, Coord y);
+		static void DrawBitmap(const BitmapT &bitmap, Coord x, Coord y, Color foreground = DefaultColor, Color background = DefaultBackground);
 		static void Flush();
 		inline static void SetOutputMode(OutputMode mode)
 		{
@@ -75,8 +86,8 @@ namespace Mcucpp
 		}
 	protected:
 		static void Write(uint8_t data);
-		static void SetPage(uint_fast8_t page, Coord x);
-		static void WritePage(uint8_t data, uint_fast8_t pageStart, uint_fast8_t pageEnd, Coord x);
+		static void SetPage(uint_fast8_t page, uint_fast8_t x);
+		static void WritePage(uint8_t page, uint_fast8_t mask, uint_fast8_t x);
 		static void PulseE();
 		static OutputMode _mode;
 	};
@@ -95,24 +106,25 @@ namespace Mcucpp
 	template<class Cs1, class Cs2, class Reset, class Rw, class Di, class E,  class DataBus>
 			void KS0108<Cs1, Cs2, Reset, Rw, Di, E, DataBus>::PutPixel(Coord x, Coord y, Color color)
 	{
-		if(x < 0 || x > 127) return;
-		if(x  > 63)
+		if((unsigned)x >= (unsigned)Width()) return;
+		if((unsigned)y >= (unsigned)Height()) return;
+		uint8_t _x = (uint8_t)x;
+		
+		if(_x > 63)
 		{
 			Cs2::Set();
 			Cs1::Clear();
-			x -= 64;
+			_x -= 64;
 		}
 		else
 		{
 			Cs2::Clear();
 			Cs1::Set();
 		}
-
-		Coord page = y >> 3;
 		Di::Clear();
-
+		uint8_t page = y >> 3;
 		Write(SetPageCmd | page);
-		Write(SetAddressCmd | x);
+		Write(SetAddressCmd | _x);
 
 		Di::Set(); Rw::Set();
 		DataBus::template SetConfiguration<0xff, DataBus::In>();
@@ -126,20 +138,19 @@ namespace Mcucpp
 		DataBus::template SetConfiguration<0xff, DataBus::Out>();
 		Di::Clear();
 
-		if(_mode == XorMode)
-		{
-			data ^= mask;
-		}
-		else
-			if(color)
-			{
-			if(_mode == WriteMode)
-				data |= mask;
-		}
-		else
+		if(_mode & OpInvert)
+			color = !color;
+
+		if(_mode & (OpAnd | OpCopy))
 			data &= ~mask;
 
-		Write(SetAddressCmd | x);
+		if(_mode & OpXor)
+			data ^= mask;
+			
+		if(color && (_mode & OpCopy))
+			data |= mask;
+
+		Write(SetAddressCmd | _x);
 		Di::Set();
 		Write(data);
 		Di::Clear();
@@ -168,6 +179,8 @@ namespace Mcucpp
 			void KS0108<Cs1, Cs2, Reset, Rw, Di, E, DataBus>::Fill(Color color)
 	{
 		if(color) color = 0xff;
+		if(_mode & OpInvert)
+			color = ~color;
 		for(uint8_t i = 0; i < 8; i++)
 		{
 			Controls::template Write<Cs1Bit | Cs2Bit>();
@@ -190,10 +203,8 @@ namespace Mcucpp
 	}
 
 	template<class Cs1, class Cs2, class Reset, class Rw, class Di, class E,  class DataBus>
-			void KS0108<Cs1, Cs2, Reset, Rw, Di, E, DataBus>::SetPage(uint_fast8_t page, Coord x)
+			void KS0108<Cs1, Cs2, Reset, Rw, Di, E, DataBus>::SetPage(uint_fast8_t page, uint_fast8_t x)
 	{
-		if(x < 0)
-			x = 0;
 		Controls::template Write<Cs1Bit | Cs2Bit>();
 		Write(SetPageCmd | page);
 		uint_fast8_t cs2addr = 0;
@@ -202,17 +213,16 @@ namespace Mcucpp
 		else
 		{
 			Cs2::Clear();
-			Write(SetAddressCmd + x);
+			Write(SetAddressCmd | x);
 		}
 		Cs1::Clear();
 		Cs2::Set();
-		Write(SetAddressCmd + cs2addr);
+		Write(SetAddressCmd | cs2addr);
 	}
 
 	template<class Cs1, class Cs2, class Reset, class Rw, class Di, class E,  class DataBus>
-			void KS0108<Cs1, Cs2, Reset, Rw, Di, E, DataBus>::WritePage(uint8_t data, uint_fast8_t pageStart, uint_fast8_t pageEnd, Coord cx)
+			void KS0108<Cs1, Cs2, Reset, Rw, Di, E, DataBus>::WritePage(uint8_t data, uint_fast8_t mask, uint_fast8_t cx)
 	{
-		if(cx < 0) return;
 		if(cx  > 63)
 		{
 			Cs2::Set();
@@ -226,28 +236,28 @@ namespace Mcucpp
 		}
 
 		Di::Set();
-		if((pageEnd | pageStart) & 7 || _mode != WriteMode)
+		if(mask || (_mode & (OpXor | OpAnd)) )
 		{
 			DataBus::template SetConfiguration<0xff, DataBus::In>();
 			Rw::Set();
 			PulseE();
 
-			uint8_t mask = (1 << (pageStart & 7)) - 1;
-			mask |= 0xFE << ((pageEnd - 1) & 7);
-			data >>= 7 - ((pageEnd - 1) & 7);
+			if(_mode & OpInvert)
+				data ^= ~mask;
 
 			E::Set();
 			Util::delay_us<PulseDelay, SysClock::CpuFreq>();
 			uint8_t dest = DataBus::PinRead();
-			if(_mode == XorMode)
-			{
-				data ^= dest;
-			}
-			else
-				if(_mode == AndMode)
-					data &= dest;
-			else
+			if(_mode & OpCopy)
 				data = (dest & mask) | data;
+			else
+			{
+				if(_mode & OpXor)
+					data ^= dest;
+			
+				if(_mode & OpAnd)
+					data = (data | mask) & dest;
+			}
 
 			E::Clear();
 			DataBus::template SetConfiguration<0xff, DataBus::Out>();
@@ -257,48 +267,69 @@ namespace Mcucpp
 			Write(SetAddressCmd + cx);
 			Di::Set();
 		}
+		else if(_mode & OpInvert)
+			data ^= 0xff;
+
 		Write(data);
+	}
+
+	inline uint8_t PageMask(uint8_t pageStart, uint8_t pageEnd)
+	{
+		uint8_t mask = (1 << (pageStart & 7)) - 1;
+		mask |= 0xFE << ((pageEnd - 1) & 7);
+		return mask;
 	}
 
 
 	template<class Cs1, class Cs2, class Reset, class Rw, class Di, class E,  class DataBus>
 			template<class BitmapT>
-			void KS0108<Cs1, Cs2, Reset, Rw, Di, E, DataBus>::DrawBitmap(BitmapT &bitmap, Coord x, Coord y)
+			void KS0108<Cs1, Cs2, Reset, Rw, Di, E, DataBus>::
+				DrawBitmap(const BitmapT &bitmap, Coord x, Coord y, Color foreground, Color /*background*/)
 	{
-		if(y > 63 || x > 127) return;
-		if(x < -(int)bitmap.Width() || y < -(int)bitmap.Height()) return;
-		uint_fast8_t firstPage = y >> 3;
-		uint_fast8_t pageStart = y;
-		uint_fast8_t pageEnd = ((y + 8) & 0xf8);
+		if(y >= Height() || x >= Width())
+			return;
+		if(x < -(int)bitmap.Width() || y < -(int)bitmap.Height())
+			return;
 
-		uint_fast8_t bottom = y + bitmap.Height();
-		if(bottom > 64)
-			bottom = 64;
-		uint_fast8_t lastPage = (bottom - 1) >> 3;
-		uint_fast8_t maxX = min<Coord>(bitmap.Width(), 128 - x);
-		uint_fast8_t line = 0;
+		OutputMode oldMode = _mode;
+		if(!foreground)
+			_mode = (OutputMode)(_mode ^ OpInvert);
 
-		for(uint_fast8_t page = firstPage; page <= lastPage; page++)
+		uint_fast8_t pageStart = (uint_fast8_t)max<Coord>(0, y);
+		uint_fast8_t pageEnd = ((pageStart + 8) & 0xf8);
+		uint_fast8_t maxY = (uint_fast8_t)min<Coord>(y + bitmap.Height(), Height());
+		uint_fast8_t maxX = (uint_fast8_t)min<Coord>(bitmap.Width() + x, Width());
+		uint_fast8_t minX = (uint_fast8_t)max<Coord>(0, x);
+		if(pageEnd > maxY)
+				pageEnd = maxY;
+
+		while(pageEnd <= maxY && pageStart < maxY)
 		{
-			if(page == lastPage)
-				pageEnd = bottom;
-			SetPage(page, x);
+			SetPage(pageStart >> 3 , minX);
 			uint_fast8_t pagePixels = pageEnd - pageStart;
-			for(uint_fast8_t j = 0; j < maxX; j++)
+			uint_fast8_t mask = PageMask(pageStart, pageEnd);
+			uint_fast8_t dataShift = 7 - ((pageEnd - 1) & 7);
+			
+			for(uint_fast8_t j = minX; j < maxX; j++)
 			{
 				uint8_t data = 0;
+				Coord dx = j - x;
+				Coord dy = pageStart - y;
 				for(uint_fast8_t i = 0; i < pagePixels; i++)
 				{
 					data >>= 1;
-					if(bitmap(j, i + line) )
+					if(bitmap(dx , i + dy))
 						data |= 0x80;
 				}
-				WritePage(data, pageStart, pageEnd, x + j);
+				data >>= dataShift;
+				WritePage(data, mask, j);
 			}
-			line += pagePixels;
 			pageStart = pageEnd;
 			pageEnd += 8;
+			if(pageEnd > maxY)
+				pageEnd = maxY;
 		}
+		_mode = oldMode;
 	}
 
 	template<class Cs1, class Cs2, class Reset, class Rw, class Di, class E,  class DataBus>
@@ -306,5 +337,5 @@ namespace Mcucpp
 	{
 
 	}
-} // namespace drivers
+} // namespace Mcucpp
 #endif
