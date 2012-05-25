@@ -145,95 +145,95 @@ namespace IO
 {
 	//Short pin definations
 
-	#ifdef USE_PORTA
+	#ifdef MCUCPP_HAS_PORTA
 	DECLARE_PORT_PINS(Porta, Pa)
 	#endif
 
-	#ifdef USE_PORTB
+	#ifdef MCUCPP_HAS_PORTB
 	DECLARE_PORT_PINS(Portb, Pb)
 	#endif
 
-	#ifdef USE_PORTC
+	#ifdef MCUCPP_HAS_PORTC
 	DECLARE_PORT_PINS(Portc, Pc)
 	#endif
 
-	#ifdef USE_PORTD
+	#ifdef MCUCPP_HAS_PORTD
 	DECLARE_PORT_PINS(Portd, Pd)
 	#endif
 
-	#ifdef USE_PORTE
+	#ifdef MCUCPP_HAS_PORTE
 	DECLARE_PORT_PINS(Porte, Pe)
 	#endif
 
-	#ifdef USE_PORTF
+	#ifdef MCUCPP_HAS_PORTF
 	DECLARE_PORT_PINS(Portf, Pf)
 	#endif
 
-	#ifdef USE_PORTG
+	#ifdef MCUCPP_HAS_PORTG
 	DECLARE_PORT_PINS(Portg, Pg)
 	#endif
 
-	#ifdef USE_PORTH
+	#ifdef MCUCPP_HAS_PORTH
 	DECLARE_PORT_PINS(Porth, Ph)
 	#endif
 
-	#ifdef USE_PORTJ
+	#ifdef MCUCPP_HAS_PORTJ
 	DECLARE_PORT_PINS(Portj, Pj)
 	#endif
 
-	#ifdef USE_PORTK
+	#ifdef MCUCPP_HAS_PORTK
 	DECLARE_PORT_PINS(Portk, Pk)
 	#endif
 
-	#ifdef USE_PORTQ
+	#ifdef MCUCPP_HAS_PORTQ
 	DECLARE_PORT_PINS(Portq, Pq)
 	#endif
 
-	#ifdef USE_PORTR
+	#ifdef MCUCPP_HAS_PORTR
 	DECLARE_PORT_PINS(Portr, Pr)
 	#endif
 
-	#ifdef USE_PORT0
+	#ifdef MCUCPP_HAS_PORT0
 	DECLARE_PORT_PINS(Port0, P0_)
 	#endif
 
-	#ifdef USE_PORT1
+	#ifdef MCUCPP_HAS_PORT1
 	DECLARE_PORT_PINS(Port1, P1_)
 	#endif
 
-	#ifdef USE_PORT2
+	#ifdef MCUCPP_HAS_PORT2
 	DECLARE_PORT_PINS(Port2, P2_)
 	#endif
 
-	#ifdef USE_PORT3
+	#ifdef MCUCPP_HAS_PORT3
 	DECLARE_PORT_PINS(Port3, P3_)
 	#endif
 
-	#ifdef USE_PORT4
+	#ifdef MCUCPP_HAS_PORT4
 	DECLARE_PORT_PINS(Port4, P4_)
 	#endif
 
-	#ifdef USE_PORT5
+	#ifdef MCUCPP_HAS_PORT5
 	DECLARE_PORT_PINS(Port5, P5_)
 	#endif
 
-	#ifdef USE_PORT6
+	#ifdef MCUCPP_HAS_PORT6
 	DECLARE_PORT_PINS(Port6, P6_)
 	#endif
 
-	#ifdef USE_PORT7
+	#ifdef MCUCPP_HAS_PORT7
 	DECLARE_PORT_PINS(Port7, P7_)
 	#endif
 
-	#ifdef USE_PORT8
+	#ifdef MCUCPP_HAS_PORT8
 	DECLARE_PORT_PINS(Port8, P8_)
 	#endif
 
-	#ifdef USE_PORT9
+	#ifdef MCUCPP_HAS_PORT9
 	DECLARE_PORT_PINS(Port9, P9_)
 	#endif
 
-	#ifdef USE_PORT10
+	#ifdef MCUCPP_HAS_PORT10
 	DECLARE_PORT_PINS(Port10, P10_)
 	#endif
 

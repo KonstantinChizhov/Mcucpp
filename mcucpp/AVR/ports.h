@@ -36,122 +36,52 @@
 #ifndef AVR_PORTS_H
 #define AVR_PORTS_H
 
-#ifdef PORTA
-#define USE_PORTA
-#endif
-
-#ifdef PORTB
-#define USE_PORTB
-#endif
-
-
-#ifdef PORTC
-#define USE_PORTC
-#endif
-
-#ifdef PORTD
-#define USE_PORTD
-#endif
-
-#ifdef PORTE
-#define USE_PORTE
-#endif
-
-#ifdef PORTF
-#define USE_PORTF
-#endif
-
-#ifdef PORTG
-#define USE_PORTG
-#endif
-
-#ifdef PORTH
-#define USE_PORTH
-#endif
-
-#ifdef PORTJ
-#define USE_PORTJ
-#endif
-
-#ifdef PORTK
-#define USE_PORTK
-#endif
-
-#ifdef PORTQ
-#define USE_PORTQ
-#endif
-
-#ifdef PORTR
-#define USE_PORTR
-#endif
-
-#ifdef VPORT0
-#define USE_VPORT0
-#endif
-
-#ifdef VPORT1
-#define USE_VPORT1
-#endif
-
-#ifdef VPORT2
-#define USE_VPORT2
-#endif
-
-#ifdef VPORT3
-#define USE_VPORT3
-#endif
-
 #include "atomic.h"
 #include "ioreg.h"
 
-#define PORT_REGS_WRAPPER(PORT_LETTER) \
-	IO_REG_WRAPPER(PORT ## PORT_LETTER, Out ## PORT_LETTER, uint8_t);\
-	IO_REG_WRAPPER(DDR ## PORT_LETTER, Dir ## PORT_LETTER, uint8_t);\
-	IO_REG_WRAPPER(PIN ## PORT_LETTER, In ## PORT_LETTER, uint8_t);
-	
 namespace Mcucpp
 {
 	namespace IO
 	{
 
-	class NativePortBase :public GpioBase
-	{
-		public:
-			typedef uint8_t DataT;
-			typedef NativePortBase Base;
-			enum{Width=sizeof(DataT)*8};
-			static const unsigned MaxBitwiseOutput = 5;
-		public:
-			enum Configuration
-			{
-				AnalogIn = 0,
-				In = 0x00,
-				PullUpOrDownIn = 0x00,
-				Out = 0x01,
-				AltOut = 0x01
-			};
-			
-			static Configuration MapConfiguration(GenericConfiguration config)
-			{
-				if(config & GpioBase::Out)
-					return Out;
-				return In;
-			}
-			
-			template<GenericConfiguration config>
-			struct MapConfigurationConst
-			{
-				static const Configuration value = In;
-			};
-	};
-	
+		class NativePortBase :public GpioBase
+		{
+			public:
+				typedef uint8_t DataT;
+				typedef NativePortBase Base;
+				enum{Width=sizeof(DataT)*8};
+				static const unsigned MaxBitwiseOutput = 5;
+			public:
+				enum Configuration
+				{
+					AnalogIn = 0,
+					In = 0x00,
+					PullUpOrDownIn = 0x00,
+					Out = 0x01,
+					AltOut = 0x01
+				};
+				
+				static Configuration MapConfiguration(GenericConfiguration config)
+				{
+					if(config & GpioBase::Out)
+						return Out;
+					return In;
+				}
+				
+				template<GenericConfiguration config>
+				struct MapConfigurationConst
+				{
+					static const Configuration value = In;
+				};
+		};
+		
 
-	template<> struct NativePortBase::MapConfigurationConst<GpioBase::Out>{static const Configuration value = Out;};
-	template<> struct NativePortBase::MapConfigurationConst<GpioBase::OpenDrainOut>{static const Configuration value = Out;};
-	template<> struct NativePortBase::MapConfigurationConst<GpioBase::AltOut>{static const Configuration value = Out;};
-	template<> struct NativePortBase::MapConfigurationConst<GpioBase::AltOpenDrain>{static const Configuration value = Out;};
-	
-	//Port definitions for AtTiny, AtMega families.
+		template<> struct NativePortBase::MapConfigurationConst<GpioBase::Out>{static const Configuration value = Out;};
+		template<> struct NativePortBase::MapConfigurationConst<GpioBase::OpenDrainOut>{static const Configuration value = Out;};
+		template<> struct NativePortBase::MapConfigurationConst<GpioBase::AltOut>{static const Configuration value = Out;};
+		template<> struct NativePortBase::MapConfigurationConst<GpioBase::AltOpenDrain>{static const Configuration value = Out;};
+		
+		//Port definitions for AtTiny, AtMega families.
 
 		template<class Out, class Dir, class In, int ID>
 		class PortImplimentation :public NativePortBase
@@ -297,75 +227,12 @@ namespace Mcucpp
 			enum{Id = ID};
 		};
 
-	namespace Private
-	{
-		#ifdef USE_PORTA
-		PORT_REGS_WRAPPER(A)
-		#endif
+#include "__port_def.h"
 
-		#ifdef USE_PORTB
-		PORT_REGS_WRAPPER(B)
-		#endif
+	} // IO
 
-		#ifdef USE_PORTC
-		PORT_REGS_WRAPPER(C)
-		#endif
+}// Mcucpp
 
-		#ifdef USE_PORTD
-		PORT_REGS_WRAPPER(D)
-		#endif
 
-		#ifdef USE_PORTE
-		PORT_REGS_WRAPPER(E)
-		#endif
-
-		#ifdef USE_PORTF
-		PORT_REGS_WRAPPER(F)
-		#endif
-
-		#ifdef USE_PORTG
-		PORT_REGS_WRAPPER(G)
-		#endif
-	}
-
-#define DECLARE_PORT(SUFFIX, CLASS_NAME, ID) \
-		typedef PortImplimentation<\
-			Private::Out ## SUFFIX,\
-			Private::Dir ## SUFFIX,\
-			Private::In ## SUFFIX,\
-			ID> CLASS_NAME;
-
-	#ifdef USE_PORTA
-	DECLARE_PORT(A, Porta, 0)
-	#endif
-
-	#ifdef USE_PORTB
-	DECLARE_PORT(B, Portb, 1)
-	#endif
-
-	#ifdef USE_PORTC
-	DECLARE_PORT(C, Portc, 2)
-	#endif
-
-	#ifdef USE_PORTD
-	DECLARE_PORT(D, Portd, 3)
-	#endif
-
-	#ifdef USE_PORTE
-	DECLARE_PORT(E, Porte, 4)
-	#endif
-
-	#ifdef USE_PORTF
-	DECLARE_PORT(F, Portf, 5)
-	#endif
-
-	#ifdef USE_PORTG
-	DECLARE_PORT(G, Portg, 6)
-	#endif
-	}
-}
-
-#undef DECLARE_PORT
-#undef PORT_REGS_WRAPPER
 
 #endif
