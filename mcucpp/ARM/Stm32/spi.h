@@ -22,7 +22,12 @@ namespace Mcucpp
 				Div32	= SPI_CR1_BR_2,
 				Div64	= SPI_CR1_BR_2 | SPI_CR1_BR_0,
 				Div128	= SPI_CR1_BR_2 | SPI_CR1_BR_1,
-				Div256	= SPI_CR1_BR_2 | SPI_CR1_BR_1 | SPI_CR1_BR_0
+				Div256	= SPI_CR1_BR_2 | SPI_CR1_BR_1 | SPI_CR1_BR_0,
+				Fastest = Div2,
+				Fast	= Div8,
+				Medium	= Div32,
+				Slow	= Div128,
+				Slowest = Div256,
 			};
 			
 			enum ModeFlags
@@ -44,7 +49,7 @@ namespace Mcucpp
 		
 		inline SpiBase::ModeFlags operator|(SpiBase::ModeFlags left, SpiBase::ModeFlags right)
 		{
-				return static_cast<SpiBase::ModeFlags>(static_cast<int>(left) | static_cast<int>(right));
+			return static_cast<SpiBase::ModeFlags>(static_cast<int>(left) | static_cast<int>(right));
 		}
 		
 		template<class Cr1, class Cr2, class Sr, class Dr, class Crcpr, class RxCrcr, class TxCrcr, class I2SCfgr, class I2Spr, class ClkEnReg, unsigned ClkEnMask>
@@ -82,7 +87,7 @@ namespace Mcucpp
 				while((Sr::Get() & SPI_SR_RXNE) == 0 && timeout--);
 				if(timeout != 0)
 					return Dr::Get();
-				return 0;
+				return 0xff;
 			}
 			
 			static uint8_t ReadWrite(uint8_t outValue)
@@ -96,27 +101,6 @@ namespace Mcucpp
 				Cr1::Or(SPI_CR1_SSM);
 			}
 			
-			static void EnableCrc(uint16_t  polynom = 0x0007)
-			{
-				Crcpr::Set(polynom);
-				Cr1::Or(SPI_CR1_CRCEN);
-			}
-			
-			static void TransmitCrc()
-			{
-				Cr1::Or(SPI_CR1_CRCNEXT);
-			}
-			
-			static uint16_t RxCrc()
-			{
-				return RxCrcr::Get();
-			}
-			
-			static uint16_t TxCrc()
-			{
-				return TxCrcr::Get();
-			}
-			
 			static void SetSS()
 			{
 				Cr1::Or(SPI_CR1_SSI);
@@ -126,6 +110,30 @@ namespace Mcucpp
 			{
 				Cr1::And(~SPI_CR1_SSI);
 			}
+			
+			class Crc
+			{
+				static void Enable(uint16_t  polynom = 0x0007)
+				{
+					Crcpr::Set(polynom);
+					Cr1::Or(SPI_CR1_CRCEN);
+				}
+				
+				static void Transmit()
+				{
+					Cr1::Or(SPI_CR1_CRCNEXT);
+				}
+				
+				static uint16_t RxCrc()
+				{
+					return RxCrcr::Get();
+				}
+				
+				static uint16_t TxCrc()
+				{
+					return TxCrcr::Get();
+				}
+			};
 		};
 		
 		

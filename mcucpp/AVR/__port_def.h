@@ -121,7 +121,7 @@
 		 defined(__AVR_ATtiny40__) || defined(__AVR_ATtiny4313__) || defined(__AVR_ATtiny43U__) || defined(__AVR_ATtiny44A__) || defined(__AVR_ATtiny44__) || \
 		 defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny461A__) || defined(__AVR_ATtiny461__) || defined(__AVR_ATtiny48__) || defined(__AVR_ATtiny4__) || \
 		 defined(__AVR_ATtiny5__) || defined(__AVR_ATtiny84A__) || defined(__AVR_ATtiny84__) || defined(__AVR_ATtiny85__) || defined(__AVR_ATtiny861A__) || \
-		 defined(__AVR_ATtiny861__) || defined(__AVR_ATtiny87__) || defined(__AVR_ATtiny88__) || defined(__AVR_ATtiny9__) || defined(__IAR_SYSTEMS_ASM__)
+		 defined(__AVR_ATtiny861__) || defined(__AVR_ATtiny87__) || defined(__AVR_ATtiny88__) || defined(__AVR_ATtiny9__) 
 
 #define  MCUCPP_HAS_PORTB
 
@@ -245,7 +245,7 @@
 		 defined(__AVR_ATmega64C1__) || defined(__AVR_ATmega64M1__) || defined(__AVR_ATmega64__) || defined(__AVR_ATmega8515__) || defined(__AVR_ATmega8535__) || \
 		 defined(__AVR_ATmega88A__) || defined(__AVR_ATmega88PA__) || defined(__AVR_ATmega88P__) || defined(__AVR_ATmega88__) || defined(__AVR_ATmega8U2__) || \
 		 defined(__AVR_ATmega8__) || defined(__AVR_ATtiny2313A__) || defined(__AVR_ATtiny2313__) || defined(__AVR_ATtiny28__) || defined(__AVR_ATtiny4313__) || \
-		 defined(__AVR_ATtiny48__) || defined(__AVR_ATtiny88__) || defined(__IAR_SYSTEMS_ASM__)
+		 defined(__AVR_ATtiny48__) || defined(__AVR_ATtiny88__) 
 
 #define  MCUCPP_HAS_PORTD
 

@@ -2,10 +2,6 @@
 // target specific IO header
 #include <avr/io.h>
 
-// list of used IO ports
-#define USE_PORTA
-#define USE_PORTB
-#define USE_PORTC
 
 // NOTE that you need to add library platform independent and platform specific
 // folders to compiler include files search paths:

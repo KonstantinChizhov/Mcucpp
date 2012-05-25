@@ -14,17 +14,12 @@ namespace Mcucpp
 		#include "__spi_pins.h"
 	}
 	
-	class Spi
+	class SpiBase
 	{
+	protected:
 		enum{SPI2X_shift = 8};
-		public:
-
-		typedef Private::SsPin SsPin;
-		typedef Private::MosiPin MosiPin;
-		typedef Private::MisoPin MisoPin;
-		typedef Private::SckPin SckPin;
-		
-		enum Flags
+	public:
+		enum ClockDivider
 		{
 			Div2	= 1 << (SPI2X + SPI2X_shift) | 0 << SPR1 | 0 << SPR0,
 			Div4	= 0 << (SPI2X + SPI2X_shift) | 0 << SPR1 | 0 << SPR0,
@@ -38,16 +33,48 @@ namespace Mcucpp
 			Medium	= Div16,
 			Slow	= Div64,
 			Slowest = Div128,
-			LSB = 1 << DORD,
-			MSB = 0,
-			ClockPolarityRising = 0,
-			ClockPolarityFalling = 1 << CPOL,
-			ClockPhaseSample = 0,
-			ClockPhaseSetup = 1 << CPHA,
-
 		};
-
-		static void Init(Flags flags)
+		
+		enum ModeFlags
+		{
+			SoftSlaveControl = 0,
+			LsbFirst = 1 << DORD,
+			MsbFirst = 0,
+			DataSize8 = 0,
+			ClockPolarityLow = 0,
+			ClockPolarityHigh = 1 << CPOL,
+			ClockPhase1Edge = 0,
+			ClockPhase2Edge = 1 << CPHA,
+			Master = 1 << MSTR,
+			Slave = 0,
+		};
+	};
+	
+	inline SpiBase::ModeFlags operator|(SpiBase::ModeFlags left, SpiBase::ModeFlags right)
+	{
+		return static_cast<SpiBase::ModeFlags>(static_cast<int>(left) | static_cast<int>(right));
+	}
+		
+		
+	class Spi :public SpiBase
+	{
+		public:
+		typedef Private::SsPin SsPin;
+		typedef Private::MosiPin MosiPin;
+		typedef Private::MisoPin MisoPin;
+		typedef Private::SckPin SckPin;
+		
+		static void Enable()
+		{
+			SPCR |= 1<<SPE;
+		}
+		
+		static void Disable()
+		{
+			SPCR &= ~(1<<SPE);
+		}
+		
+		static void Init(ClockDivider divider, ModeFlags mode = Master)
 		{
 			SsPin::SetDirWrite();
 			SsPin::Set();
@@ -55,12 +82,12 @@ namespace Mcucpp
 			SckPin::SetDirWrite();
 			MisoPin::SetDirRead();
 			
-			if(flags & (1 << (SPI2X + SPI2X_shift)))
+			if(divider & (1 << (SPI2X + SPI2X_shift)))
 				SPSR |= 1 << SPI2X;
 			else 
 				SPSR &= ~(1 << SPI2X);
 				
-			SPCR = uint8_t(flags) | 1<<SPE | 1<<MSTR;
+			SPCR = uint8_t(mode) | uint8_t(divider) | 1<<SPE;
 		}
 
 		static uint8_t ReadWrite(uint8_t outValue)
@@ -89,8 +116,16 @@ namespace Mcucpp
 		{
 			SPCR &= ~(1 << SPIE);
 		}
+		
+		static void SetSS()
+		{
+			SsPin::Set();
+		}
+		
+		static void ClearSS()
+		{
+			SsPin::Clear();
+		}
 	};
-
-	DECLARE_ENUM_OPERATIONS(Spi::Flags)
 }
 #endif
