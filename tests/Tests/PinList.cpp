@@ -120,7 +120,7 @@ void TestOnePortPinList(unsigned listValue, unsigned portValue)
     EXPECT_EQ(val, listValue);
 
     Port::DirReg = 0;
-    Pins::SetConfiguration(Pins::Out, listValue);
+    Pins::SetConfiguration(listValue, Pins::Out);
     EXPECT_EQ(Port::DirReg, portValue);
 
     Port::Write(0);
@@ -143,7 +143,7 @@ void TestOnePortPinList(unsigned listValue, unsigned portValue)
     Pins::Clear(listValue);
     EXPECT_EQ(Port::OutReg, 0);
 
-    Pins::SetConfiguration(Pins::In, 0xff);
+    Pins::SetConfiguration(Pins::In);
     EXPECT_EQ(Port::DirReg, 0);
 
     cout << "\tOK" << endl;
@@ -219,7 +219,7 @@ void Test2PortConfiguration(unsigned listValue, unsigned portValue, unsigned por
     val = Pins::Read();
     EXPECT_EQ(val, 0);
 
-    Pins::SetConfiguration(Pins::Out, listValue);
+    Pins::SetConfiguration(listValue, Pins::Out);
     EXPECT_EQ(Port1::DirReg, portValue);
     EXPECT_EQ(Port2::DirReg, portValue2);
     cout << "\tOK" << endl;
