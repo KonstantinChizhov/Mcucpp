@@ -51,7 +51,7 @@ typedef basic_istringstream<char> istringstream;
 TEST(Format, Reader)
 {
 	char buffer[100];
-	istringstream in("Hello world\n123");
+	istringstream in("Hello world\n123 0xff 033");
 	in >> buffer;
 	EXPECT_STREQ("Hello", buffer);
 	in >> buffer;
@@ -59,4 +59,8 @@ TEST(Format, Reader)
 	int val;
 	in >> val;
 	EXPECT_EQ(val, 123);
+	in >> val;
+	EXPECT_EQ(val, 255);
+	in >> val;
+	EXPECT_EQ(val, 27);
 }

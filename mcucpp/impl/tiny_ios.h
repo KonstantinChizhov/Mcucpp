@@ -47,9 +47,9 @@ namespace Mcucpp
 		T StringToIntDec(StrT &str)
 		{
 			T result = 0;
-			while(isdigit(*str))
+			uint_fast8_t count = ConvertBufferSize<T>::value;
+			while(isdigit(*str) && --count)
 			{
-
 				result = result * 10 + (*str - '0');
 				str++;
 			}
@@ -60,7 +60,8 @@ namespace Mcucpp
 		T StringToIntOct(StrT &str)
 		{
 			T result = 0;
-			while(isoctdigit(*str))
+			uint_fast8_t count = ConvertBufferSize<T>::value;
+			while(isoctdigit(*str) && --count)
 			{
 				result = result * 8 + (*str - '0');
 				str++;
@@ -73,19 +74,21 @@ namespace Mcucpp
 		{
 			T result = 0;
 			int delta;
-			while(1)
+			uint_fast8_t count = ConvertBufferSize<T>::value;
+			while(--count)
 			{
 				if(isdigit(*str))
 					delta = '0';
 				else if((*str >= 'A' && *str <= 'F'))
-					delta = 'A';
+					delta = 'A' - 10;
 				else if((*str >= 'a' && *str <= 'f'))
-					delta = 'a';
+					delta = 'a' - 10;
 					else break;
 
 				result = result * 16 + (*str - delta);
 				str++;
 			}
+			return result;
 		}
 	}
 

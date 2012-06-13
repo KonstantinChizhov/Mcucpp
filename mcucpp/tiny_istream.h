@@ -23,6 +23,34 @@ namespace Mcucpp
 			for(c = get(); isspace(c) && !eof(); c = get());
 			return c;
 		}
+
+		template<class T>
+		Self& ReadInteger(T &value)
+		{
+            CharT cvtBuffer[Impl::ConvertBufferSize<int>::value];
+			CharT *ptr = cvtBuffer;
+			*this >> cvtBuffer;
+
+			if((cvtBuffer[0] == '0' && (cvtBuffer[1] == 'x' || cvtBuffer[1] == 'X')) || (IOS::flags() & IOS::hex))
+			{
+			    ptr+=2;
+                value = Impl::StringToIntHex<T, CharT*>(ptr);
+			}
+			else if(cvtBuffer[0] == '0' || (IOS::flags() & IOS::oct))
+			{
+                ptr++;
+                value = Impl::StringToIntOct<T, CharT*>(ptr);
+			}
+			else
+			{
+                if(cvtBuffer[0] == '-')
+                    ptr++;
+                value = Impl::StringToIntDec<T, CharT*>(ptr);
+                if(cvtBuffer[0] == '-')
+                    value=-value;
+			}
+			return *this;
+		}
 	public:
 		basic_istream()
 		{
@@ -39,26 +67,22 @@ namespace Mcucpp
 
 		Self& operator>> (int &value)
 		{
-			CharT cvtBuffer[Impl::ConvertBufferSize<int>::value];
-			CharT *ptr = cvtBuffer;
-			*this >> cvtBuffer;
-			value = Impl::StringToIntDec<int, CharT*>(ptr);
-			return *this;
+			return ReadInteger<int>(value);
 		}
 
 		Self& operator>> (long &value)
 		{
-			return *this;
+			return ReadInteger<long>(value);
 		}
 
 		Self& operator>> (unsigned long &value)
 		{
-			return *this;
+			return ReadInteger<unsigned long>(value);
 		}
 
 		Self& operator>> (unsigned value)
 		{
-			return *this;
+			return ReadInteger<unsigned>(value);
 		}
 
 		Self& operator>> (CharT* value)
