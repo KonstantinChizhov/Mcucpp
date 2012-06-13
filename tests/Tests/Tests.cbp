@@ -28,15 +28,13 @@
 			<Add directory="..\..\gtest" />
 			<Add directory="..\..\" />
 		</Compiler>
-		<Linker>
-			<Add option="--gc-sections" />
-		</Linker>
 		<Unit filename="..\..\gtest\gtest-all.cc" />
 		<Unit filename="..\..\gtest\gtest.h" />
 		<Unit filename="..\..\gtest\gtest_main.cc" />
 		<Unit filename="FormatWriter.cpp" />
 		<Unit filename="PinList.cpp" />
 		<Unit filename="containers.cpp" />
+		<Unit filename="istream_test.cpp" />
 		<Unit filename="timers.cpp" />
 		<Extensions>
 			<code_completion />
