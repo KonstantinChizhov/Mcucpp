@@ -2,6 +2,93 @@
 
 namespace Mcucpp
 {
+	namespace Impl
+	{
+		template<class T, class CharT>
+		CharT * IntToString(T value, CharT *bufferEnd, unsigned radix)
+		{
+			CharT *ptr = bufferEnd;
+			do
+			{
+				T q = value / radix;
+				T rem = value - q*radix;
+				value = q;
+				*--ptr = CharTrates<CharT>::DigitToLit(rem);
+			}
+			while (value != 0);
+			return ptr;
+		}
+
+		template<class T>
+		struct ConvertBufferSize
+		{
+			static const int value = sizeof(T) * 3 + 1;
+		};
+
+		template<class CharT>
+		inline bool isdigit(CharT c)	{ return c >= '0' && c <= '9';}
+
+		template<class CharT>
+		inline bool isoctdigit(CharT c)	{ return c >= '0' && c <= '7';}
+
+		template<class CharT>
+		inline bool isxdigit(CharT c)
+		{
+			return isdigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+		}
+
+		template<class CharT>
+		inline bool isspace(CharT c)
+		{
+			return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\0';
+		}
+
+		template<class T, class StrT>
+		T StringToIntDec(StrT &str)
+		{
+			T result = 0;
+			while(isdigit(*str))
+			{
+
+				result = result * 10 + (*str - '0');
+				str++;
+			}
+			return result;
+		}
+
+		template<class T, class StrT>
+		T StringToIntOct(StrT &str)
+		{
+			T result = 0;
+			while(isoctdigit(*str))
+			{
+				result = result * 8 + (*str - '0');
+				str++;
+			}
+			return result;
+		}
+
+		template<class T, class StrT>
+		T StringToIntHex(StrT &str)
+		{
+			T result = 0;
+			int delta;
+			while(1)
+			{
+				if(isdigit(*str))
+					delta = '0';
+				else if((*str >= 'A' && *str <= 'F'))
+					delta = 'A';
+				else if((*str >= 'a' && *str <= 'f'))
+					delta = 'a';
+					else break;
+
+				result = result * 16 + (*str - delta);
+				str++;
+			}
+		}
+	}
+
     ios_base::fmtflags ios_base::flags ( ) const
     {return _flags;}
 
