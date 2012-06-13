@@ -13,6 +13,9 @@
 // defination of PinList class
 #include <pinlist.h>
 
+// virtual port
+#include <vport.h>
+
 // all IO stuff are in namespce
 using namespace Mcucpp::IO;
 // working with ports
@@ -143,7 +146,7 @@ void PinLists()
 	// Individual pins in group can be accessed in this way:
 	// Set pin 1 in group (indexing starts whith 0)
 	Group1::Pin<1>::Set();
-	// you can 'typdef' it for best readability
+	// you can 'typdef' is for best readability
 	typedef Group1::Pin<1> Pin1;
 	Pin1::Clear();
 	// Toggle the last pin in the group
@@ -159,6 +162,37 @@ void PinLists()
 	LastTreePins::Write(0x70);
 }
 
+// working with dynamic virtual ports and pins 
+
+void TestVPin(VPin pin)
+{
+	pin.SetConfiguration(pin.Port.Out);
+	pin.Set();
+	pin.Clear();
+
+}
+
+
+void TestVPort(VPortBase & port)
+{
+	port.Write(0xff);
+	port.Clear(0xff);
+
+	VPin pin1(port, 1);
+	TestVPin(pin1);
+}
+
+
+void VPorts()
+{
+	VPort<Portb> portb;
+	TestVPort(portb);
+
+	typedef PinList<Pa1, Pb0, Pa2, Pb1, Pc3, Pc4, Pc5> Group1;
+	VPort<Group1> group1;
+	TestVPort(group1);
+}
+
 
 int main()
 {
@@ -166,3 +200,9 @@ int main()
 	IndividualPins();
 	PinLists();
 }
+
+extern "C" void __cxa_pure_virtual()
+{
+	while(1);
+}
+

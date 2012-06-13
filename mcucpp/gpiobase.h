@@ -23,7 +23,7 @@ namespace IO
 
 	class GpioBase
 	{
-		GpioBase();
+
 	public:
 		enum GenericConfiguration
 		{

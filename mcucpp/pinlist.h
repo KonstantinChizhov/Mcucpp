@@ -149,8 +149,16 @@ namespace IO
             return result;
         }
 
+		// configuration with default mask 
         template<class ConfigurationT>
         static void SetConfiguration(ConfigurationT config, ValueType mask = ValueType(-1))
+        {
+            IoPrivate::PortWriteIterator<ConfigPorts, ConfigPins, ValueType>::SetConfiguration(config, mask);
+        }
+
+		// configuration compatible with port definition
+		template<class ConfigurationT>
+        static void SetConfiguration(ValueType mask, ConfigurationT config)
         {
             IoPrivate::PortWriteIterator<ConfigPorts, ConfigPins, ValueType>::SetConfiguration(config, mask);
         }
