@@ -10,13 +10,13 @@ namespace Mcucpp
 {
 
 	template<class InputPolicy,
-				class CharT = char
+				class CharT = char,
+				class IOS=basic_ios<CharT>
 				>
-	class basic_istream :public InputPolicy
+	class basic_istream :public InputPolicy, public IOS
 	{
 		typedef CharTrates<CharT> Trates;
 		typedef basic_istream Self;
-		typedef  basic_ios<CharT> IOS;
 		CharT SkipWs()
 		{
 			CharT c;
@@ -52,13 +52,17 @@ namespace Mcucpp
 			return *this;
 		}
 	public:
+		using IOS::eof;
+
 		basic_istream()
 		{
 
 		}
 
-		using InputPolicy::eof;
-		using InputPolicy::get;
+		CharT get()
+		{
+			return InputPolicy::get(*this);
+		}
 
 		Self& operator>> (bool &value)
 		{

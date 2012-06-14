@@ -1,13 +1,13 @@
 #include <string>
 #include "tiny_istream.h"
+#include "tiny_iomanip.h"
 #include <gtest.h>
 
 using namespace Mcucpp;
 
 template<class CharT>
-class StringReader :public basic_ios<CharT>
+class StringReader
 {
-
 public:
 	void SetSource(const CharT* str)
 	{
@@ -20,16 +20,15 @@ public:
 		pos = 0;
 	}
 
-	CharT get()
+	CharT get(basic_ios<CharT> &thisIos)
 	{
 		CharT c = _str[pos];
 		if(c)
 			pos++;
 		else
-			basic_ios<CharT>::setstate(ios_base::eofbit);
+			thisIos.setstate(ios_base::eofbit);
 		return c;
 	}
-
 
 private:
 	int pos;
@@ -55,12 +54,27 @@ TEST(Format, Reader)
 	in >> buffer;
 	EXPECT_STREQ("Hello", buffer);
 	in >> buffer;
-	EXPECT_STREQ(buffer, "world");
+	EXPECT_STREQ("world", buffer);
 	int val;
 	in >> val;
-	EXPECT_EQ(val, 123);
+	EXPECT_EQ(123, val);
 	in >> val;
-	EXPECT_EQ(val, 255);
+	EXPECT_EQ(255, val);
 	in >> val;
-	EXPECT_EQ(val, 27);
+	EXPECT_EQ(27, val);
+}
+
+TEST(Format, ReaderFlags)
+{
+	char buffer[100];
+	istringstream in("Hello world\n123 ff 33");
+	in.getline(buffer);
+	EXPECT_STREQ("Hello world", buffer);
+	int val;
+	in >> dec >> val;
+	EXPECT_EQ(123, val);
+	in >> hex >> val;
+	EXPECT_EQ(255, val);
+	in >> oct >> val;
+	EXPECT_EQ(27, val);
 }
