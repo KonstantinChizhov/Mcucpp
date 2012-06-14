@@ -46,14 +46,14 @@ TEST(Containers, RingBuffer1)
 
 	for(unsigned i=0; i < buf1.capacity(); i++)
 	{
-		EXPECT_EQ(buf1[i], i);
-		EXPECT_EQ(cref[i], i);
+		EXPECT_EQ(buf1[i], int(i));
+		EXPECT_EQ(cref[i], int(i));
 	}
 
 	for(unsigned i=0; i < buf1.capacity(); i++)
 	{
-		EXPECT_EQ(buf1.front(), i);
-		EXPECT_EQ(cref.front(), i);
+		EXPECT_EQ(buf1.front(), int(i));
+		EXPECT_EQ(cref.front(), int(i));
 		EXPECT_TRUE(buf1.pop_front());
 	}
 }
@@ -96,14 +96,14 @@ TEST(Containers, RingBuffer2)
 
 	for(unsigned i=0; i < buf1.capacity(); i++)
 	{
-		EXPECT_EQ(buf1[i], i);
-		EXPECT_EQ(cref[i], i);
+		EXPECT_EQ(buf1[i], int(i));
+		EXPECT_EQ(cref[i], int(i));
 	}
 
 	for(unsigned i=0; i < buf1.capacity(); i++)
 	{
-		EXPECT_EQ(buf1.front(), i);
-		EXPECT_EQ(cref.front(), i);
+		EXPECT_EQ(buf1.front(), int(i));
+		EXPECT_EQ(cref.front(), int(i));
 		EXPECT_TRUE(buf1.pop_front());
 	}
 }
@@ -147,14 +147,14 @@ TEST(Containers, Stack)
 
 	for(unsigned i=0; i < stack.capacity(); i++)
 	{
-		EXPECT_EQ(stack[i], stack.capacity() - 1 - i);
-		EXPECT_EQ(cref[i], cref.capacity() - 1 - i);
+		EXPECT_EQ(stack[i], int(stack.capacity() - 1 - i));
+		EXPECT_EQ(cref[i], int(cref.capacity() - 1 - i));
 	}
 
 	for(unsigned i=0; i < stack.capacity(); i++)
 	{
-		EXPECT_EQ(stack.front(), stack.capacity() - 1 - i);
-		EXPECT_EQ(cref.front(), cref.capacity() - 1 - i);
+		EXPECT_EQ(stack.front(), int(stack.capacity() - 1 - i));
+		EXPECT_EQ(cref.front(), int(cref.capacity() - 1 - i));
 		EXPECT_TRUE(stack.pop_front());
 	}
 }
@@ -199,14 +199,14 @@ TEST(Containers, Array)
 
 	for(unsigned i=0; i < array.capacity(); i++)
 	{
-		EXPECT_EQ(array[i], i);
-		EXPECT_EQ(cref[i], i);
+		EXPECT_EQ(array[i], int(i));
+		EXPECT_EQ(cref[i], int(i));
 	}
 
 	for(unsigned i=0; i < array.capacity(); i++)
 	{
-		EXPECT_EQ(array.back(), array.capacity() - 1 - i);
-		EXPECT_EQ(cref.back(), cref.capacity() - 1 - i);
+		EXPECT_EQ(array.back(), int(array.capacity() - 1 - i));
+		EXPECT_EQ(cref.back(), int(cref.capacity() - 1 - i));
 		EXPECT_TRUE(array.pop_back());
 	}
 }
@@ -251,14 +251,14 @@ TEST(Containers, ArrayBool)
 
 	for(unsigned i=0; i < array.capacity(); i++)
 	{
-		EXPECT_EQ(array[i], i & 1);
-		EXPECT_EQ(cref[i], i & 1);
+		EXPECT_EQ(array[i], int(i & 1));
+		EXPECT_EQ(cref[i], int(i & 1));
 	}
 
 	for(unsigned i=0; i < array.capacity(); i++)
 	{
-		EXPECT_EQ(array.back(), (array.capacity() - 1 - i) & 1);
-		EXPECT_EQ(cref.back(), (cref.capacity() - 1 - i) & 1);
+		EXPECT_EQ(array.back(), int(array.capacity() - 1 - i) & 1);
+		EXPECT_EQ(cref.back(), int(cref.capacity() - 1 - i) & 1);
 		EXPECT_TRUE(array.pop_back());
 	}
 }
