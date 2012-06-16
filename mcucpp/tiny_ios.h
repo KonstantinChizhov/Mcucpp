@@ -6,12 +6,12 @@
 
 namespace Mcucpp
 {
-	
-	template<class CharT>
-	class CharTrates;
+
+	template<class char_type>
+	class char_trates;
 
 	template<>
-	class CharTrates<char>
+	class char_trates<char>
 	{
 		public:
 		static char DigitToLit(unsigned digit)
@@ -27,14 +27,18 @@ namespace Mcucpp
 		{
 			return '+';
 		}
+
 		static int SrtLen(const char *str){return strlen(str);}
 
 		static const char * False(){return "false";}
 		static const char * True(){return "true";}
+
+		typedef int int_type;
+		static const int_type eof = -1;
 	};
 
 	template<>
-	class CharTrates<wchar_t>
+	class char_trates<wchar_t>
 	{
 		public:
 		static wchar_t DigitToLit(unsigned digit)
@@ -60,6 +64,9 @@ namespace Mcucpp
 
 		static const wchar_t * False(){return L"false";}
 		static const wchar_t * True(){return L"true";}
+
+		typedef int int_type;
+		static const int_type eof = -1;
 	};
 
 #if (defined(__ICCAVR__) || defined(__AVR__) || defined(__AVR) || defined(AVR)) && !defined(TINY_IOS_LARGE_STREAM_SIZE)
@@ -75,7 +82,7 @@ namespace Mcucpp
 		public:
 
 		ios_base()
-		:_flags(right), _width(0), _prec(0)
+		:_flags(fmtflags(right | skipws | dec)), _width(0), _prec(0)
 		{}
 
 		enum fmtflags
@@ -144,12 +151,14 @@ namespace Mcucpp
 	DECLARE_ENUM_OPERATIONS(ios_base::fmtflags)
 	DECLARE_ENUM_OPERATIONS(ios_base::iostate)
 
-	template<class CharT>
+	template<class char_type>
 	class basic_ios :public ios_base
 	{
 	public:
+        typedef char_trates<char_type> trates;
+
 		basic_ios()
-			:_fillch(' ')
+			:_state(goodbit), _fillch(' ')
 		{}
 
 		inline bool good () const;
@@ -159,17 +168,58 @@ namespace Mcucpp
 		inline iostate rdstate ( ) const;
 		inline void setstate ( iostate state );
 		inline void clear ( iostate state = goodbit );
-		inline CharT fill ( ) const;
-		inline CharT fill ( CharT fillch );
-
+		inline char_type fill ( ) const;
+		inline char_type fill ( char_type fillch );
+        inline operator const void * () const;
 	protected:
 		iostate _state;
-		CharT _fillch;
+		char_type _fillch;
 	};
 
 
 	typedef basic_ios<char> ios;
 	typedef basic_ios<wchar_t> wios;
+
+    #define IO_DECLARE_STREAM_MANIPULATOR(NAME, FLAG, MASK) \
+	inline ios_base& NAME (ios_base& os)\
+	{\
+		os.setf(FLAG, MASK);\
+		return os;\
+	}
+
+	#define IO_DECLARE_STREAM_UNSET_MANIPULATOR(NAME, FLAG) \
+	inline ios_base& NAME (ios_base& os)\
+	{\
+		os.unsetf(FLAG);\
+		return os;\
+	}
+
+	IO_DECLARE_STREAM_MANIPULATOR(showbase, ios_base::showbase, ios_base::showbase)
+	IO_DECLARE_STREAM_MANIPULATOR(boolalpha, ios_base::boolalpha, ios_base::boolalpha)
+	IO_DECLARE_STREAM_MANIPULATOR(showpos, ios_base::showpos, ios_base::showpos)
+	IO_DECLARE_STREAM_MANIPULATOR(oct, ios_base::oct, ios_base::basefield)
+	IO_DECLARE_STREAM_MANIPULATOR(dec, ios_base::dec, ios_base::basefield)
+	IO_DECLARE_STREAM_MANIPULATOR(hex, ios_base::hex, ios_base::basefield)
+	IO_DECLARE_STREAM_MANIPULATOR(uppercase, ios_base::uppercase, ios_base::uppercase)
+	IO_DECLARE_STREAM_MANIPULATOR(unitbuf, ios_base::unitbuf, ios_base::unitbuf)
+	IO_DECLARE_STREAM_MANIPULATOR(scientific, ios_base::scientific, ios_base::floatfield)
+	IO_DECLARE_STREAM_MANIPULATOR(fixed, ios_base::fixed, ios_base::floatfield)
+
+	IO_DECLARE_STREAM_MANIPULATOR(skipws, ios_base::skipws, ios_base::skipws)
+
+	IO_DECLARE_STREAM_MANIPULATOR(left, ios_base::left, ios_base::adjustfield)
+	IO_DECLARE_STREAM_MANIPULATOR(right, ios_base::right, ios_base::adjustfield)
+	IO_DECLARE_STREAM_MANIPULATOR(internal, ios_base::internal, ios_base::adjustfield)
+
+
+	IO_DECLARE_STREAM_UNSET_MANIPULATOR(noshowbase, ios_base::showbase)
+	IO_DECLARE_STREAM_UNSET_MANIPULATOR(noboolalpha, ios_base::boolalpha)
+	IO_DECLARE_STREAM_UNSET_MANIPULATOR(noshowpos, ios_base::showpos)
+	IO_DECLARE_STREAM_UNSET_MANIPULATOR(nouppercase, ios_base::uppercase)
+	IO_DECLARE_STREAM_UNSET_MANIPULATOR(nounitbuf, ios_base::unitbuf)
+	IO_DECLARE_STREAM_UNSET_MANIPULATOR(noskipws, ios_base::skipws)
 }
+
+
 #include <impl/tiny_ios.h>
 #endif

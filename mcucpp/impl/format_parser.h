@@ -62,12 +62,12 @@ namespace Mcucpp
 						}while(isFlag);
 						if(ScanFieldWidth)
 						{
-							out.width(Impl::StringToIntDec<streamsize_t>(ptr));
+							out.width(StringToIntDec<streamsize_t>(ptr));
 						}
 						if(ScanFloatPrecision && *ptr == '.')
 						{
 							ptr++;
-							out.precision(Impl::StringToIntDec<streamsize_t>(ptr));
+							out.precision(StringToIntDec<streamsize_t>(ptr));
 						}
 						if(*ptr == '|')
 							ptr++;

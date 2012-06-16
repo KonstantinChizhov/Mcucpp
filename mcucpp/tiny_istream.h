@@ -10,133 +10,234 @@ namespace Mcucpp
 {
 
 	template<class InputPolicy,
-				class CharT = char,
-				class IOS=basic_ios<CharT>
+				class char_type = char,
+				class IOS=basic_ios<char_type>
 				>
 	class basic_istream :public InputPolicy, public IOS
 	{
-		typedef CharTrates<CharT> Trates;
-		typedef basic_istream Self;
-		CharT SkipWs()
+    public:
+	    typedef typename IOS::trates trates;
+		using IOS::eof;
+		using IOS::good;
+    protected:
+	    char_type _lastChar;
+        streamsize_t _lastReadCount;
+
+		char_type SkipWs(bool skip=true)
 		{
-			CharT c;
-			for(c = get(); isspace(c) && !eof(); c = get());
-			return c;
+			char_type c;
+			if(IOS::flags() & IOS::skipws && skip)
+			{
+                for(c = get(); isspace(c) && good(); c = get());
+                return c;
+			}
+			return get();
 		}
 
 		template<class T>
-		Self& ReadInteger(T &value)
+		basic_istream& ReadInteger(T &value)
 		{
-            CharT cvtBuffer[Impl::ConvertBufferSize<int>::value];
-			CharT *ptr = cvtBuffer;
-			*this >> cvtBuffer;
+            value = 0;
+			Reader reader(*this);
 
-			if((cvtBuffer[0] == '0' && (cvtBuffer[1] == 'x' || cvtBuffer[1] == 'X')) || (IOS::flags() & IOS::hex))
-			{
-			    ptr+=2;
-                value = Impl::StringToIntHex<T, CharT*>(ptr);
-			}
-			else if(cvtBuffer[0] == '0' || (IOS::flags() & IOS::oct))
-			{
-                ptr++;
-                value = Impl::StringToIntOct<T, CharT*>(ptr);
-			}
+            if(reader.current == '0')
+            {
+                reader++;
+
+                if((reader.current == 'x' || reader.current == 'X') || (IOS::flags() & IOS::hex))
+                {
+                    reader++;
+                    value = StringToIntHex<T, Reader>(reader);
+                }
+                else if(isoctdigit(reader.current))
+                {
+                    value = StringToIntOct<T, Reader>(reader);
+                }
+                else
+                {
+                    return *this;
+                }
+            }
 			else
 			{
-                if(cvtBuffer[0] == '-')
-                    ptr++;
-                value = Impl::StringToIntDec<T, CharT*>(ptr);
-                if(cvtBuffer[0] == '-')
-                    value=-value;
+			    T sign = T(1);
+                if(reader.current == '-')
+                {
+                    reader++;
+                    sign = T(-1);
+                }
+                value = StringToIntDec<T, Reader>(reader) * sign;
 			}
 			return *this;
 		}
-	public:
-		using IOS::eof;
+		typedef typename trates::int_type int_type;
+
+	 public:
 
 		basic_istream()
+		:_lastChar(0), _lastReadCount(0)
 		{
 
 		}
 
-		CharT get()
+		streamsize_t gcount()const
 		{
+            return _lastReadCount;
+		}
+
+		int_type peek()
+		{
+            return _lastChar = InputPolicy::get(*this);
+		}
+
+		basic_istream& ignore(streamsize_t n = 1, int delim = trates::eof)
+		{
+		    streamsize_t i;
+		    for(i = 0; i < n && get() != delim; i++){}
+		    _lastReadCount = i;
+		    return *this;
+		}
+
+		basic_istream& putback(char_type c)
+		{
+            _lastChar = c;
+            return *this;
+		}
+
+		int_type get()
+		{
+			if(_lastChar != 0)
+            {
+                char_type tmp = _lastChar;
+                _lastChar = 0;
+                return tmp;
+            }
 			return InputPolicy::get(*this);
 		}
 
-		Self& operator>> (bool &value)
+		basic_istream& get(char_type& c )
+		{
+		    c = get();
+		    return *this;
+		}
+
+        basic_istream& get(char_type* s, streamsize_t n)
+        {
+            return get(s, n, '\n');
+        }
+
+        basic_istream& get(char_type* s, streamsize_t size, char_type delim)
+        {
+            streamsize_t i;
+            char_type c = get();
+			for(i = 0; c != delim && i < size && good(); c=get(), i++)
+			{
+			    *s++ = c;
+			}
+			putback(c);
+			_lastReadCount = i;
+			*s = 0;
+		    return *this;
+        }
+
+		basic_istream& operator>> (bool &value)
 		{
 			return *this;
 		}
 
-		Self& operator>> (int &value)
+		basic_istream& operator>> (int &value)
 		{
 			return ReadInteger<int>(value);
 		}
 
-		Self& operator>> (long &value)
+		basic_istream& operator>> (long &value)
 		{
 			return ReadInteger<long>(value);
 		}
 
-		Self& operator>> (unsigned long &value)
+		basic_istream& operator>> (unsigned long &value)
 		{
 			return ReadInteger<unsigned long>(value);
 		}
 
-		Self& operator>> (unsigned value)
+		basic_istream& operator>> (unsigned value)
 		{
 			return ReadInteger<unsigned>(value);
 		}
 
-		Self& operator>> (CharT* value)
+		basic_istream& operator>> (char_type* value)
 		{
-			for(CharT c = SkipWs(); !isspace(c) && !eof(); c = get())
+			for(char_type c = SkipWs(); !isspace(c) && good(); c = get())
 			{
-				*value = c;
-				value++;
+				*value++ = c;
 			}
 			*value = 0;
 			return *this;
 		}
 
-		Self& operator>> (CharT &value)
+		basic_istream& operator>> (char_type &value)
 		{
-			get(value);
+			value = get();
 			return *this;
 		}
 
-		Self&
-		operator>>(Self& (*__pf)(Self&))
+		basic_istream&
+		operator>>(basic_istream& (*__pf)(basic_istream&))
 		{
 			return __pf(*this);
 		}
 
-		Self&
-		operator>>(IOS& (*__pf) (IOS&))
+		basic_istream&
+		operator>>(ios_base& (*__pf) (ios_base&))
 		{
 			__pf(*this);
 			return *this;
 		}
 
-		void getline(const CharT *str)
+		basic_istream& getline(char_type *str)
 		{
-
-		}
-
-		void read(CharT str, size_t size)
-		{
-			CharT end = str + size;
-			read(str, end);
-		}
-
-		void read(CharT begin, CharT end)
-		{
-			while(begin != end && 1)
+            for(char_type c = SkipWs(); c!='\n' && c !='\r' && good(); c = get())
 			{
-				*begin = get(*begin);
-				++begin;
+				*str++ = c;
 			}
+			*str = 0;
+			return *this;
 		}
+
+		basic_istream& read(char_type *str, streamsize_t size)
+		{
+		    streamsize_t i;
+			for(i = 0; i < size && good(); i++)
+			{
+			    *str++ = get();
+			}
+			_lastReadCount = i;
+		    return *this;
+		}
+
+    protected:
+        struct Reader
+        {
+            basic_istream &_stream;
+            char_type current;
+
+            Reader(basic_istream &stream)
+            :_stream(stream), current( _stream.SkipWs())
+            {}
+            ~Reader()
+            {
+                _stream.putback(current);
+            }
+
+            char_type operator*()
+            {
+                return current;
+            }
+            char_type* operator++(int)
+            {
+                current = _stream.get();
+                return &current;
+            }
+        };
 	};
 }

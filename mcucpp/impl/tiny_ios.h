@@ -1,97 +1,7 @@
-
+#include <string_util.h>
 
 namespace Mcucpp
 {
-	namespace Impl
-	{
-		template<class T, class CharT>
-		CharT * IntToString(T value, CharT *bufferEnd, unsigned radix)
-		{
-			CharT *ptr = bufferEnd;
-			do
-			{
-				T q = value / radix;
-				T rem = value - q*radix;
-				value = q;
-				*--ptr = CharTrates<CharT>::DigitToLit(rem);
-			}
-			while (value != 0);
-			return ptr;
-		}
-
-		template<class T>
-		struct ConvertBufferSize
-		{
-			static const int value = sizeof(T) * 3 + 1;
-		};
-
-		template<class CharT>
-		inline bool isdigit(CharT c)	{ return c >= '0' && c <= '9';}
-
-		template<class CharT>
-		inline bool isoctdigit(CharT c)	{ return c >= '0' && c <= '7';}
-
-		template<class CharT>
-		inline bool isxdigit(CharT c)
-		{
-			return isdigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
-		}
-
-		template<class CharT>
-		inline bool isspace(CharT c)
-		{
-			return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\0';
-		}
-
-		template<class T, class StrT>
-		T StringToIntDec(StrT &str)
-		{
-			T result = 0;
-			uint_fast8_t count = ConvertBufferSize<T>::value;
-			while(isdigit(*str) && --count)
-			{
-				result = result * 10 + (*str - '0');
-				str++;
-			}
-			return result;
-		}
-
-		template<class T, class StrT>
-		T StringToIntOct(StrT &str)
-		{
-			T result = 0;
-			uint_fast8_t count = ConvertBufferSize<T>::value;
-			while(isoctdigit(*str) && --count)
-			{
-				result = result * 8 + (*str - '0');
-				str++;
-			}
-			return result;
-		}
-
-		template<class T, class StrT>
-		T StringToIntHex(StrT &str)
-		{
-			T result = 0;
-			int delta;
-			uint_fast8_t count = ConvertBufferSize<T>::value;
-			while(--count)
-			{
-				if(isdigit(*str))
-					delta = '0';
-				else if((*str >= 'A' && *str <= 'F'))
-					delta = 'A' - 10;
-				else if((*str >= 'a' && *str <= 'f'))
-					delta = 'a' - 10;
-					else break;
-
-				result = result * 16 + (*str - delta);
-				str++;
-			}
-			return result;
-		}
-	}
-
     ios_base::fmtflags ios_base::flags ( ) const
     {return _flags;}
 
@@ -146,59 +56,65 @@ namespace Mcucpp
         return tmp;
 	}
 
-	template<class CharT>
-	bool basic_ios<CharT>::good () const
+	template<class char_type>
+	bool basic_ios<char_type>::good () const
     {
         return _state == goodbit;
     }
 
-    template<class CharT>
-    bool basic_ios<CharT>::fail () const
+    template<class char_type>
+    bool basic_ios<char_type>::fail () const
     {
         return _state & failbit;
     }
 
-    template<class CharT>
-    bool basic_ios<CharT>::bad () const
+    template<class char_type>
+    bool basic_ios<char_type>::bad () const
     {
         return _state & badbit;
     }
 
-    template<class CharT>
-    bool basic_ios<CharT>::eof ( ) const
+    template<class char_type>
+    bool basic_ios<char_type>::eof ( ) const
     {
         return _state & eofbit;
     }
 
-    template<class CharT>
-    typename basic_ios<CharT>::iostate basic_ios<CharT>::rdstate ( ) const
+    template<class char_type>
+    typename basic_ios<char_type>::iostate basic_ios<char_type>::rdstate ( ) const
     {
         return _state;
     }
 
-    template<class CharT>
-    void basic_ios<CharT>::setstate (typename basic_ios<CharT>::iostate state )
+    template<class char_type>
+    void basic_ios<char_type>::setstate (typename basic_ios<char_type>::iostate state )
     {
         _state |= state;
     }
 
-    template<class CharT>
-    void basic_ios<CharT>::clear (typename basic_ios<CharT>::iostate state )
+    template<class char_type>
+    void basic_ios<char_type>::clear (typename basic_ios<char_type>::iostate state )
     {
         _state = state;
     }
 
-    template<class CharT>
-    CharT basic_ios<CharT>::fill ( ) const
+    template<class char_type>
+    char_type basic_ios<char_type>::fill ( ) const
     {
         return _fillch;
     }
 
-    template<class CharT>
-    CharT basic_ios<CharT>::fill ( CharT fillch )
+    template<class char_type>
+    char_type basic_ios<char_type>::fill ( char_type fillch )
     {
         uint8_t tmp = _fillch;
         _fillch = fillch;
         return tmp;
+    }
+
+    template<class char_type>
+    basic_ios<char_type>::operator const void * () const
+    {
+        return _state & (badbit | failbit) ? 0 : this;
     }
 }

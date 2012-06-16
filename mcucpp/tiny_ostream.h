@@ -9,12 +9,11 @@
 namespace Mcucpp
 {
 	template<class OutputPolicy,
-			class CharT = char,
-			class IOS = basic_ios<CharT>
+			class char_type = char,
+			class IOS = basic_ios<char_type>
 			>
 	class basic_ostream :public OutputPolicy, public IOS
 	{
-		typedef CharTrates<CharT> Trates;
 		typedef basic_ostream Self;
 	private:
 
@@ -25,6 +24,7 @@ namespace Mcucpp
 		inline void PutBool(bool value);
 
 	public:
+        typedef typename IOS::trates trates;
 		using OutputPolicy::put;
 
 		basic_ostream()
@@ -60,13 +60,13 @@ namespace Mcucpp
 			return *this;
 		}
 
-		Self& operator<< (const CharT* value)
+		Self& operator<< (const char_type* value)
 		{
 			puts(value);
 			return *this;
 		}
 
-		Self& operator<< (CharT value)
+		Self& operator<< (char_type value)
 		{
 			put(value);
 			return *this;
@@ -79,15 +79,15 @@ namespace Mcucpp
 		}
 
 		Self&
-		operator<<(IOS& (*__pf) (IOS&))
+		operator<<(ios_base& (*__pf) (ios_base&))
 		{
 			__pf(*this);
 			return *this;
 		}
 
-		void puts(const CharT *str)
+		void puts(const char_type *str)
 		{
-			const size_t outputSize = Trates::SrtLen(str);
+			const size_t outputSize = trates::SrtLen(str);
 			FieldFill(outputSize, IOS::right);
 			write(str, outputSize);
 			FieldFill(outputSize, IOS::left);
@@ -101,7 +101,7 @@ namespace Mcucpp
 			streamsize_t outputSize = strEnd - str;
 			FieldFill(outputSize, IOS::right);
 
-			while(CharT c = *str)
+			while(char_type c = *str)
 			{
 				put(c);
 				++str;
@@ -127,15 +127,15 @@ namespace Mcucpp
 		}
 	};
 
-	template<class OutputPolicy, class CharT, class IOS>
-	basic_ostream<OutputPolicy, CharT, IOS>& endl ( basic_ostream<OutputPolicy, CharT, IOS>& os)
+	template<class OutputPolicy, class char_type, class IOS>
+	basic_ostream<OutputPolicy, char_type, IOS>& endl ( basic_ostream<OutputPolicy, char_type, IOS>& os)
 	{
 		os.put('\n');
 		return os;
 	}
 
-	template<class OutputPolicy, class CharT, class IOS>
-	basic_ostream<OutputPolicy, CharT, IOS>& ends ( basic_ostream<OutputPolicy, CharT, IOS>& os)
+	template<class OutputPolicy, class char_type, class IOS>
+	basic_ostream<OutputPolicy, char_type, IOS>& ends ( basic_ostream<OutputPolicy, char_type, IOS>& os)
 	{
 		os.put('\0');
 		return os;
