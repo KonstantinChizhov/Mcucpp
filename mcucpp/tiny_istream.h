@@ -13,7 +13,7 @@ namespace Mcucpp
 				class char_type = char,
 				class IOS=basic_ios<char_type>
 				>
-	class basic_istream :public InputPolicy, public IOS
+	class basic_istream : public IOS
 	{
     public:
 	    typedef typename IOS::trates trates;
@@ -22,6 +22,7 @@ namespace Mcucpp
     protected:
 	    char_type _lastChar;
         streamsize_t _lastReadCount;
+        InputPolicy _src;
 
 		char_type SkipWs(bool skip=true)
 		{
@@ -40,35 +41,31 @@ namespace Mcucpp
             value = 0;
 			Reader reader(*this);
 
-            if(reader.current == '0')
+            if((IOS::flags() & IOS::hex))
             {
-                reader++;
-
-                if((reader.current == 'x' || reader.current == 'X') || (IOS::flags() & IOS::hex))
+                if(reader.current == '0')
                 {
                     reader++;
-                    value = StringToIntHex<T, Reader>(reader);
+                    if(reader.current == 'x' || reader.current == 'X')
+                        reader++;
                 }
-                else if(isoctdigit(reader.current))
-                {
-                    value = StringToIntOct<T, Reader>(reader);
-                }
-                else
-                {
-                    return *this;
-                }
+                value = StringToIntHex<T, Reader>(reader);
             }
-			else
-			{
-			    T sign = T(1);
+            else if(IOS::flags() & IOS::oct)
+            {
+                value = StringToIntOct<T, Reader>(reader);
+            }
+            else //if(IOS::flags() & IOS::dec)
+            {
+                T sign = T(1);
                 if(reader.current == '-')
                 {
                     reader++;
                     sign = T(-1);
                 }
                 value = StringToIntDec<T, Reader>(reader) * sign;
-			}
-			return *this;
+            }
+            return *this;
 		}
 		typedef typename trates::int_type int_type;
 
@@ -112,7 +109,7 @@ namespace Mcucpp
                 _lastChar = 0;
                 return tmp;
             }
-			return InputPolicy::get(*this);
+			return _src.get(*this);
 		}
 
 		basic_istream& get(char_type& c )
@@ -160,7 +157,7 @@ namespace Mcucpp
 			return ReadInteger<unsigned long>(value);
 		}
 
-		basic_istream& operator>> (unsigned value)
+		basic_istream& operator>> (unsigned &value)
 		{
 			return ReadInteger<unsigned>(value);
 		}
@@ -219,10 +216,10 @@ namespace Mcucpp
         struct Reader
         {
             basic_istream &_stream;
-            char_type current;
+            char_type current, prev;
 
             Reader(basic_istream &stream)
-            :_stream(stream), current( _stream.SkipWs())
+            :_stream(stream), current( _stream.SkipWs()), prev(0)
             {}
             ~Reader()
             {
@@ -235,8 +232,14 @@ namespace Mcucpp
             }
             char_type* operator++(int)
             {
+                prev = current;
                 current = _stream.get();
-                return &current;
+                return &prev;
+            }
+            char_type* operator++()
+            {
+                prev = current;
+                return current = _stream.get();
             }
         };
 	};

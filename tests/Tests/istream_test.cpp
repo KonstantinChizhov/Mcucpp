@@ -16,9 +16,9 @@ public:
 		pos = 0;
 	}
 
-	void Reset()
+	void seek(size_t p)
 	{
-		pos = 0;
+		pos = p;
 	}
 
 	char_type get(basic_ios<char_type> &thisIos)
@@ -46,7 +46,7 @@ class basic_istringstream :public basic_istream<StringReader<char_type>, char_ty
 public:
 	basic_istringstream(const char_type *str)
 	{
-		StringReader<char_type>::SetSource(str);
+		basic_istream<StringReader<char_type>, char_type>::_src.SetSource(str);
 	}
 };
 
@@ -63,9 +63,9 @@ TEST(Format, Reader)
 	int val;
 	in >> val;
 	EXPECT_EQ(123, val);
-	in >> val;
+	in >> hex >> val;
 	EXPECT_EQ(255, val);
-	in >> val;
+	in >> oct >> val;
 	EXPECT_EQ(27, val);
 }
 
@@ -89,11 +89,10 @@ TEST(Format, ReaderSkipWs)
 	int val;
 	in >> val;
 	EXPECT_EQ(123, val);
-	in >> val;
+	in >> hex >> val;
 	EXPECT_EQ(255, val);
-	in.ignore() >> val;
+	in.ignore() >> oct >> val;
 	EXPECT_EQ(27, val);
-	in.Reset();
 }
 
 TEST(Format, ReaderGet)
@@ -122,4 +121,20 @@ TEST(Format, ReaderRead)
 	buffer[10] = 0;
 	EXPECT_STREQ(" \tHello   ", buffer);
 	EXPECT_EQ(10u, in.gcount());
+}
+
+
+TEST(Format, ReaderBase)
+{
+	istringstream in("00008,deadbeef,12345678");
+	if(!in) FAIL();
+	unsigned val;
+	in >> dec >> val;
+	EXPECT_EQ(8u, val);
+	in.ignore(100, ',');
+	in >> hex >> val;
+	EXPECT_EQ(0xdeadbeef, val);
+	in.ignore(100, ',');
+	in >> oct >> val;
+	EXPECT_EQ(01234567u, val);
 }
