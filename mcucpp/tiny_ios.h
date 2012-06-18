@@ -74,6 +74,8 @@ namespace Mcucpp
 #else
 	typedef unsigned streamsize_t;
 #endif
+	typedef int32_t pos_type;
+	typedef int32_t off_type;
 
 	class ios_base
 	{

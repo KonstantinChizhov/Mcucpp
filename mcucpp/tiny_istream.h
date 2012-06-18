@@ -82,6 +82,13 @@ namespace Mcucpp
             return _lastReadCount;
 		}
 
+		streamsize_t readsome(char_type* s, streamsize_t n)
+		{
+			// TODO: review
+			read(s, n);
+			return n;
+		}
+
 		int_type peek()
 		{
             return _lastChar = InputPolicy::get(*this);
@@ -103,6 +110,7 @@ namespace Mcucpp
 
 		int_type get()
 		{
+			// TODO: smarter buffering?
 			if(_lastChar != 0)
             {
                 char_type tmp = _lastChar;
@@ -210,6 +218,29 @@ namespace Mcucpp
 			}
 			_lastReadCount = i;
 		    return *this;
+		}
+
+		pos_type tellg()
+		{
+			return _src.tell(*this);
+		}
+
+		basic_istream& seekg(pos_type pos)
+		{
+			return seekg(pos, ios_base::beg);
+		}
+
+		basic_istream& seekg(off_type off, ios_base::seekdir dir)
+		{
+			_src.seek(*this, off, dir);
+			sync();
+			return *this;
+		}
+
+		int sync()
+		{
+			_lastChar = 0;
+			return 0;
 		}
 
     protected:

@@ -16,9 +16,26 @@ public:
 		pos = 0;
 	}
 
-	void seek(size_t p)
+	void seek(basic_ios<char_type> &thisIos, ptrdiff_t p,  ios_base::seekdir dir)
 	{
-		pos = p;
+		ptrdiff_t len = basic_ios<char_type>::trates::SrtLen(_str);
+		if(dir == ios_base::beg)
+			pos = p;
+		else if(dir == ios_base::cur)
+			pos += p;
+		else
+			pos = len - p - 1;
+
+		if(pos < 0)
+			pos = 0;
+		if(pos >= len)
+			pos = len - 1;
+
+	}
+
+	ptrdiff_t tell(basic_ios<char_type> &thisIos)
+	{
+		return pos;
 	}
 
 	char_type get(basic_ios<char_type> &thisIos)
@@ -36,7 +53,7 @@ public:
 	}
 
 private:
-	int pos;
+	ptrdiff_t pos;
 	const char_type* _str;
 };
 
@@ -137,4 +154,21 @@ TEST(Format, ReaderBase)
 	in.ignore(100, ',');
 	in >> oct >> val;
 	EXPECT_EQ(01234567u, val);
+}
+
+TEST(Format, ReaderSeek)
+{
+	char str[] = "00008,deadbeef,12345678";
+	istringstream in(str);
+	if(!in) FAIL();
+	unsigned val;
+	in >> dec >> val;
+	EXPECT_EQ(8u, val);
+	in.seekg(0);
+	in >> dec >> val;
+	EXPECT_EQ(8u, val);
+	in.seekg(7, ios_base::end);
+	in >> val;
+	EXPECT_EQ(12345678u, val);
+	EXPECT_EQ(sizeof(str)-1, (size_t)in.tellg());
 }
