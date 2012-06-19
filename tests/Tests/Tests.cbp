@@ -12,6 +12,8 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-Winline" />
+					<Add option="-pedantic" />
 					<Add option="-Wall" />
 				</Compiler>
 			</Target>
@@ -34,6 +36,7 @@
 		<Unit filename="FormatWriter.cpp" />
 		<Unit filename="PinList.cpp" />
 		<Unit filename="containers.cpp" />
+		<Unit filename="fixedpoint.cpp" />
 		<Unit filename="istream_test.cpp" />
 		<Unit filename="timers.cpp" />
 		<Extensions>

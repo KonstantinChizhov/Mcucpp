@@ -64,12 +64,24 @@ namespace Mcucpp
 		{
 			typedef T Result;
 		};
+		
+		template<class T>
+		struct Signed
+		{
+			typedef T Result;
+		};
 
 		template<> struct Unsigned<int> {typedef unsigned int Result;};
 		template<> struct Unsigned<char> {typedef unsigned char Result;};
 		template<> struct Unsigned<long> {typedef unsigned long Result;};
 		template<> struct Unsigned<short> {typedef unsigned short Result;};
 		template<> struct Unsigned<long long> {typedef unsigned long long Result;};
+		
+		template<> struct Signed<unsigned int> {typedef int Result;};
+		template<> struct Signed<unsigned char> {typedef char Result;};
+		template<> struct Signed<unsigned long> {typedef long Result;};
+		template<> struct Signed<unsigned short> {typedef short Result;};
+		template<> struct Signed<unsigned long long> {typedef long long Result;};
 
 		template<class T> T (max)(T a, T b) {return a > b ? a : b;}
 		template<class T> T (min)(T a, T b) {return a > b ? b : a;}
