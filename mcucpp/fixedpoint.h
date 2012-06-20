@@ -59,6 +59,12 @@ namespace Mcucpp
 		inline FixedPoint& operator-=(const FixedPoint&);
 		inline FixedPoint operator*(int)const;
 		inline FixedPoint operator*(const FixedPoint&)const;
+		inline FixedPoint& operator*=(int);
+		inline FixedPoint& operator*=(const FixedPoint&);
+		inline FixedPoint operator/(int)const;
+		inline FixedPoint operator/(const FixedPoint&)const;
+		inline FixedPoint& operator/=(int);
+		inline FixedPoint& operator/=(const FixedPoint&);
 		inline int ToInt()const;
 		inline long ToLong()const;
 		inline long long ToLongLong()const;

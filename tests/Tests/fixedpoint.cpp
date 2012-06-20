@@ -6,7 +6,7 @@ using namespace Mcucpp;
 
 	typedef FixedPoint<16, 16> fixed16_t;
 	typedef FixedPoint<8, 8> fixed8_t;
-	const double threshold = 0.0001;
+	const double threshold = 0.01;
 
 TEST(FixedPoint, Init)
 {
@@ -58,17 +58,60 @@ TEST(FixedPoint, Minus)
 {
 	fixed16_t p1(50.4), p2(-100.5), p3;
 	p3 = p1 - p2;
-	EXPECT_NEAR(-150.9, p3.ToDouble(), threshold);
+	EXPECT_NEAR(150.9, p3.ToDouble(), threshold);
 
 	p3 -= 10;
-	EXPECT_NEAR(-160.9, p3.ToDouble(), threshold);
+	EXPECT_NEAR(140.9, p3.ToDouble(), threshold);
 
 	p3 -= fixed16_t(-100.2);
-	EXPECT_NEAR(-60.7, p3.ToDouble(), threshold);
+	EXPECT_NEAR(241.1, p3.ToDouble(), threshold);
 
 	p3 = p1 - 10;
 	EXPECT_NEAR(40.4, p3.ToDouble(), threshold);
 
 	p3 = 10 - p2;
 	EXPECT_NEAR(110.5, p3.ToDouble(), threshold);
+}
+
+TEST(FixedPoint, Multiply)
+{
+	fixed16_t p1(50.4), p2(-100.5), p3;
+	p3 = p1 * p2;
+	EXPECT_NEAR(-5065.2, p3.ToDouble(), threshold);
+
+	p3 *= 2;
+	EXPECT_NEAR(-10130.4, p3.ToDouble(), threshold);
+
+	p3 *= fixed16_t(0.1);
+	EXPECT_NEAR(-1013, p3.ToDouble(), 0.1);
+
+	p3 = p1 * 10;
+	EXPECT_NEAR(504.0, p3.ToDouble(), threshold);
+
+	p3 = 10 * p2;
+	EXPECT_NEAR(-1005.0, p3.ToDouble(), threshold);
+
+	p3 = fixed16_t(0.1) * fixed16_t(0.1);
+	EXPECT_NEAR(0.01, p3.ToDouble(), threshold);
+}
+
+TEST(FixedPoint, Divide)
+{
+	EXPECT_NEAR(1.0, (fixed16_t(0.1) / fixed16_t(0.1)).ToDouble(), threshold);
+
+	fixed16_t p1(100), p2(12), p3;
+	p3 = p1 / p2;
+	EXPECT_NEAR(8, p3.ToDouble(), threshold);
+
+	p3 /= -2;
+	EXPECT_NEAR(-4.0, p3.ToDouble(), threshold);
+
+	p3 /= fixed16_t(0.1);
+	EXPECT_NEAR(-40, p3.ToDouble(), threshold);
+
+	p3 = p1 / 10;
+	EXPECT_NEAR(10, p3.ToDouble(), threshold);
+
+	p3 = 10 / p2;
+	EXPECT_NEAR(10.0 / 12.0, p3.ToDouble(), threshold);
 }

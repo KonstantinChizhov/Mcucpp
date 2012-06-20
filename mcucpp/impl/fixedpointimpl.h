@@ -1,3 +1,4 @@
+#include <stdlib.h>
 
 namespace Mcucpp
 {
@@ -41,7 +42,7 @@ namespace Mcucpp
 	{
 
 	}
-
+//------------------------------------------------------------------------------------------------------------------------------
 	template<size_t IntegerBits, size_t FractionalBits>
 	FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::operator+(int rhs)const
 	{
@@ -61,7 +62,7 @@ namespace Mcucpp
 	template<size_t IntegerBits, size_t FractionalBits>
 	FixedPoint<IntegerBits, FractionalBits>& FixedPoint<IntegerBits, FractionalBits>::operator+=(int rhs)
 	{
-		_data += (DataT(rhs) << FractionalBits);
+		_data += (SignedDataT(rhs) << FractionalBits);
 		return *this;
 	}
 
@@ -71,7 +72,7 @@ namespace Mcucpp
 		_data += rhs._data;
 		return *this;
 	}
-
+//------------------------------------------------------------------------------------------------------------------------------
 	template<size_t IntegerBits, size_t FractionalBits>
 	FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::operator-(int rhs)const
 	{
@@ -91,7 +92,7 @@ namespace Mcucpp
 	template<size_t IntegerBits, size_t FractionalBits>
 	FixedPoint<IntegerBits, FractionalBits>& FixedPoint<IntegerBits, FractionalBits>::operator-=(int rhs)
 	{
-		_data -= (DataT(rhs) << FractionalBits);
+		_data -= (SignedDataT(rhs) << FractionalBits);
 		return *this;
 	}
 
@@ -101,12 +102,12 @@ namespace Mcucpp
 		_data -= rhs._data;
 		return *this;
 	}
-
+//------------------------------------------------------------------------------------------------------------------------------
 	template<size_t IntegerBits, size_t FractionalBits>
 	FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::operator*(int rhs)const
 	{
 		FixedPoint result;
-		result._data = _data * (SignedDataT(rhs) << FractionalBits);
+		result._data = _data * SignedDataT(rhs);
 		return result;
 	}
 
@@ -114,13 +115,62 @@ namespace Mcucpp
 	FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::operator*(const FixedPoint& rhs)const
 	{
 		FixedPoint result;
-		const SignedDataT fracta = IntegerPart();
-		const SignedDataT fractb = rhs.IntegerPart();
-		const SignedDataT inta = FractionalPart();
-		const SignedDataT intb = rhs.FractionalPart();
+		const SignedDataT inta = IntegerPart();
+		const SignedDataT intb = rhs.IntegerPart();
+		const SignedDataT fracta = FractionalPart();
+		const SignedDataT fractb = rhs.FractionalPart();
 		result._data = (inta * intb << FractionalBits) + (inta * fractb + fracta * intb) + (fracta * fractb >> FractionalBits);
 		return result;
 	}
+
+	template<size_t IntegerBits, size_t FractionalBits>
+	FixedPoint<IntegerBits, FractionalBits>& FixedPoint<IntegerBits, FractionalBits>::operator*=(int rhs)
+	{
+		_data *= SignedDataT(rhs);
+		return *this;
+	}
+
+	template<size_t IntegerBits, size_t FractionalBits>
+	FixedPoint<IntegerBits, FractionalBits>& FixedPoint<IntegerBits, FractionalBits>::operator*=(const FixedPoint& rhs)
+	{
+		const SignedDataT inta = IntegerPart();
+		const SignedDataT intb = rhs.IntegerPart();
+		const SignedDataT fracta = FractionalPart();
+		const SignedDataT fractb = rhs.FractionalPart();
+		_data = (inta * intb << FractionalBits) + (inta * fractb + fracta * intb) + (fracta * fractb >> FractionalBits);
+		return *this;
+	}
+
+//------------------------------------------------------------------------------------------------------------------------------
+	template<size_t IntegerBits, size_t FractionalBits>
+	FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::operator/(int rhs)const
+	{
+		FixedPoint result;
+		result._data = _data / SignedDataT(rhs);
+		return result;
+	}
+
+	template<size_t IntegerBits, size_t FractionalBits>
+	FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::operator/(const FixedPoint& rhs)const
+	{
+		FixedPoint result(*this);
+		return result /= rhs;
+	}
+
+	template<size_t IntegerBits, size_t FractionalBits>
+	FixedPoint<IntegerBits, FractionalBits>& FixedPoint<IntegerBits, FractionalBits>::operator/=(int rhs)
+	{
+		_data /= SignedDataT(rhs);
+		return *this;
+	}
+
+	template<size_t IntegerBits, size_t FractionalBits>
+	FixedPoint<IntegerBits, FractionalBits>& FixedPoint<IntegerBits, FractionalBits>::operator/=(const FixedPoint& rhs)
+	{
+		// TODO: implement
+  		return *this;
+	}
+//------------------------------------------------------------------------------------------------------------------------------
 
 	template<size_t IntegerBits, size_t FractionalBits>
 	int FixedPoint<IntegerBits, FractionalBits>::ToInt()const
@@ -153,6 +203,7 @@ namespace Mcucpp
 		const double rawoner = 1.0 / RawOne;
 		return double(_data) * rawoner;
 	}
+
 	template<size_t IntegerBits, size_t FractionalBits>
 	typename FixedPoint<IntegerBits, FractionalBits>::SignedDataT FixedPoint<IntegerBits, FractionalBits>::IntegerPart()const
 	{
@@ -175,5 +226,17 @@ namespace Mcucpp
 	FixedPoint<IntegerBits, FractionalBits> operator-(int lhs, const FixedPoint<IntegerBits, FractionalBits>& rhs)
 	{
 		return FixedPoint<IntegerBits, FractionalBits>(lhs) - rhs;
+	}
+
+	template<size_t IntegerBits, size_t FractionalBits>
+	FixedPoint<IntegerBits, FractionalBits> operator*(int lhs, const FixedPoint<IntegerBits, FractionalBits>& rhs)
+	{
+		return rhs * lhs;
+	}
+
+	template<size_t IntegerBits, size_t FractionalBits>
+	FixedPoint<IntegerBits, FractionalBits> operator/(int lhs, const FixedPoint<IntegerBits, FractionalBits>& rhs)
+	{
+		return FixedPoint<IntegerBits, FractionalBits>(lhs) / rhs;
 	}
 }
