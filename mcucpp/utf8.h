@@ -23,6 +23,7 @@ namespace Mcucpp
 		static const uint_fast8_t LeadingByteValue4 = 0xF0;
 
 	public:
+
 		static const CharT ErrorMarkWChar = '?';
 		static const char ErrorMarkChar = '?';
 
@@ -115,6 +116,53 @@ namespace Mcucpp
 			{
 				*str++ = (char(c >> (SubsequentByteShift * i)) & ~SubsequentByteMask) | SubsequentByteValue;
 			}
+		}
+
+		template<class StrPtr>
+		static size_t StrLen(StrPtr str)
+		{
+			size_t result = 0;
+			uint_fast8_t c;
+			while((c = *str++))
+			{
+				uint_fast8_t charBytes;
+
+				if(c == 192 || c == 193 || c >= 245)
+					break;
+
+				if((c & SubsequentByteMask) == SubsequentByteValue)
+				{
+					break;
+				}
+
+				result++;
+
+				if((c & LeadingByteMask1) == LeadingByteValue1) // Leading byte 1 byte char
+				{
+					continue;
+				}
+				else if((c & LeadingByteMask2) == LeadingByteValue2) // Leading byte 2 byte char
+				{
+					charBytes = 2;
+				} else if((c & LeadingByteMask3) == LeadingByteValue3)// Leading byte 3 byte char
+				{
+					charBytes = 3;
+				}else if((c & LeadingByteMask4) == LeadingByteValue4)// Leading byte 3 byte char
+				{
+					charBytes = 4;
+				}
+
+				for(uint_fast8_t i = 1; i < charBytes; i++)
+				{
+					c = *str;
+					if((c & SubsequentByteMask) != SubsequentByteValue)
+					{
+						return result;
+					}
+					++str;
+				}
+			}
+			return result;
 		}
 	};
 }

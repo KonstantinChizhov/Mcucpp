@@ -76,5 +76,11 @@ TEST(Utf8, Encode)
 	TEST_ENCODE_CHAR(0x11D00, "\xf0\x91\xb4\x80");
 	TEST_ENCODE_CHAR(0x120FF, "\xf0\x92\x83\xbf");
 
-std::cout << "sizeof(wchar_t) = " << sizeof(wchar_t) << std::endl;
+}
+
+
+TEST(Utf8, StrLen)
+{
+   	EXPECT_EQ(5u, Utf8::StrLen("Hello"));
+	EXPECT_EQ(13u, Utf8::StrLen("Hello, \xd0\x9c\xd0\xb5\xd0\xb4\xd0\xb2\xd0\xb5\xd0\xb4"));
 }
