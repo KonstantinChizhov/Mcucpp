@@ -5,22 +5,22 @@ namespace Mcucpp
 	template<class StrPtr, class CharT>
 	class Utf8Encoding
 	{
-		static const CharT SubsequentByteMask = 0xC0;
-		static const CharT SubsequentByteValue = 0x80;
+		static const uint_fast8_t SubsequentByteMask = 0xC0;
+		static const uint_fast8_t SubsequentByteValue = 0x80;
 
 		static const uint_fast8_t SubsequentByteShift = 6;
 
-		static const CharT LeadingByteMask1 = 0x80;
-		static const CharT LeadingByteValue1 = 0x00;
+		static const uint_fast8_t LeadingByteMask1 = 0x80;
+		static const uint_fast8_t LeadingByteValue1 = 0x00;
 
-		static const CharT LeadingByteMask2 = 0xE0;
-		static const CharT LeadingByteValue2 = 0xC0;
+		static const uint_fast8_t LeadingByteMask2 = 0xE0;
+		static const uint_fast8_t LeadingByteValue2 = 0xC0;
 
-		static const CharT LeadingByteMask3 = 0xF0;
-		static const CharT LeadingByteValue3 = 0xE0;
+		static const uint_fast8_t LeadingByteMask3 = 0xF0;
+		static const uint_fast8_t LeadingByteValue3 = 0xE0;
 
-		static const CharT LeadingByteMask4 = 0xF8;
-		static const CharT LeadingByteValue4 = 0xF0;
+		static const uint_fast8_t LeadingByteMask4 = 0xF8;
+		static const uint_fast8_t LeadingByteValue4 = 0xF0;
 
 	public:
 		static const CharT ErrorMarkChar = '?';
@@ -69,7 +69,7 @@ namespace Mcucpp
 					break;
 				}
 				result <<= SubsequentByteShift;
-				result |= c & SubsequentByteMask;
+				result |= c & ~SubsequentByteMask;
 				str++;
 			}
 
