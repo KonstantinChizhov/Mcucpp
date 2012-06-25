@@ -6,12 +6,12 @@
 
 using namespace Mcucpp;
 
-typedef Utf8Encoding<const char *, wchar_t> Utf8;
+typedef Utf8Encoding<uint32_t> Utf8;
 
 void convert(const char *utf8, wchar_t *wchar)
 {
     while(*utf8)
-        *wchar++ = Utf8::Read(utf8);
+        *wchar++ = Utf8::Decode(utf8);
     *wchar = 0;
 }
 
@@ -37,7 +37,7 @@ TEST(Utf8, Decode)
     convert("\xe0\xa0\x80 \xe1\x87\xbf \xe1\xa7\xbf \xef\xbf\xbf", result); // U+0800 ...
     EXPECT_STREQ(L"\x0800 \x11FF \x19ff \xffff", result);
 
-    convert("\xf0\x90\x80\x80 \xf0\x90x\a1\x9f", result); // U+10000 ...
+    convert("\xf0\x90\x80\x80 \xf0\x90\xa1\x9f", result); // U+10000 ...
     EXPECT_STREQ(L"\x10000 \x1085F", result);
 }
 
@@ -54,4 +54,27 @@ TEST(Utf8, Errors)
     convert("Hello worl\xc4\x5f", result);
     EXPECT_STREQ(L"Hello worl?_" , result);
 
+}
+
+
+TEST(Utf8, Encode)
+{
+	#define TEST_ENCODE_CHAR(W, S) ptr = result; Utf8::Encode(ptr, W); *ptr = 0; EXPECT_STREQ(S , result)
+
+	char result[100], *ptr;
+
+	TEST_ENCODE_CHAR(0x0030, "\x30");
+	TEST_ENCODE_CHAR(0x007e, "\x7e");
+	TEST_ENCODE_CHAR(0x0080, "\xc2\x80");
+	TEST_ENCODE_CHAR(0x0080, "\xc2\x80");
+	TEST_ENCODE_CHAR(0x00ff, "\xc3\xbf");
+	TEST_ENCODE_CHAR(0x0100, "\xc4\x80");
+	TEST_ENCODE_CHAR(0x01FF, "\xc7\xbf");
+
+	TEST_ENCODE_CHAR(0x19ff, "\xe1\xa7\xbf");
+	TEST_ENCODE_CHAR(0x0800, "\xe0\xa0\x80");
+	TEST_ENCODE_CHAR(0x11D00, "\xf0\x91\xb4\x80");
+	TEST_ENCODE_CHAR(0x120FF, "\xf0\x92\x83\xbf");
+
+std::cout << "sizeof(wchar_t) = " << sizeof(wchar_t) << std::endl;
 }
