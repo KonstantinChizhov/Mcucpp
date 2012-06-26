@@ -1,0 +1,53 @@
+Platform dependent:
+
+- AVR Two-wire Serial Interface
+- AVR eeprom
+- AVR self-programming
+- AVR clock system
+- AVR USI and UART on some chips
+
+- STM32 USART
+- STM32 SPI
+- STM32 ADC
+- STM32 DAC
+- STM32 DMA
+- STM32 RTC
+- STM32 Watchdogs
+- STM32 self-programming
+- STM32 clock system
+- STM32 ...
+
+- MSP430 ADC
+- MSP430 Watchdog
+- MSP430 DAC
+- MSP430 USART
+- MSP430 SPI
+- MSP430 I2C
+- MSP430 DMA
+- STM32 self-programming
+- STM32 clock system
+
+
+
+Platform independent:
+
+- minimal sd card support
+- minimal fat FS support
+- HD44780 refactoring
+- servo control
+- date and time support
+- one-wire support
+- DS18xxx
+- json serialization
+- xml serialization
+- ENC28J60 ethernet driver
+- MCP23*17 I/O expander
+- minimal tcp-ip support
+- tiny REST-based web services
+- new 7 segemnt display driver
+- universal IR reciver driver
+- floating point support in IO streams
+- memory allocators: bitmap, heap, etc.
+- CRC calculation: software + hardware support if present
+- step motor controller (full step / half step)
+- DC motor controller
