@@ -270,7 +270,7 @@ namespace Mcucpp
             char_type* operator++()
             {
                 prev = current;
-                current = _stream.get()
+                current = _stream.get();
                 return &current;
             }
         };

@@ -31,6 +31,7 @@
 		<Unit filename="..\..\gtest\gtest-all.cc" />
 		<Unit filename="..\..\gtest\gtest.h" />
 		<Unit filename="..\..\gtest\gtest_main.cc" />
+		<Unit filename="BinaryStream.cpp" />
 		<Unit filename="FormatWriter.cpp" />
 		<Unit filename="PinList.cpp" />
 		<Unit filename="containers.cpp" />
