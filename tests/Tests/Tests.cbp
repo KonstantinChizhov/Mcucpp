@@ -35,6 +35,7 @@
 		<Unit filename="FormatWriter.cpp" />
 		<Unit filename="PinList.cpp" />
 		<Unit filename="containers.cpp" />
+		<Unit filename="crc.cpp" />
 		<Unit filename="encoding.cpp" />
 		<Unit filename="fixedpoint.cpp" />
 		<Unit filename="istream_test.cpp" />

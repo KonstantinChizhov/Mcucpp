@@ -64,7 +64,7 @@ namespace Mcucpp
 		{
 			typedef T Result;
 		};
-		
+
 		template<class T>
 		struct Signed
 		{
@@ -76,7 +76,7 @@ namespace Mcucpp
 		template<> struct Unsigned<long> {typedef unsigned long Result;};
 		template<> struct Unsigned<short> {typedef unsigned short Result;};
 		template<> struct Unsigned<long long> {typedef unsigned long long Result;};
-		
+
 		template<> struct Signed<unsigned int> {typedef int Result;};
 		template<> struct Signed<unsigned char> {typedef char Result;};
 		template<> struct Signed<unsigned long> {typedef long Result;};
@@ -88,5 +88,41 @@ namespace Mcucpp
 		template<class T> T (abs)(T a) {return a >= 0 ? a : -a;}
 		template<class T> T (sqr)(T a) {return a*a;}
 
+
+		template<class T, T arg>
+		struct ReverseBits;
+
+		template<uint32_t arg>
+		struct ReverseBits<uint32_t, arg>
+		{
+		private:
+			static const uint32_t t1 = ((arg >> 1) & 0x55555555) | ((arg & 0x55555555) << 1);
+			static const uint32_t t2 = ((t1 >> 2) & 0x33333333) | ((t1 & 0x33333333) << 2);
+			static const uint32_t t3 = ((t2 >> 4) & 0x0F0F0F0F) | ((t2 & 0x0F0F0F0F) << 4);
+			static const uint32_t t4 = ((t3 >> 8) & 0x00FF00FF) | ((t3 & 0x00FF00FF) << 8);
+		public:
+			static const uint32_t value = (t4 >> 16) | ( t4 << 16);
+		};
+
+		template<uint16_t arg>
+		struct ReverseBits<uint16_t, arg>
+		{
+		private:
+			static const uint16_t t1 = ((arg >> 1) & 0x5555) | ((arg & 0x5555) << 1);
+			static const uint16_t t2 = ((t1 >> 2) & 0x3333) | ((t1 & 0x3333) << 2);
+			static const uint16_t t3 = ((t2 >> 4) & 0x0F0F) | ((t2 & 0x0F0F) << 4);
+		public:
+			static const uint16_t value = uint16_t(t3 >> 8) | uint16_t(t3 << 8);
+		};
+
+		template<uint8_t arg>
+		struct ReverseBits<uint8_t, arg>
+		{
+		private:
+			static const uint8_t t1 = ((arg >> 1) & 0x55) | ((arg & 0x55) << 1);
+			static const uint8_t t2 = ((t1 >> 2) & 0x33) | ((t1 & 0x33) << 2);
+		public:
+			static const uint8_t value = uint8_t(t2 >> 4) | uint8_t(t2 << 4);
+		};
 	}
 }
