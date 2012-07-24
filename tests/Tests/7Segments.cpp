@@ -1,4 +1,3 @@
-#include <fixedpoint.h>
 #include <drivers/7segments.h>
 #include <iopins.h>
 #include <pinlist.h>
@@ -52,6 +51,13 @@ TEST(SevenSegments, TestDec)
 	typedef Display7Segment<Segments, Commons, Base7Segment::Seg7All, TestMap> display;
 	display::Dec();
 	display::RightAlign();
+	display::Write(0);
+	EXPECT_STREQ("_______0", GetDisplayStr<display>());
+	display::LeftAlign();
+	display::Write(0);
+	EXPECT_STREQ("0_______", GetDisplayStr<display>());
+
+	display::RightAlign();
 	display::Write(1234);
 	EXPECT_STREQ("____1234", GetDisplayStr<display>());
 	display::LeftAlign();
@@ -71,7 +77,6 @@ TEST(SevenSegments, TestDec)
 	display::LeftAlign();
 	display::Write(-1234567890);
 	EXPECT_STREQ("-12345E4", GetDisplayStr<display>());
-
 }
 
 
@@ -91,7 +96,7 @@ TEST(SevenSegments, TestHex)
 	EXPECT_STREQ("123456E3", GetDisplayStr<display>());
 	display::LeftAlign();
 	display::Write(0x1234567890ll);
-	EXPECT_STREQ("-12345E4", GetDisplayStr<display>());
+	EXPECT_STREQ("123456E3", GetDisplayStr<display>());
 
 }
 

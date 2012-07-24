@@ -81,17 +81,18 @@ namespace Mcucpp
 	class Display7Segment: public Base7Segment
 	{
 		BOOST_STATIC_ASSERT(Segments::Length == 7 || Segments::Length == 8);
+		BOOST_STATIC_ASSERT(Commons::Length >= 2);
 
 		typedef typename StaticIf<Commons::Length <= 2, uint8_t,
 					typename StaticIf<Commons::Length <= 4, uint16_t,
-						typename StaticIf<Commons::Length <= 9, uint32_t, uint64_t>::Result
+						typename StaticIf<Commons::Length <= 8, uint32_t, uint64_t>::Result
 					>::Result
 				>::Result MaxDisplayNumberT;
 	public:
 		enum{ Digits = Commons::Length};
-		enum{ MaxDisplayNumber = Util::Pow<10, Digits>::value};
-		enum{ MaxDisplayNumberWithSign = Util::Pow<10, Digits-1>::value};
-		enum{ MaxDisplayNumberHex = Util::Pow<16, Digits>::value};
+		enum{ MaxDisplayNumber = Util::Pow<10, Digits>::value-1};
+		enum{ MaxDisplayNumberWithSign = Util::Pow<10, Digits-1>::value-1};
+		enum{ MaxDisplayNumberHex = Util::Pow<16, Digits>::value-1};
 
 		static void Update();
 		static void LeftAlign(){_data.flags |= LeftFlag;}
@@ -126,13 +127,13 @@ namespace Mcucpp
 			do
 			{
 				T q = uvalue / radix;
-				uint8_t rem = uint8_t(uvalue - q*radix);
 				if(uvalue >= maxNum)
 				{
 					exp ++;
 				}
 				else
 				{
+				    uint8_t rem = uint8_t(uvalue - q*radix);
 					*--ptr = CharMap::Map(rem);
 				}
 				uvalue = q;
@@ -142,7 +143,9 @@ namespace Mcucpp
 			if(minusSign)
 				*--ptr = CharMap::Minus();
 
-			if((Features & Base7Segment::Seg7BigNum) && exp)
+			if((Features & Base7Segment::Seg7BigNum) &&
+                Digits > 2 &&
+                exp)
 			{
 				ptr = &_data.value[0] + Digits;
 				if(exp >= radix - 1)
@@ -198,8 +201,8 @@ namespace Mcucpp
 	template<class Segments, class Commons, Base7Segment::FeaturesT Features, class CharMap>
 	void Display7Segment<Segments, Commons, Features, CharMap>::Update()
 	{
-		Commons::SetConfiguration(Commons::Out);
-		Segments::SetConfiguration(Segments::Out);
+		Commons::template SetConfiguration<Commons::Out>();
+		Segments::template SetConfiguration<Segments::Out>();
 		Commons::Write(typename Commons::DataType(1) << _data.position);
 		Segments::Write(_data.value[_data.position++]);
 		if(_data.position >= Digits)

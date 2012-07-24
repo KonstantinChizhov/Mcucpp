@@ -4,6 +4,8 @@
 #error Do not include '<Arch>/_atomic.h' files directly, use 'atomic.h' instead.
 #endif
 
+#include <__compatibility.h>
+
 namespace Mcucpp
 {
 	class DisableInterrupts
