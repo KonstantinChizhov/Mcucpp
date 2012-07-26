@@ -98,4 +98,81 @@ namespace Mcucpp
 			FieldFill(1, IOS::left);
 		}
 	}
+
+	template<class OutputPolicy, class char_type, class IOS>
+	void basic_ostream<OutputPolicy, char_type, IOS>::PutFloat(float value)
+	{
+		const int bufferSize = ConvertBufferSize<uint32_t>::value;
+		char_type intBuffer[bufferSize];
+		char_type fracBuffer[bufferSize];
+		uint32_t uvalue = *reinterpret_cast<uint32_t*>(&value);
+		uint8_t sign = uvalue & 0x80000000 ? 1 : 0;
+		int8_t exponent = int8_t(uint8_t(uvalue >> 23) - 127);
+		uint32_t fraction = (uvalue & 0x00ffffff) | 0x00800000;
+
+		if((uvalue & 0x7fffffff) == 0)
+		{
+			put(trates::DigitToLit(0));
+			return;
+		}
+
+		uint32_t intPart = 0;
+		uint32_t fracPart= 0;
+		if(exponent >= 23)
+			intPart = fraction << (exponent - 23);
+		else if(exponent >= 0)
+		{
+			intPart = fraction >> (23 - exponent);
+			fracPart = (fraction << (exponent + 1)) & 0xffffff;
+		}else
+			fracPart = fraction >> -(exponent + 1);
+
+		uint8_t maxFract = ios_base::precision();
+		if(ios_base::flags() & ios_base::floatfield == 0)
+		{
+			//maxFract
+		}
+
+		char_type *fractPartPtr = &fracBuffer[0];
+		if(fracPart && maxFract)
+		{
+			*fractPartPtr++ = trates::DecimalDot();
+
+			while(maxFract--)
+			{
+				fracPart *= 10;
+				*fractPartPtr++ = char_type(fracPart >> 24) + '0';
+				fracPart &= 0xffffff;
+			}
+
+			char_type lastDigit = char_type(fracPart >> 24) + '0';
+			while(*--fractPartPtr == '0')
+			{
+				lastDigit = *fractPartPtr;
+			}
+			if(lastDigit >= '5')
+				(*fractPartPtr)++;
+			*++fractPartPtr = 0;
+		}
+		else
+		{
+			fracPart *= 10;
+		uint8_t fractDigit = char_type(fracPart >> 24);
+		}
+
+		char_type *intPartPtr = IntToString(intPart, intBuffer + bufferSize, 10);
+		uint8_t intPartSize = intBuffer + bufferSize - intPartPtr;
+		if(sign)
+		{
+			*--intPartPtr = trates::Minus();
+			intPartSize++;
+		}
+
+		uint8_t fractPartSize = fractPartPtr - &fracBuffer[0];
+
+		FieldFill(fractPartSize + intPartSize, IOS::right);
+		write(intPartPtr, intPartSize);
+		write(fracBuffer, fractPartSize);
+		FieldFill(fractPartSize + intPartSize, IOS::left);
+	}
 }

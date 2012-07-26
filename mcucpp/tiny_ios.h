@@ -28,6 +28,10 @@ namespace Mcucpp
 			return '+';
 		}
 
+		static char DecimalDot()
+		{
+			return '.';
+		}
 		static int SrtLen(const char *str){return strlen(str);}
 
 		static const char * False(){return "false";}
@@ -53,7 +57,11 @@ namespace Mcucpp
 
 		static wchar_t Plus()
 		{
-			return '+';
+			return L'+';
+		}
+		static wchar_t DecimalDot()
+		{
+			return L'.';
 		}
 		static int SrtLen(const wchar_t *str)
 		{

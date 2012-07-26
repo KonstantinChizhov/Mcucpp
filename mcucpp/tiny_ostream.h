@@ -21,6 +21,7 @@ namespace Mcucpp
 		inline void FieldFill(streamsize_t lastOutputLength, typename IOS::fmtflags mask);
 		template<class T>
 		inline void PutInteger(T value);
+		inline void PutFloat(float value);
 		inline void PutBool(bool value);
 
 	public:
@@ -57,6 +58,12 @@ namespace Mcucpp
 		Self& operator<< (unsigned value)
 		{
 			PutInteger(value);
+			return *this;
+		}
+
+		Self& operator<< (float value)
+		{
+			PutFloat(value);
 			return *this;
 		}
 
