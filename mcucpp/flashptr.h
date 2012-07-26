@@ -1,8 +1,8 @@
 #pragma once
 
-#if defined(__ICCAVR__) 
+#if defined(__ICCAVR__)
 
-#define FLASH_PTR(PTR_TYPE) PTR_TYPE __flash*
+#define FLASH_PTR(PTR_TYPE) PTR_TYPE const __flash*
 
 #define FLASH __flash
 
@@ -95,12 +95,12 @@ public:
 	{
 		return _address != 0;
 	}
-	
+
 	inline T operator [](int index)
 	{
 		T result;
 		uint8_t *ptr = static_cast<uint8_t*>(&result);
-		
+
 		for(unsigned i = 0; i<sizeof(T); ++i)
 			ptr[i] = pgm_read_byte((const uint8_t* const)(_address + index) + i);
 		return result;
@@ -115,7 +115,7 @@ public:
 		}bytesToValue;
 
 		for(unsigned i = 0; i<sizeof(T); ++i)
-			bytesToValue.bytes[i] = 
+			bytesToValue.bytes[i] =
 					pgm_read_byte((const uint8_t* const)(_address) + i);
 		return bytesToValue.value;
 	}
