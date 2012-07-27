@@ -128,10 +128,19 @@ namespace Mcucpp
 			fracPart = fraction >> -(exponent + 1);
 
 		uint8_t maxFract = ios_base::precision();
-		if(ios_base::flags() & ios_base::floatfield == 0)
+		if((ios_base::flags() & ios_base::floatfield) == 0)
 		{
-			//maxFract
+			uint8_t intDigits = DecimalDigits(intPart);
+			if(intDigits > maxFract)
+                maxFract = 0;
+            else
+                maxFract -= intDigits;
 		}
+		if(maxFract >= bufferSize-1)
+            maxFract = bufferSize-2;
+
+        fracPart *= 10;
+        uint8_t fractDigit = char_type(fracPart >> 24);
 
 		char_type *fractPartPtr = &fracBuffer[0];
 		if(fracPart && maxFract)
@@ -140,9 +149,9 @@ namespace Mcucpp
 
 			while(maxFract--)
 			{
-				fracPart *= 10;
 				*fractPartPtr++ = char_type(fracPart >> 24) + '0';
 				fracPart &= 0xffffff;
+				fracPart *= 10;
 			}
 
 			char_type lastDigit = char_type(fracPart >> 24) + '0';
@@ -150,16 +159,15 @@ namespace Mcucpp
 			{
 				lastDigit = *fractPartPtr;
 			}
-			if(lastDigit >= '5')
-				(*fractPartPtr)++;
+			if(trates::DecimalDot() == *fractPartPtr)
+                --fractPartPtr;
+
 			*++fractPartPtr = 0;
 		}
-		else
-		{
-			fracPart *= 10;
-		uint8_t fractDigit = char_type(fracPart >> 24);
-		}
 
+		uint8_t fractPartSize = fractPartPtr - &fracBuffer[0];
+        if(fractPartSize == 0 && fractDigit >= 5) // round up
+            intPart++;
 		char_type *intPartPtr = IntToString(intPart, intBuffer + bufferSize, 10);
 		uint8_t intPartSize = intBuffer + bufferSize - intPartPtr;
 		if(sign)
@@ -167,8 +175,6 @@ namespace Mcucpp
 			*--intPartPtr = trates::Minus();
 			intPartSize++;
 		}
-
-		uint8_t fractPartSize = fractPartPtr - &fracBuffer[0];
 
 		FieldFill(fractPartSize + intPartSize, IOS::right);
 		write(intPartPtr, intPartSize);

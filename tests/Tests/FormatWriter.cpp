@@ -177,10 +177,18 @@ TEST(Format, FloatRound)
 
 	my_cout.precision(5);
 	my_cout << 99999.99f;
-	EXPECT_STREQ("1e+005", my_cout.str().c_str());
+	EXPECT_STREQ("1e+005", my_cout.c_str());
 	my_cout.seekp(0);
 
 	my_cout << 99999.0f;
-	EXPECT_STREQ("99999", my_cout.str().c_str());
+	EXPECT_STREQ("99999", my_cout.c_str());
+	my_cout.seekp(0);
+
+	my_cout << 9999.99f;
+	EXPECT_STREQ("10000", my_cout.c_str());
+	my_cout.seekp(0);
+
+	my_cout << 9999.001f;
+	EXPECT_STREQ("9999", my_cout.c_str());
 	my_cout.seekp(0);
 }

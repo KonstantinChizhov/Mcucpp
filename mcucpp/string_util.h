@@ -87,4 +87,19 @@ namespace Mcucpp
 		}
 		return result;
 	}
+
+	template<class T>
+	inline uint8_t DecimalDigits (T x)
+    {
+        T p = 1;
+        uint8_t i;
+        const uint8_t max = sizeof(x) == 2 ? 5 : sizeof(x) == 4 ? 10 : sizeof(x) == 8 ? 20 : 3;
+        for (i = 0; i <= max; i++)
+        {
+            if (x < p)
+                return i;
+            p *= 10;
+        }
+        return i;
+    }
 }
