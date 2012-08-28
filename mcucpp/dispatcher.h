@@ -28,8 +28,9 @@
 #pragma once
 
 #include "containers.h"
+#include "ring_buffer.h"
 #include "atomic.h"
-
+namespace Mcucpp{
 typedef void (*task_t)();
 
 typedef struct
@@ -45,7 +46,7 @@ public:
 
 	static void Init()
 	{
-		_tasks.Clear();
+		_tasks.clear();
 		for(uint8_t i=0; i<_timers.Size(); i++)
 		{
 			_timers[i].task = 0;
@@ -55,7 +56,7 @@ public:
 
 	static void SetTask(task_t task)
 	{
-		ATOMIC{	_tasks.Write(task);}
+		ATOMIC{	_tasks.push_back(task);}
 	}
 
 	static void SetTimer(task_t task, uint16_t period) __attribute__ ((noinline))
@@ -100,7 +101,8 @@ public:
 		task_t task;
 		//NOTE: no beed to block task Queue here. This is the only place the Queue read.
 		//cli();
-		if(_tasks.Read(task))
+		task = _tasks.front();
+		if(_tasks.pop_front())
 		{
 		//	sei();
 			task();
@@ -114,23 +116,23 @@ public:
 		{
 			if(_timers[i].task != 0 && --_timers[i].period == 0)
 			{
-				_tasks.Write(_timers[i].task);
+				_tasks.push_back(_timers[i].task);
 				_timers[i].task = 0;
 			}
 		}
 	}
 
 private:
-	static Queue<TasksLenght, task_t> _tasks;
-	static Array<TimersLenght, TimerData> _timers;
+	static Containers::RingBufferPO2<TasksLength, task_t> _tasks;
+	static Containers::FixedArray<TimersLength, TimerData> _timers;
 };
 
-template<uint8_t TasksLenght, uint8_t TimersLenght>
-Array<TimersLenght, TimerData> Dispatcher<TasksLenght, TimersLenght>::_timers;
+template<uint8_t TasksLength, uint8_t TimersLength, class NoopAction>
+Containers::FixedArray<TimersLength, TimerData> Dispatcher<TasksLength, TimersLength, NoopAction>::_timers;
 
-template<uint8_t TasksLenght, uint8_t TimersLenght>
-Queue<TasksLenght, task_t> Dispatcher<TasksLenght, TimersLenght>::_tasks;
-
-
+template<uint8_t TasksLength, uint8_t TimersLength, class NoopAction>
+Containers::RingBufferPO2<TasksLength, task_t> Dispatcher<TasksLength, TimersLength, NoopAction>::_tasks;
 
 
+
+}
