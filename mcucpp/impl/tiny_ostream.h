@@ -154,10 +154,10 @@ namespace Mcucpp
 				fracPart *= 10;
 			}
 
-			char_type lastDigit = char_type(fracPart >> 24) + '0';
+			//char_type lastDigit = char_type(fracPart >> 24) + '0';
 			while(*--fractPartPtr == '0')
 			{
-				lastDigit = *fractPartPtr;
+				//lastDigit = *fractPartPtr;
 			}
 			if(trates::DecimalDot() == *fractPartPtr)
                 --fractPartPtr;

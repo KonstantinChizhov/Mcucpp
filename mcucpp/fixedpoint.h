@@ -32,16 +32,18 @@
 
 namespace Mcucpp
 {
-	template<size_t IntegerBits, size_t FractionalBits>
+	template<class T, size_t IntegerBits>
 	class FixedPoint
 	{
-		BOOST_STATIC_ASSERT(IntegerBits + FractionalBits <= 64);
+		BOOST_STATIC_ASSERT(IntegerBits <= sizeof(T) * 8);
 	public:
-		typedef typename SelectSize<IntegerBits + FractionalBits>::Result DataT;
-		typedef typename Util::Signed<DataT>::Result SignedDataT;
-		static const DataT FractionalPartMask = (DataT(1) << FractionalBits) - 1;
-		static const DataT IntegerPartMask = ((DataT(1) << IntegerBits) - 1) << FractionalBits;
-		static const DataT RawOne = DataT(1) << FractionalBits;
+		typedef T DataT;
+		typedef typename Util::Unsigned<T>::Result UnsignedT;
+		enum{IsSigned = T(-1) > 0};
+		static const T FractionalBits = sizeof(T) * 8 - IntegerBits;
+		static const T FractionalPartMask = (T(1) << FractionalBits) - 1;
+		static const T IntegerPartMask = ((T(1) << IntegerBits) - 1) << FractionalBits;
+		static const T RawOne = T(1) << FractionalBits;
 
 		inline FixedPoint();
 		explicit inline FixedPoint(int);
@@ -70,10 +72,10 @@ namespace Mcucpp
 		inline long long ToLongLong()const;
 		inline float ToFloat()const;
 		inline double ToDouble()const;
-		inline SignedDataT IntegerPart()const;
-		inline DataT FractionalPart()const;
+		inline DataT IntegerPart()const;
+		inline UnsignedT FractionalPart()const;
 	private:
-		SignedDataT _data;
+		DataT _data;
 	};
 } //namespace Mcucpp
 
