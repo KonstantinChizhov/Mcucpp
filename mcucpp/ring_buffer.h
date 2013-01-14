@@ -50,7 +50,9 @@ namespace Mcucpp
 			typedef const T& const_reference;
 		private:
 			BOOST_STATIC_ASSERT((SIZE&(SIZE-1))==0);//SIZE must be a power of 2
-			value_type _data[SIZE];
+			unsigned _buffer[(sizeof(value_type) * (SIZE + 1) - 1) / sizeof(unsigned)];
+			value_type *_data(){return reinterpret_cast<value_type*>(_buffer);}
+			const value_type *_data()const{return reinterpret_cast<const value_type*>(_buffer);}
 			size_type _writeCount;
 			size_type _readCount;
 			static const size_type _mask = SIZE - 1;
@@ -86,7 +88,7 @@ namespace Mcucpp
 		{
 			if(full())
 				return 0;
-			_data[_writeCount++ & _mask] = value;
+			_data()[_writeCount++ & _mask] = value;
 			return true;
 		}
 		
@@ -95,7 +97,7 @@ namespace Mcucpp
 		{
 			if(full())
 				return 0;
-			new(&_data[_writeCount++ & _mask]) T();
+			new(&_data()[_writeCount++ & _mask]) T();
 			return true;
 		}
 
@@ -112,42 +114,42 @@ namespace Mcucpp
 		const T& RingBufferPO2<SIZE, T, Atomic>::front()const
 		{
 			MCUCPP_ASSERT(!empty());
-			return _data[_readCount & _mask];
+			return _data()[_readCount & _mask];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
 		const T& RingBufferPO2<SIZE, T, Atomic>::back()const
 		{
 			MCUCPP_ASSERT(!empty());
-			return _data[(_writeCount-1) & _mask];
+			return _data()[(_writeCount-1) & _mask];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
 		T& RingBufferPO2<SIZE, T, Atomic>::front()
 		{
 			MCUCPP_ASSERT(!empty());
-			return _data[_readCount & _mask];
+			return _data()[_readCount & _mask];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
 		T& RingBufferPO2<SIZE, T, Atomic>::back()
 		{
 			MCUCPP_ASSERT(!empty());
-			return _data[(_writeCount-1) & _mask];
+			return _data()[(_writeCount-1) & _mask];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
 		T& RingBufferPO2<SIZE, T, Atomic>::operator[] (size_type i)
 		{
 			MCUCPP_ASSERT(i < SIZE);
-			return _data[(_readCount + i) & _mask];
+			return _data()[(_readCount + i) & _mask];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
 		const T& RingBufferPO2<SIZE, T, Atomic>::operator[] (size_type i)const
 		{
 			MCUCPP_ASSERT(i < SIZE);
-			return _data[(_readCount + i) & _mask];
+			return _data()[(_readCount + i) & _mask];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
@@ -190,7 +192,9 @@ namespace Mcucpp
 			size_type  _count;
 			size_type  _first;
 			size_type  _last;
-			T  _data[SIZE];
+			unsigned _buffer[(sizeof(value_type) * (SIZE + 1) - 1) / sizeof(unsigned)];
+			value_type *_data(){return reinterpret_cast<value_type*>(_buffer);}
+			const value_type *_data()const{return reinterpret_cast<const value_type*>(_buffer);}
 		public:
 			RingBuffer() : _count(0), _first(0), _last(0) { }
 
@@ -215,7 +219,7 @@ namespace Mcucpp
 		T& RingBuffer<SIZE, T, Atomic>::front()
 		{
 			MCUCPP_ASSERT(!empty());
-			return _data[_first];
+			return _data()[_first];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
@@ -242,21 +246,21 @@ namespace Mcucpp
 		const T& RingBuffer<SIZE, T, Atomic>::front()const
 		{
 			MCUCPP_ASSERT(!empty());
-			return _data[_first];
+			return _data()[_first];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
 		T& RingBuffer<SIZE, T, Atomic>::back()
 		{
 			MCUCPP_ASSERT(!empty());
-			return _data[_last-1];
+			return _data()[_last-1];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
 		const T& RingBuffer<SIZE, T, Atomic>::back()const
 		{
 			MCUCPP_ASSERT(!empty());
-			return _data[_last-1];
+			return _data()[_last-1];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
@@ -266,7 +270,7 @@ namespace Mcucpp
 			size_type offset = _first + index;
 			if(offset >= SIZE)
 				offset -= SIZE;
-			return _data[offset];
+			return _data()[offset];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
@@ -276,7 +280,7 @@ namespace Mcucpp
 			size_type offset = _first + index;
 			if(offset >= SIZE)
 				offset -= SIZE;
-			return _data[offset];
+			return _data()[offset];
 		}
 		
 		template<size_t SIZE, class T, class Atomic>
@@ -284,7 +288,7 @@ namespace Mcucpp
 		{
 			if(Atomic::Fetch(&_count) == SIZE)
 				return false;
-			new (&_data[_last]) T();
+			new (&_data()[_last]) T();
 			_last++;
 			if(_last >= SIZE)
 				_last = 0;
@@ -297,7 +301,7 @@ namespace Mcucpp
 		{
 			if(Atomic::Fetch(&_count) == SIZE)
 				return false;
-			_data[_last] = item;
+			_data()[_last] = item;
 			_last++;
 			if(_last >= SIZE)
 				_last = 0;

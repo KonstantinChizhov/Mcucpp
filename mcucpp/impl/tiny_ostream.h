@@ -1,4 +1,7 @@
-#include <stdlib.h>
+//#include <stdlib.h>
+#include <string_util.h>
+#include <impl/ftoa_engine.h>
+#include <template_utils.h>
 
 namespace Mcucpp
 {
@@ -63,7 +66,7 @@ namespace Mcucpp
 
 		typedef typename Util::Unsigned<T>::Result UT;
 		UT uvalue = static_cast<UT>(value);
-		char_type * str = IntToString(uvalue, buffer + bufferSize, Base());
+		char_type * str = UtoaBuiltinDiv(uvalue, buffer + bufferSize, Base());
 
 		int outputSize = buffer + bufferSize - str + prefix + maxPrefixSize - prefixPtr;
 
@@ -102,83 +105,92 @@ namespace Mcucpp
 	template<class OutputPolicy, class char_type, class IOS>
 	void basic_ostream<OutputPolicy, char_type, IOS>::PutFloat(float value)
 	{
-		const int bufferSize = ConvertBufferSize<uint32_t>::value;
-		char_type intBuffer[bufferSize];
-		char_type fracBuffer[bufferSize];
-		uint32_t uvalue = *reinterpret_cast<uint32_t*>(&value);
-		uint8_t sign = uvalue & 0x80000000 ? 1 : 0;
-		int8_t exponent = int8_t(uint8_t(uvalue >> 23) - 127);
-		uint32_t fraction = (uvalue & 0x00ffffff) | 0x00800000;
+		const int bufferSize = 10;
+		char_type buffer[bufferSize+1];
 
-		if((uvalue & 0x7fffffff) == 0)
+		streamsize_t precision = IOS::precision();
+		if(precision > bufferSize - 1)
+			precision =  bufferSize - 1;
+		if(precision <= 2)
+			precision = 2;
+
+		int exp10 = ftoaEngine(value, buffer, precision);
+		if(exp10 == 0xff)
 		{
-			put(trates::DigitToLit(0));
+			char_type *ptr = buffer;
+			if(buffer[0] == char_trates<char_type>::Plus() && (IOS::flags() & IOS::showpos) == 0)
+				ptr++;
+			puts(ptr);
 			return;
 		}
 
-		uint32_t intPart = 0;
-		uint32_t fracPart= 0;
-		if(exponent >= 23)
-			intPart = fraction << (exponent - 23);
-		else if(exponent >= 0)
+		char_type *str_begin = &buffer[2];
+		if(buffer[1] != char_trates<char_type>::DigitToLit(0))
 		{
-			intPart = fraction >> (23 - exponent);
-			fracPart = (fraction << (exponent + 1)) & 0xffffff;
+			exp10++;
+			str_begin--;
+		}
+
+		uint_fast8_t digits = char_trates<char_type>::StrLen(str_begin);
+
+		uint_fast8_t intDigits=0, leadingZeros = 0;
+		if((streamsize_t)abs(exp10) >= precision)
+		{
+			intDigits = 1;
+		}else if(exp10 >= 0)
+		{
+			intDigits = exp10+1;
+			exp10 = 0;
 		}else
-			fracPart = fraction >> -(exponent + 1);
-
-		uint8_t maxFract = ios_base::precision();
-		if((ios_base::flags() & ios_base::floatfield) == 0)
 		{
-			uint8_t intDigits = DecimalDigits(intPart);
-			if(intDigits > maxFract)
-                maxFract = 0;
-            else
-                maxFract -= intDigits;
+			intDigits = 0;
+			leadingZeros = -exp10 - 1;
+			exp10 = 0;
 		}
-		if(maxFract >= bufferSize-1)
-            maxFract = bufferSize-2;
+		uint_fast8_t fractDigits = digits > intDigits ? digits - intDigits : 0;
 
-        fracPart *= 10;
-        uint8_t fractDigit = char_type(fracPart >> 24);
+		if(buffer[0] == char_trates<char_type>::Minus() || (IOS::flags() & IOS::showpos))
+			put(buffer[0]);
 
-		char_type *fractPartPtr = &fracBuffer[0];
-		if(fracPart && maxFract)
+		if(intDigits)
 		{
-			*fractPartPtr++ = trates::DecimalDot();
+			uint_fast8_t count = intDigits > digits ? digits : intDigits;
+			while(count--)
+				put(*str_begin++);
+			int_fast8_t tralingZeros = intDigits - digits;
+			while(tralingZeros-- > 0)
+				put(char_trates<char_type>::DigitToLit(0));
+		}
+		else
+			put(char_trates<char_type>::DigitToLit(0));
 
-			while(maxFract--)
+		if(fractDigits)
+		{
+			put(char_trates<char_type>::DecimalDot());
+			while(leadingZeros--)
+				put(char_trates<char_type>::DigitToLit(0));
+			while(fractDigits--)
+				put(*str_begin++);
+		}
+		if(exp10 != 0)
+		{
+			put(char_trates<char_type>::Exp());
+			uint_fast8_t upow10;
+			if(exp10 < 0)
 			{
-				*fractPartPtr++ = char_type(fracPart >> 24) + '0';
-				fracPart &= 0xffffff;
-				fracPart *= 10;
+				put(char_trates<char_type>::Minus());
+				upow10 = -exp10;
 			}
-
-			//char_type lastDigit = char_type(fracPart >> 24) + '0';
-			while(*--fractPartPtr == '0')
+			else
 			{
-				//lastDigit = *fractPartPtr;
+				put(char_trates<char_type>::Plus());
+				upow10 = exp10;
 			}
-			if(trates::DecimalDot() == *fractPartPtr)
-                --fractPartPtr;
-
-			*++fractPartPtr = 0;
+			char *powPtr = UtoaFastDiv(upow10, buffer + bufferSize);
+			while(powPtr < buffer + bufferSize)
+			{
+				put(*powPtr++);
+			}
 		}
-
-		uint8_t fractPartSize = fractPartPtr - &fracBuffer[0];
-        if(fractPartSize == 0 && fractDigit >= 5) // round up
-            intPart++;
-		char_type *intPartPtr = IntToString(intPart, intBuffer + bufferSize, 10);
-		uint8_t intPartSize = intBuffer + bufferSize - intPartPtr;
-		if(sign)
-		{
-			*--intPartPtr = trates::Minus();
-			intPartSize++;
-		}
-
-		FieldFill(fractPartSize + intPartSize, IOS::right);
-		write(intPartPtr, intPartSize);
-		write(fracBuffer, fractPartSize);
-		FieldFill(fractPartSize + intPartSize, IOS::left);
 	}
 }

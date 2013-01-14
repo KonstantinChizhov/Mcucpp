@@ -19,7 +19,7 @@ namespace Mcucpp
 		static void Write(uint8_t c)
 		{
 			_txCrc = CrcUpdate<CrcClass>(c, _txCrc);
-			Write(c);
+			Source::Write(c);
 		}
 		
 		class Crc
@@ -43,6 +43,28 @@ namespace Mcucpp
 			static CrcType GetTx()
 			{
 				return _txCrc;
+			}
+			
+			// Send accumulated CRC to communication device LSB
+			static void SendLsb()
+			{
+				CrcType crc = _txCrc;
+				for(int i = 0; i < sizeof(CrcType); i++)
+				{
+					Source::Write((uint8_t)crc);
+					crc >>= 8;
+				}
+			}
+			
+			// Send accumulated CRC to communication device MSB
+			static void SendMsb()
+			{
+				CrcType crc = _txCrc;
+				for(int i = 0; i < sizeof(CrcType); i++)
+				{
+					Source::Write((uint8_t)(crc >> ((sizeof(CrcType)-1)*8)));
+					crc <<= 8;
+				}
 			}
 		};
 	};

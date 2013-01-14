@@ -36,6 +36,7 @@
 #ifndef AVR_PORTS_H
 #define AVR_PORTS_H
 
+#include <__compatibility.h>
 #include "atomic.h"
 #include "ioreg.h"
 

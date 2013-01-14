@@ -28,111 +28,91 @@
 #pragma once
 
 #include "containers.h"
-#include "ring_buffer.h"
-#include "atomic.h"
-namespace Mcucpp{
-    typedef void (*task_t)();
-    
-    typedef struct
-    {
-    	task_t task;
-    	uint16_t period;
-    } TimerData;
-    
-    template<uint8_t TasksLenght, uint8_t TimersLenght>
-    class Dispatcher
-    {
-    public:
-    
-    	static void Init()
-    	{
-    		_tasks.clear();
-    		for(uint8_t i=0; i<_timers.Size(); i++)
-    		{
-    			_timers[i].task = 0;
-    			_timers[i].period = 0;
-    		}
-    	}
-    
-    	static void SetTask(task_t task)
-    	{
-    		ATOMIC{	_tasks.push_back(task);}
-    	}
-    
-    	static void SetTimer(task_t task, uint16_t period) __attribute__ ((noinline))
-    	{
-    		uint8_t i_idle=0;
-    		ATOMIC
-    		{
-    			for(uint8_t i=0; i<_timers.Size(); i++)
-    			{
-    				if(_timers[i].task == 0)
-    				{
-    					i_idle = i;
-    				}
-    				if(_timers[i].task == task)
-    				{
-    					_timers[i].period = period;
-    					return;
-    				}
-    			}
-    			_timers[i_idle].task = task;
-    			_timers[i_idle].period = period;
-    		}
-    	}
-    
-    	static void StopTimer(task_t task)
-    	{
-    		ATOMIC
-    		{
-    			for(uint8_t i=0; i<_timers.Size(); i++)
-    			{
-    				if(_timers[i].task == task)
-    				{
-    					_timers[i].task = 0;
-    					return;
-    				}
-    			}
-    		}
-    	}
-    
-    	static void Poll()
-    	{
-    		task_t task;
-    		//NOTE: no beed to block task Queue here. This is the only place the Queue read.
-    		//cli();
-    		task = _tasks.front();
-    		if(_tasks.pop_front())
-    		{
-    		//	sei();
-    			task();
-    		}
-    		//sei();
-    	}
-    
-    	static void TimerHandler()
-    	{
-    		for(uint8_t i=0; i<_timers.Size(); i++)
-    		{
-    			if(_timers[i].task != 0 && --_timers[i].period == 0)
-    			{
-    				_tasks.push_back(_timers[i].task);
-    				_timers[i].task = 0;
-    			}
-    		}
-    	}
-    
-    private:
-    	static Containers::RingBufferPO2<TasksLength, task_t> _tasks;
-    	static Containers::FixedArray<TimersLength, TimerData> _timers;
-    };
-    
-    template<uint8_t TasksLength, uint8_t TimersLength, class NoopAction>
-    Containers::FixedArray<TimersLength, TimerData> Dispatcher<TasksLength, TimersLength, NoopAction>::_timers;
-    
-    template<uint8_t TasksLength, uint8_t TimersLength, class NoopAction>
-    Containers::RingBufferPO2<TasksLength, task_t> Dispatcher<TasksLength, TimersLength, NoopAction>::_tasks;
-    
-    
-    
+#include <atomic.h>
+
+namespace Mcucpp
+{
+	typedef void (*task_t)();
+
+	template<uint8_t TasksLenght, uint8_t TimersLenght, class Atomic=VoidAtomic>
+	class Dispatcher
+	{
+		struct TimerData
+		{
+			task_t task;
+			uint16_t period;
+		};
+
+	public:
+		Dispatcher()
+		{
+			memset(_timers, 0, sizeof(TimerData) * TimersLenght);
+		}
+
+		bool SetTask(task_t task)
+		{
+			return _tasks.push_back(task);
+		}
+
+		bool SetTimer(task_t timerTask, uint16_t period)
+		{
+			for(size_t i=0; i <TimersLenght; i++)
+			{
+				task_t task = Atomic::Fetch(&_timers[i].task);
+				if(task == 0)
+				{
+					_timers[i].task = timerTask;
+					_timers[i].period = period;
+					return true;
+				}
+				if(task == timerTask)
+				{
+					_timers[i].period = period;
+					return true;
+				}
+			}
+			return false;
+		}
+
+		void StopTimer(task_t taskToStop)
+		{
+			for(size_t i=0; i < TimersLenght; i++)
+			{
+				task_t task = Atomic::Fetch(&_timers[i].task);
+				if(task == taskToStop)
+				{
+					_timers[i].task = 0;
+					return;
+				}
+			}
+		}
+
+		void Poll()
+		{
+			if(!_tasks.empty())
+			{
+				task_t task = _tasks.front();
+				_tasks.pop_front();
+				task();
+			}
+		}
+
+		void TimerHandler()
+		{
+			for(size_t i=0; i < TimersLenght; i++)
+			{
+				task_t task = Atomic::Fetch(&_timers[i].task);
+				if(task != 0 &&	Atomic::SubAndFetch(&_timers[i].period, 1) == 0)
+				{
+					_tasks.push_back(task);
+					_timers[i].task = 0;
+				}
+			}
+		}
+
+	private:
+		Containers::RingBuffer<TasksLenght, task_t, Atomic> _tasks;
+		TimerData _timers[TimersLenght];
+	};
 }
+

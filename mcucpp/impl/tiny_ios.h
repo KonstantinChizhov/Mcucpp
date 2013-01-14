@@ -77,7 +77,7 @@ namespace Mcucpp
     template<class char_type>
     bool basic_ios<char_type>::eof ( ) const
     {
-        return _state & eofbit;
+        return (_state & eofbit) != 0;
     }
 
     template<class char_type>

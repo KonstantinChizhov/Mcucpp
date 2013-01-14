@@ -11,32 +11,32 @@ namespace Mcucpp
 		{
 			DataBits8 = 0,
 			DataBits9 = USART_CR1_M,
-		
+
 			NoneParity = 0,
 			EvenParity = USART_CR1_PCE,
 			OddParity  = USART_CR1_PS | USART_CR1_PCE,
-		
+
 			NoClock = 0,
-			
+
 			Disabled = 0,
 			RxEnable = USART_CR1_RE,
 			TxEnable = USART_CR1_TE,
 			RxTxEnable  = USART_CR1_RE | USART_CR1_TE,
 			Default = RxTxEnable,
-			
+
 			OneStopBit         = 0,
 			HalfStopBit        = USART_CR2_STOP_0,
 			TwoStopBits        = USART_CR2_STOP_1,
 			OneAndHalfStopBits = (USART_CR2_STOP_0 | USART_CR2_STOP_1)
 		};
-		
+
 		static const int EOF = -1;
 	};
-	
+
 	inline UsartBase::UsartMode operator|(UsartBase::UsartMode left, UsartBase::UsartMode right)
 	{	return static_cast<UsartBase::UsartMode>(static_cast<int>(left) | static_cast<int>(right));	}
-		
-	
+
+
 	namespace Private
 	{
 		template<class Sr, class Dr, class Brr, class Cr1, class Cr2, class Cr3, class ClockCtrl>
@@ -51,7 +51,7 @@ namespace Mcucpp
 				Cr1::Set((flags & 0xffff) | USART_CR1_UE );
 				Cr2::Set((flags >> 16) & 0xffff);
 			}
-			
+
 			static bool Putch(uint8_t c)
 			{
 				while((Sr::Get() & USART_SR_TXE) == 0);
@@ -65,35 +65,35 @@ namespace Mcucpp
 					return Dr::Get();
 				return EOF;
 			}
-			
+
 			static bool Write(uint8_t c)
 			{
 				return Putch();
 			}
-			
+
 			static bool TxReady()
 			{
 				return (Sr::Get() & USART_SR_TXE) == 0;
 			}
-			
+
 			static bool RxReady()
 			{
 				return Sr::Get() & USART_SR_RXNE;
 			}
-			
+
 			class Dma
 			{
 				public:
 				//typedef Dma1Channel4 ChannelTx;
 				static void EnableTx()
 				{
-					
+
 				}
-				
+
 			};
 		};
 	}
-	
+
 #define DECLARE_USART(SR, DR, BRR, CR1, CR2, CR3, CLOCK, className) \
 	namespace Private \
 	{\
@@ -112,7 +112,7 @@ namespace Mcucpp
 		Private::className ## Cr2,\
 		Private::className ## Cr3,\
 		CLOCK\
-		> className;
-		
+		> className
+
 		DECLARE_USART(USART1->SR, USART1->DR, USART1->BRR, USART1->CR1, USART1->CR2, USART1->CR3, Clock::Usart1Clock, Usart1);
 }

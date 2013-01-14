@@ -1,6 +1,6 @@
 #ifndef CRC16_H
 #define CRC16_H
-#include <inttypes.h>
+#include <stdint.h>
 #include <template_utils.h>
 
 namespace Mcucpp
@@ -76,7 +76,7 @@ namespace Mcucpp
 		static const ResultType XorOut = 0;
 		static const ResultType Check = 0xA1;
 		static inline const char *CheckMessage(){return "123456789";}
-		static inline const char *Name(){return "CRC 32";}
+		static inline const char *Name(){return "Dallas CRC";}
 		static const ResultType RevPoly = Util::ReverseBits<ResultType, Poly>::value;
 	};
 
@@ -95,7 +95,7 @@ namespace Mcucpp
 		{
 			v = v << (CrcClass::Width - 8);
 			do
-				v = v & 0x8000 ? (v << 1) ^ CrcClass::Poly : v << 1;
+				v = v & Msb ? (v << 1) ^ CrcClass::Poly : v << 1;
 			while(--i);
 		}
 

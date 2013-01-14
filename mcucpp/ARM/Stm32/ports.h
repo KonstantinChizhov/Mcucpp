@@ -76,7 +76,7 @@ namespace Mcucpp
 				static const Configuration value = Out;
 			};
 		};
-		
+
 		template<> struct NativePortBase::MapConfigurationConst<GpioBase::In>{static const Configuration value = In;};
 		template<> struct NativePortBase::MapConfigurationConst<GpioBase::AnalogIn>{static const Configuration value = AnalogIn;};
 		template<> struct NativePortBase::MapConfigurationConst<GpioBase::OpenDrainOut>{static const Configuration value = OpenDrainOut;};
@@ -190,12 +190,12 @@ namespace Mcucpp
 				  WriteConfig<CRL, mask, configuration>::Write();
 				  WriteConfig<CRH, (mask>>8), configuration>::Write();
 				}
-				
+
 				static void Enable()
 				{
 					ClkEnReg::Enable();
 				}
-				
+
 				static void Disable()
 				{
 					ClkEnReg::Disable();
@@ -299,30 +299,37 @@ namespace Mcucpp
 
 	#ifdef USE_PORTA
 	MAKE_PORT(GPIOA->CRL, GPIOA->CRH, GPIOA->IDR, GPIOA->ODR, GPIOA->BSRR, GPIOA->BRR, GPIOA->LCKR, Clock::PortaClock, Porta, 'A')
+	#define MCUCPP_HAS_PORTA
 	#endif
 
 	#ifdef USE_PORTB
 	MAKE_PORT(GPIOB->CRL, GPIOB->CRH, GPIOB->IDR, GPIOB->ODR, GPIOB->BSRR, GPIOB->BRR, GPIOB->LCKR, Clock::PortbClock, Portb, 'B')
+	#define MCUCPP_HAS_PORTB
 	#endif
 
 	#ifdef USE_PORTC
 	MAKE_PORT(GPIOC->CRL, GPIOC->CRH, GPIOC->IDR, GPIOC->ODR, GPIOC->BSRR, GPIOC->BRR, GPIOC->LCKR, Clock::PortcClock, Portc, 'C')
+	#define MCUCPP_HAS_PORTC
 	#endif
 
 	#ifdef USE_PORTD
 	MAKE_PORT(GPIOD->CRL, GPIOD->CRH, GPIOD->IDR, GPIOD->ODR, GPIOD->BSRR, GPIOD->BRR, GPIOD->LCKR, Clock::PortdClock, Portd, 'D')
+	#define MCUCPP_HAS_PORTD
 	#endif
 
 	#ifdef USE_PORTE
 	MAKE_PORT(GPIOE->CRL, GPIOE->CRH, GPIOE->IDR, GPIOE->ODR, GPIOE->BSRR, GPIOE->BRR, GPIOE->LCKR, Clock::PorteClock, Porte, 'E')
+	#define MCUCPP_HAS_PORTE
 	#endif
 
 	#ifdef USE_PORTF
 	MAKE_PORT(GPIOF->CRL, GPIOF->CRH, GPIOF->IDR, GPIOF->ODR, GPIOF->BSRR, GPIOF->BRR, GPIOF->LCKR, Clock::PortfClock, Portf, 'F')
+	#define MCUCPP_HAS_PORTF
 	#endif
 
 	#ifdef USE_PORTG
 	MAKE_PORT(GPIOG->CRL, GPIOG->CRH, GPIOG->IDR, GPIOG->ODR, GPIOG->BSRR, GPIOG->BRR, GPIOG->LCKR, Clock::PortgClock, Portg, 'G')
+	#define MCUCPP_HAS_PORTG
 	#endif
 
 	//==================================================================================================

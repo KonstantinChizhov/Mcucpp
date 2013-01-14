@@ -58,7 +58,7 @@ namespace Mcucpp
 		template<class PORT, uint8_t PIN, class CONFIG_PORT>
 		bool TPin<PORT, PIN, CONFIG_PORT>::IsSet()
 		{
-			return PORT::PinRead() & (typename PORT::DataT)(1 << PIN);
+			return (PORT::PinRead() & (typename PORT::DataT)(1 << PIN)) != 0;
 		}
 
 		template<class PORT, uint8_t PIN, class CONFIG_PORT>

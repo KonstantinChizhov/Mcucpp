@@ -50,7 +50,9 @@ namespace Mcucpp
 			typedef T& reference;
 			typedef const T& const_reference;
 		private:
-			value_type _data[SIZE];
+			unsigned _buffer[(sizeof(value_type) * (SIZE + 1) - 1) / sizeof(unsigned)];
+			value_type *_data(){return reinterpret_cast<value_type*>(_buffer);}
+			const value_type *_data()const{return reinterpret_cast<const value_type*>(_buffer);}
 			size_type _top;
 		public:
 
@@ -83,7 +85,7 @@ namespace Mcucpp
 		{
 			if(full())
 				return 0;
-			_data[Atomic::SubAndFetch(&_top, 1)] = value;
+			_data()[Atomic::SubAndFetch(&_top, 1)] = value;
 			return true;
 		}
 
@@ -100,42 +102,42 @@ namespace Mcucpp
 		const T& FixedStack<SIZE, T, Atomic>::front()const
 		{
 			MCUCPP_ASSERT(!empty());
-			return _data[Atomic::Fetch(&_top)];
+			return _data()[Atomic::Fetch(&_top)];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
 		const T& FixedStack<SIZE, T, Atomic>::back()const
 		{
 			MCUCPP_ASSERT(!empty());
-			return _data[SIZE-1];
+			return _data()[SIZE-1];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
 		T& FixedStack<SIZE, T, Atomic>::front()
 		{
 			MCUCPP_ASSERT(!empty());
-			return _data[Atomic::Fetch(&_top)];
+			return _data()[Atomic::Fetch(&_top)];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
 		T& FixedStack<SIZE, T, Atomic>::back()
 		{
 			MCUCPP_ASSERT(!empty());
-			return _data[SIZE-1];
+			return _data()[SIZE-1];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
 		T& FixedStack<SIZE, T, Atomic>::operator[] (size_type i)
 		{
 			MCUCPP_ASSERT(i < SIZE);
-			return _data[Atomic::Fetch(&_top) + i];
+			return _data()[Atomic::Fetch(&_top) + i];
 		}
 
 		template<size_t SIZE, class T, class Atomic>
 		const T& FixedStack<SIZE, T, Atomic>::operator[] (size_type i)const
 		{
 			MCUCPP_ASSERT(i < SIZE);
-			return _data[Atomic::Fetch(&_top) + i];
+			return _data()[Atomic::Fetch(&_top) + i];
 		}
 
 		template<size_t SIZE, class T, class Atomic>

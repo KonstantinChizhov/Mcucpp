@@ -46,27 +46,45 @@ namespace Mcucpp
 		static const T RawOne = T(1) << FractionalBits;
 
 		inline FixedPoint();
-		explicit inline FixedPoint(int);
-		explicit inline FixedPoint(float);
-		explicit inline FixedPoint(double);
-		explicit inline FixedPoint(unsigned);
-		inline FixedPoint(int, unsigned);
+		inline FixedPoint(int);
+		inline FixedPoint(float);
+		inline FixedPoint(double);
+		inline FixedPoint(unsigned);
+		//inline FixedPoint(int, unsigned);
+
 		inline FixedPoint operator+(int)const;
 		inline FixedPoint operator+(const FixedPoint&)const;
 		inline FixedPoint& operator+=(int);
 		inline FixedPoint& operator+=(const FixedPoint&);
+
+		inline FixedPoint operator-()const;
 		inline FixedPoint operator-(int)const;
 		inline FixedPoint operator-(const FixedPoint&)const;
 		inline FixedPoint& operator-=(int);
 		inline FixedPoint& operator-=(const FixedPoint&);
+
 		inline FixedPoint operator*(int)const;
 		inline FixedPoint operator*(const FixedPoint&)const;
 		inline FixedPoint& operator*=(int);
 		inline FixedPoint& operator*=(const FixedPoint&);
+
 		inline FixedPoint operator/(int)const;
 		inline FixedPoint operator/(const FixedPoint&)const;
 		inline FixedPoint& operator/=(int);
 		inline FixedPoint& operator/=(const FixedPoint&);
+
+		inline bool operator==(const FixedPoint&)const;
+		inline bool operator>(const FixedPoint&)const;
+		inline bool operator>=(const FixedPoint&)const;
+		inline bool operator<(const FixedPoint&)const;
+		inline bool operator<=(const FixedPoint&)const;
+		inline bool operator!=(const FixedPoint&)const;
+
+		inline FixedPoint operator<<(int)const;
+		inline FixedPoint operator>>(int)const;
+		inline FixedPoint& operator<<=(int);
+		inline FixedPoint& operator>>=(int);
+
 		inline int ToInt()const;
 		inline long ToLong()const;
 		inline long long ToLongLong()const;
@@ -74,6 +92,10 @@ namespace Mcucpp
 		inline double ToDouble()const;
 		inline DataT IntegerPart()const;
 		inline UnsignedT FractionalPart()const;
+		inline operator double()const
+		{
+			return ToDouble();
+		}
 	private:
 		DataT _data;
 	};

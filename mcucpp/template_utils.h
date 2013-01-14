@@ -85,7 +85,7 @@ namespace Mcucpp
 
 		template<class T> T (max)(T a, T b) {return a > b ? a : b;}
 		template<class T> T (min)(T a, T b) {return a > b ? b : a;}
-		template<class T> T (abs)(T a) {return a >= 0 ? a : -a;}
+		template<class T> T (abs)(T a) {return a >= T(0) ? a : -a;}
 		template<class T> T (sqr)(T a) {return a*a;}
 
 
@@ -124,5 +124,16 @@ namespace Mcucpp
 		public:
 			static const uint8_t value = uint8_t(t2 >> 4) | uint8_t(t2 << 4);
 		};
+
+
+		template<class T>
+		struct HiResType;
+
+		template<> struct HiResType <uint8_t> { typedef uint16_t Result; };
+		template<> struct HiResType  <int8_t> { typedef  int16_t Result; };
+		template<> struct HiResType<uint16_t> { typedef uint32_t Result; };
+		template<> struct HiResType <int16_t> { typedef  int32_t Result; };
+		template<> struct HiResType<uint32_t> { typedef uint64_t Result; };
+		template<> struct HiResType <int32_t> { typedef uint64_t Result; };
 	}
 }

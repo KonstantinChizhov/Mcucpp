@@ -1,9 +1,9 @@
+#include <stdint.h>
 
 namespace Mcucpp
 {
 	namespace Timers
 	{
-
 		class Timer1
 		{
 		public:

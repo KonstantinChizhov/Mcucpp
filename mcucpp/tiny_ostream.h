@@ -2,8 +2,8 @@
 #pragma once
 #include "enum.h"
 #include "template_utils.h"
-#include <string.h>
-#include <stdlib.h>
+//#include <string.h>
+//#include <stdlib.h>
 #include <tiny_ios.h>
 
 namespace Mcucpp
@@ -94,7 +94,7 @@ namespace Mcucpp
 
 		void puts(const char_type *str)
 		{
-			const size_t outputSize = trates::SrtLen(str);
+			const size_t outputSize = trates::StrLen(str);
 			FieldFill(outputSize, IOS::right);
 			write(str, outputSize);
 			FieldFill(outputSize, IOS::left);

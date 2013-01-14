@@ -1,4 +1,5 @@
 
+#include <stdint.h>
 
 namespace Mcucpp
 {

@@ -1,16 +1,34 @@
+#pragma once
+
+#include <fastdiv10.h>
 
 namespace Mcucpp
 {
-	template<class T, class CharT>
-	CharT * IntToString(T value, CharT *bufferEnd, unsigned radix)
+	template<class T, class char_type>
+	char_type * UtoaFastDiv(T value, char_type *bufferEnd)
 	{
-		CharT *ptr = bufferEnd;
+		*bufferEnd = 0;
+		divmod10_t<T> res;
+		res.quot = value;
+		do
+		{
+			res = divmodu10(res.quot);
+			*--bufferEnd = char_trates<char_type>::DigitToLit(res.rem);
+		}
+		while (res.quot);
+		return bufferEnd;
+	}
+
+	template<class T, class char_type>
+	char_type * UtoaBuiltinDiv(T value, char_type *bufferEnd, unsigned radix = 0)
+	{
+		char_type *ptr = bufferEnd;
 		do
 		{
 			T q = value / radix;
 			T rem = value - q*radix;
 			value = q;
-			*--ptr = char_trates<CharT>::DigitToLit(rem);
+			*--ptr = char_trates<char_type>::DigitToLit(rem);
 		}
 		while (value != 0);
 		return ptr;
@@ -22,20 +40,20 @@ namespace Mcucpp
 		static const int value = sizeof(T) * 3 + 1;
 	};
 
-	template<class CharT>
-	inline bool isdigit(CharT c)	{ return c >= '0' && c <= '9';}
+	template<class char_type>
+	inline bool isdigit(char_type c)	{ return c >= '0' && c <= '9';}
 
-	template<class CharT>
-	inline bool isoctdigit(CharT c)	{ return c >= '0' && c <= '7';}
+	template<class char_type>
+	inline bool isoctdigit(char_type c)	{ return c >= '0' && c <= '7';}
 
-	template<class CharT>
-	inline bool isxdigit(CharT c)
+	template<class char_type>
+	inline bool isxdigit(char_type c)
 	{
 		return isdigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
 	}
 
-	template<class CharT>
-	inline bool isspace(CharT c)
+	template<class char_type>
+	inline bool isspace(char_type c)
 	{
 		return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\0';
 	}

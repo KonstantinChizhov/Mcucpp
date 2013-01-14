@@ -33,7 +33,7 @@ namespace Mcucpp
 		DECLARE_OP(^, Xor)
 
 		template<class T>
-		static inline T Fetch(T * ptr)
+		static inline T Fetch(const T * const ptr)
 		{
 			return *ptr;
 		}

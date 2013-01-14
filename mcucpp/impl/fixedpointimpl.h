@@ -19,13 +19,13 @@ namespace Mcucpp
 
 	template<class T, size_t IntegerBits>
 	FixedPoint<T, IntegerBits>::FixedPoint(float value)
-	:_data(value * (1 << FractionalBits))
+	:_data(value * RawOne)
 	{
 	}
 
 	template<class T, size_t IntegerBits>
 	FixedPoint<T, IntegerBits>::FixedPoint(double value)
-	:_data(value * (1 << FractionalBits))
+	:_data(value * RawOne)
 	{
 	}
 
@@ -36,12 +36,12 @@ namespace Mcucpp
 
 	}
 
-	template<class T, size_t IntegerBits>
-	FixedPoint<T, IntegerBits>::FixedPoint(int integer, unsigned fract)
-	:_data((DataT(integer) << FractionalBits) + (fract >> (sizeof(fract)*8 - FractionalBits)))
-	{
-
-	}
+	//template<class T, size_t IntegerBits>
+	//FixedPoint<T, IntegerBits>::FixedPoint(int integer, unsigned fract)
+	//:_data((DataT(integer) << FractionalBits) + (fract >> (sizeof(fract)*8 - FractionalBits)))
+	//{
+	//
+	//}
 //------------------------------------------------------------------------------------------------------------------------------
 	template<class T, size_t IntegerBits>
 	FixedPoint<T, IntegerBits> FixedPoint<T, IntegerBits>::operator+(int rhs)const
@@ -73,6 +73,14 @@ namespace Mcucpp
 		return *this;
 	}
 //------------------------------------------------------------------------------------------------------------------------------
+	template<class T, size_t IntegerBits>
+	FixedPoint<T, IntegerBits> FixedPoint<T, IntegerBits>::operator-()const
+	{
+		FixedPoint result;
+		result._data = 0 - _data;
+		return result;
+	}
+
 	template<class T, size_t IntegerBits>
 	FixedPoint<T, IntegerBits> FixedPoint<T, IntegerBits>::operator-(int rhs)const
 	{
@@ -115,11 +123,21 @@ namespace Mcucpp
 	FixedPoint<T, IntegerBits> FixedPoint<T, IntegerBits>::operator*(const FixedPoint& rhs)const
 	{
 		FixedPoint result;
-		const DataT inta = IntegerPart();
-		const DataT intb = rhs.IntegerPart();
-		const DataT fracta = FractionalPart();
-		const DataT fractb = rhs.FractionalPart();
-		result._data = (inta * intb << FractionalBits) + (inta * fractb + fracta * intb) + (fracta * fractb >> FractionalBits);
+		if(0)
+		{
+			const DataT inta = IntegerPart();
+			const DataT intb = rhs.IntegerPart();
+			const DataT fracta = FractionalPart();
+			const DataT fractb = rhs.FractionalPart();
+			result._data = (inta * intb << FractionalBits) + (inta * fractb + fracta * intb) + (fracta * fractb >> FractionalBits);
+		}
+		else
+		{
+			typedef typename Util::HiResType<T>::Result hi_t;
+			hi_t product = hi_t(_data) * rhs._data;
+			result._data = (T)(product >> FractionalBits);
+			result._data += ((T)product & 0x8000) >> 15;
+		}
 		return result;
 	}
 
@@ -168,13 +186,13 @@ namespace Mcucpp
 	FixedPoint<T, IntegerBits>& FixedPoint<T, IntegerBits>::operator/=(const FixedPoint& rhs)
 	{
 		uint_fast8_t sign = 0;
-		if(_data & 0x80000000)
+		if(_data < 0)
 		{
 			_data = -_data;
 			sign = ~sign;
 		}
 		uint32_t r = _data >> IntegerBits, q = _data << FractionalBits, d = rhs._data;
-		if(d & 0x80000000)
+		if(d < 0)
 		{
 			d = -d;
 			sign = ~sign;
@@ -269,5 +287,71 @@ namespace Mcucpp
 	FixedPoint<T, IntegerBits> operator/(int lhs, const FixedPoint<T, IntegerBits>& rhs)
 	{
 		return FixedPoint<T, IntegerBits>(lhs) / rhs;
+	}
+
+	template<class T, size_t IntegerBits>
+	bool FixedPoint<T, IntegerBits>::operator==(const FixedPoint& rhs)const
+	{
+		return _data == rhs._data;
+	}
+
+	template<class T, size_t IntegerBits>
+	bool FixedPoint<T, IntegerBits>::operator>(const FixedPoint& rhs)const
+	{
+		return _data > rhs._data;
+	}
+
+	template<class T, size_t IntegerBits>
+	bool FixedPoint<T, IntegerBits>::operator>=(const FixedPoint& rhs)const
+	{
+		return _data >= rhs._data;
+	}
+
+	template<class T, size_t IntegerBits>
+	bool FixedPoint<T, IntegerBits>::operator<(const FixedPoint& rhs)const
+	{
+		return _data < rhs._data;
+	}
+
+	template<class T, size_t IntegerBits>
+	bool FixedPoint<T, IntegerBits>::operator<=(const FixedPoint& rhs)const
+	{
+		return _data <= rhs._data;
+	}
+
+	template<class T, size_t IntegerBits>
+	bool FixedPoint<T, IntegerBits>::operator!=(const FixedPoint& rhs)const
+	{
+		return _data != rhs._data;
+	}
+
+	template<class T, size_t IntegerBits>
+	inline FixedPoint<T, IntegerBits> FixedPoint<T, IntegerBits>::operator<<(int shift)const
+	{
+		FixedPoint result;
+		result._data = _data << shift;
+		return result;
+	}
+
+	template<class T, size_t IntegerBits>
+	inline FixedPoint<T, IntegerBits> FixedPoint<T, IntegerBits>::operator>>(int shift)const
+	{
+		FixedPoint result;
+		result._data = _data >> shift;
+		return result;
+	}
+
+	template<class T, size_t IntegerBits>
+	inline FixedPoint<T, IntegerBits>& FixedPoint<T, IntegerBits>::operator<<=(int shift)
+	{
+		_data <<= shift;
+		return *this;
+	}
+
+	template<class T, size_t IntegerBits>
+	inline FixedPoint<T, IntegerBits>& FixedPoint<T, IntegerBits>::operator>>=(int shift)
+	{
+		_data >>= shift;
+		return *this;
 	}
 }
