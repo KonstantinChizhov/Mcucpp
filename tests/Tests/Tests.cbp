@@ -33,6 +33,9 @@
 		<Unit filename="..\..\gtest\gtest_main.cc" />
 		<Unit filename="7Segments.cpp" />
 		<Unit filename="BinaryStream.cpp" />
+		<Unit filename="DelegateTest.cpp" />
+		<Unit filename="DispatcherTest.cpp" />
+		<Unit filename="DivTest.cpp" />
 		<Unit filename="FormatWriter.cpp" />
 		<Unit filename="PinList.cpp" />
 		<Unit filename="containers.cpp" />

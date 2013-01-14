@@ -1,0 +1,11 @@
+
+Import('testEnv')
+
+print testEnv.Dump()
+
+gtest_main = testEnv.Object('gtest_main.cc')
+gtest_all = testEnv.Object('gtest-all.cc')
+
+gtest_objects = gtest_main + gtest_all
+
+Export('gtest_objects')
