@@ -18,21 +18,20 @@ TEST(FixedPoint, Init)
 	EXPECT_EQ(100, p1.IntegerPart());
 	EXPECT_EQ(0u, p1.FractionalPart());
 
-	fixed16_t p2(100, 0xff000000);
+	fixed16_t p2(100);
 	EXPECT_EQ(100, p2.IntegerPart());
-	EXPECT_EQ(0xff00u, p2.FractionalPart());
+	EXPECT_EQ(0u, p2.FractionalPart());
 
 	fixed8_t p3(0);
 	EXPECT_EQ(0, p3.IntegerPart());
 	EXPECT_EQ(0u, p3.FractionalPart());
 
-	fixed8_t p4(100, 0xff000000);
+	fixed8_t p4(100);
 	EXPECT_EQ(100, p4.IntegerPart());
-	EXPECT_EQ(0xffu, p4.FractionalPart());
 
-	fixed16_t p5(-100, 0xff000000);
+	fixed16_t p5(-100);
 	EXPECT_EQ(-100, p5.IntegerPart());
-	EXPECT_EQ(0xff00u, p5.FractionalPart());
+
 }
 
 TEST(FixedPoint, Plus)
@@ -83,7 +82,7 @@ TEST(FixedPoint, Multiply)
 	EXPECT_NEAR(-10130.4, p3.ToDouble(), threshold);
 
 	p3 *= fixed16_t(0.1);
-	EXPECT_NEAR(-1013, p3.ToDouble(), 0.1);
+	EXPECT_NEAR(-1013, p3.ToDouble(), 0.25);
 
 	p3 = p1 * 10;
 	EXPECT_NEAR(504.0, p3.ToDouble(), threshold);
@@ -107,7 +106,7 @@ TEST(FixedPoint, Divide)
 	EXPECT_NEAR(-4.16666, p3.ToDouble(), threshold);
 
 	p3 /= fixed16_t(0.1);
-	EXPECT_NEAR(-41.6666, p3.ToDouble(), threshold);
+	EXPECT_NEAR(-41.6666, p3.ToDouble(), threshold*2);
 
 	p3 = p1 / 10;
 	EXPECT_NEAR(10, p3.ToDouble(), threshold);

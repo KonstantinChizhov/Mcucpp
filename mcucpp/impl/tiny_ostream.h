@@ -134,7 +134,7 @@ namespace Mcucpp
 		uint_fast8_t digits = char_trates<char_type>::StrLen(str_begin);
 
 		uint_fast8_t intDigits=0, leadingZeros = 0;
-		if((streamsize_t)abs(exp10) >= precision)
+		if((streamsize_t)Util::abs(exp10) >= precision)
 		{
 			intDigits = 1;
 		}else if(exp10 >= 0)

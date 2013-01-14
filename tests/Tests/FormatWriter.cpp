@@ -1,10 +1,10 @@
 #include <iostream>
 #include <string>
-#include "tiny_ostream.h"
-#include "tiny_iomanip.h"
-#include "format_parser.h"
+#include <tiny_ostream.h>
+#include <tiny_iomanip.h>
+#include <format_parser.h>
 #include <gtest.h>
-
+#include <limits>
 
 class MyWriter
 {
@@ -147,11 +147,11 @@ TEST(Format, FloatDefault)
 	my_cout.seekp(0);
 
 	my_cout << 1234567890.123f;
-	EXPECT_STREQ("1.2346e+009", my_cout.c_str());
+	EXPECT_STREQ("1.2346e+9", my_cout.c_str());
 	my_cout.seekp(0);
 
 	my_cout << 1.234567890e-5f;
-	EXPECT_STREQ("1.2346e-005", my_cout.c_str());
+	EXPECT_STREQ("1.2346e-5", my_cout.c_str());
 	my_cout.seekp(0);
 
 	my_cout << -12.34f;
@@ -163,11 +163,11 @@ TEST(Format, FloatDefault)
 	my_cout.seekp(0);
 
 	my_cout << -1234567890.123f;
-	EXPECT_STREQ("-1.2346e+009", my_cout.c_str());
+	EXPECT_STREQ("-1.2346e+9", my_cout.c_str());
 	my_cout.seekp(0);
 
 	my_cout << -1.234567890e-5f;
-	EXPECT_STREQ("-1.2346e-005", my_cout.c_str());
+	EXPECT_STREQ("-1.2346e-5", my_cout.c_str());
 	my_cout.seekp(0);
 }
 
@@ -177,7 +177,7 @@ TEST(Format, FloatRound)
 
 	my_cout.precision(5);
 	my_cout << 99999.99f;
-	EXPECT_STREQ("1e+005", my_cout.c_str());
+	EXPECT_STREQ("1e+5", my_cout.c_str());
 	my_cout.seekp(0);
 
 	my_cout << 99999.0f;
@@ -190,5 +190,28 @@ TEST(Format, FloatRound)
 
 	my_cout << 9999.001f;
 	EXPECT_STREQ("9999", my_cout.c_str());
+	my_cout.seekp(0);
+}
+
+
+TEST(Format, FloatNanAndInf)
+{
+	my_ostream my_cout;
+
+	my_cout.precision(5);
+	my_cout << std::numeric_limits<float>::infinity();
+	EXPECT_STREQ("inf", my_cout.c_str());
+	my_cout.seekp(0);
+
+	my_cout << -std::numeric_limits<float>::infinity();
+	EXPECT_STREQ("-inf", my_cout.c_str());
+	my_cout.seekp(0);
+
+	my_cout << std::numeric_limits<float>::quiet_NaN();
+	EXPECT_STREQ("nan", my_cout.c_str());
+	my_cout.seekp(0);
+
+	my_cout << std::numeric_limits<float>::signaling_NaN();
+	EXPECT_STREQ("nan", my_cout.c_str());
 	my_cout.seekp(0);
 }

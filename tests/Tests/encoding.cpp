@@ -36,9 +36,10 @@ TEST(Utf8, Decode)
 
     convert("\xe0\xa0\x80 \xe1\x87\xbf \xe1\xa7\xbf \xef\xbf\xbf", result); // U+0800 ...
     EXPECT_STREQ(L"\x0800 \x11FF \x19ff \xffff", result);
-
+#if 0 // enable if wchar_t is more then 16 bits
     convert("\xf0\x90\x80\x80 \xf0\x90\xa1\x9f", result); // U+10000 ...
     EXPECT_STREQ(L"\x10000 \x1085F", result);
+#endif
 }
 
 

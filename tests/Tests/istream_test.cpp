@@ -18,7 +18,7 @@ public:
 
 	void seek(basic_ios<char_type> &thisIos, ptrdiff_t p,  ios_base::seekdir dir)
 	{
-		ptrdiff_t len = basic_ios<char_type>::trates::SrtLen(_str);
+		ptrdiff_t len = basic_ios<char_type>::trates::StrLen(_str);
 		if(dir == ios_base::beg)
 			pos = p;
 		else if(dir == ios_base::cur)

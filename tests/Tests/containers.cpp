@@ -167,8 +167,8 @@ TEST(Containers, Array)
 
 	EXPECT_TRUE(array.empty());
 	EXPECT_TRUE(cref.empty());
-	EXPECT_EQ(array.size(), 0);
-	EXPECT_EQ(cref.size(), 0);
+	EXPECT_EQ(array.size(), 0u);
+	EXPECT_EQ(cref.size(), 0u);
 
 	EXPECT_TRUE(array.push_back(100));
 	EXPECT_FALSE(array.empty());
@@ -186,11 +186,11 @@ TEST(Containers, Array)
 	EXPECT_EQ(cref.front(), 200);
 	EXPECT_EQ(array.back(), 300);
 	EXPECT_EQ(cref.back(), 300);
-	EXPECT_EQ(array.size(), 2);
-	EXPECT_EQ(cref.size(), 2);
+	EXPECT_EQ(array.size(), 2u);
+	EXPECT_EQ(cref.size(), 2u);
 
 	array.clear();
-	EXPECT_EQ(array.size(), 0);
+	EXPECT_EQ(array.size(), 0u);
 	EXPECT_TRUE(array.empty());
 
 	for(unsigned i=0; i< array.capacity(); i++)
@@ -219,8 +219,8 @@ TEST(Containers, ArrayBool)
 
 	EXPECT_TRUE(array.empty());
 	EXPECT_TRUE(cref.empty());
-	EXPECT_EQ(array.size(), 0);
-	EXPECT_EQ(cref.size(), 0);
+	EXPECT_EQ(array.size(), 0u);
+	EXPECT_EQ(cref.size(), 0u);
 
 	EXPECT_TRUE(array.push_back(true));
 	EXPECT_FALSE(array.empty());
@@ -238,16 +238,16 @@ TEST(Containers, ArrayBool)
 	EXPECT_EQ(cref.front(), false);
 	EXPECT_EQ(array.back(), true);
 	EXPECT_EQ(cref.back(), true);
-	EXPECT_EQ(array.size(), 2);
-	EXPECT_EQ(cref.size(), 2);
+	EXPECT_EQ(array.size(), 2u);
+	EXPECT_EQ(cref.size(), 2u);
 
 	array.clear();
-	EXPECT_EQ(array.size(), 0);
+	EXPECT_EQ(array.size(), 0u);
 	EXPECT_TRUE(array.empty());
 
 	for(unsigned i=0; i< array.capacity(); i++)
 		EXPECT_TRUE(array.push_back(i & 1));
-	EXPECT_FALSE(array.push_back(-1));
+	EXPECT_FALSE(array.push_back(-1)!=0);
 
 	for(unsigned i=0; i < array.capacity(); i++)
 	{
@@ -260,5 +260,98 @@ TEST(Containers, ArrayBool)
 		EXPECT_EQ(array.back(), int(array.capacity() - 1 - i) & 1);
 		EXPECT_EQ(cref.back(), int(cref.capacity() - 1 - i) & 1);
 		EXPECT_TRUE(array.pop_back());
+	}
+}
+
+class BoolArrayInitClass
+{
+	public:
+	FixedArray<20, bool> array;
+
+	BoolArrayInitClass()
+		:array()
+	{
+		array.push_back(false);
+	}
+};
+
+TEST(Containers, ArrayBoolInit)
+{
+	BoolArrayInitClass foo;
+
+	EXPECT_EQ(foo.array.size(), 1u);
+	BoolArrayInitClass *pfoo = new BoolArrayInitClass();
+	EXPECT_EQ(pfoo->array.size(), 1u);
+	delete pfoo;
+}
+
+class ConstructionTest
+{
+	static int _count;
+	int _data;
+public:
+	ConstructionTest()
+		:_data(_count)
+	{
+		_count ++;
+	}
+	static void Reset()
+	{
+		_count = 0;
+	}
+
+	static int Count()
+	{
+		return _count;
+	}
+};
+
+int ConstructionTest::_count = 0;
+
+TEST(Array, ConstructionTest)
+{
+	ConstructionTest::Reset();
+	FixedArray<20, ConstructionTest> array;
+	EXPECT_EQ(0, ConstructionTest::Count());
+	for(int i = 0; i<10; i++)
+	{
+		array.push_back( );
+		EXPECT_EQ(i+1, ConstructionTest::Count());
+	}
+}
+
+TEST(RingBufferPO2, ConstructionTest)
+{
+	ConstructionTest::Reset();
+	RingBufferPO2<16, ConstructionTest> array;
+	EXPECT_EQ(0, ConstructionTest::Count());
+	for(int i = 0; i<10; i++)
+	{
+		array.push_back( );
+		EXPECT_EQ(i+1, ConstructionTest::Count());
+	}
+}
+
+TEST(RingBuffer, ConstructionTest)
+{
+	ConstructionTest::Reset();
+	RingBuffer<22, ConstructionTest> array;
+	EXPECT_EQ(0, ConstructionTest::Count());
+	for(int i = 0; i<10; i++)
+	{
+		array.push_back( );
+		EXPECT_EQ(i+1, ConstructionTest::Count());
+	}
+}
+
+TEST(FixedStack, ConstructionTest)
+{
+	ConstructionTest::Reset();
+	FixedStack<22, ConstructionTest> array;
+	EXPECT_EQ(0, ConstructionTest::Count());
+	for(int i = 0; i<10; i++)
+	{
+		array.push_front(ConstructionTest() );
+		EXPECT_EQ(i+1, ConstructionTest::Count());
 	}
 }
