@@ -11,3 +11,5 @@ bin
 obj
 *.depend
 *.layout
+build
+.sconsign.dblite

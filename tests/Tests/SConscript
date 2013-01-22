@@ -1,0 +1,22 @@
+
+Import('testEnv')
+
+g_test_sources = testEnv['g_test_sources']
+tests = [\
+	'7Segments.cpp', 
+	'BinaryStream.cpp',
+	'containers.cpp',
+	'crc.cpp',
+	'DelegateTest.cpp',
+	'DispatcherTest.cpp',
+	'DivTest.cpp',
+	'encoding.cpp',
+	'fixedpoint.cpp',
+	'FormatWriter.cpp',
+	'istream_test.cpp',
+	'PinList.cpp',
+	'timers.cpp'
+	]
+tests_objects = testEnv.Object(tests + g_test_sources)
+mcucpp_tests = testEnv.Program('mcucpp_tests', tests_objects)
+test_result = testEnv.Test('mcucpp_test_result', mcucpp_tests)
