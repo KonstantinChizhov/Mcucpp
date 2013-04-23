@@ -4,8 +4,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "ioreg.h"
-#include "ring_buffer.h"
 #include <static_assert.h>
+#include <enum.h>
 
 namespace Mcucpp
 {
@@ -39,11 +39,68 @@ DECLARE_HW_USART(Usart0Regs, UDR0, UCSR0A, UCSR0B, UCSR0C, UBRR0L, UBRR0H)
 DECLARE_HW_USART(Usart1Regs, UDR1, UCSR1A, UCSR1B, UCSR1C, UBRR1L, UBRR1H)
 #endif
 
-template<class Regs>
 class UsartBase
 {
-	public:
-		template<unsigned long baund>
+public:
+	
+	enum InterruptFlags
+	{
+		NoInterrupt = 0,
+		RxNotEmpty = 1 << RXCIE,
+		TxCompleteInt = 1 << TXCIE,
+		TxEmpty = 1 << UDRIE,
+		AllInterrupts = RxNotEmpty | TxCompleteInt | TxEmpty
+	};
+	
+	enum UsartMode
+	{
+		DataBits5 = (0 << UCSZ2) | (((0 << UCSZ1) | (0 << UCSZ0)) << 8),
+		DataBits6 = (0 << UCSZ2) | (((0 << UCSZ1) | (1 << UCSZ0)) << 8),
+		DataBits7 = (0 << UCSZ2) | (((1 << UCSZ1) | (0 << UCSZ0)) << 8),
+		DataBits8 = (0 << UCSZ2) | (((1 << UCSZ1) | (1 << UCSZ0)) << 8),
+		DataBits9 = (1 << UCSZ2) | (((1 << UCSZ1) | (1 << UCSZ0)) << 8),
+		
+		NoneParity = ((0 << UPM0) | (0 << UPM1)) << 8,
+		EvenParity = ((0 << UPM0) | (1 << UPM1)) << 8,
+		OddParity  = ((1 << UPM0) | (1 << UPM1)) << 8,
+
+		NoClock = 0,
+
+		Disabled = 0,
+		RxEnable = 1 << RXEN,
+		TxEnable = 1 << TXEN,
+		RxTxEnable  = RxEnable | TxEnable,
+
+		OneStopBit         = (0 << USBS) << 8,
+		HalfStopBit        = (0 << USBS) << 8,
+		TwoStopBits        = (1 << USBS) << 8,
+		OneAndHalfStopBits = (1 << USBS) << 8,
+		
+		Default = RxTxEnable | DataBits8 | NoneParity | OneStopBit
+	};
+	
+	enum Error
+	{
+		NoError = 0,
+		OverrunError = 1 << DOR,
+		NoiseError = 0,
+		FramingError = 1 << FE,
+#if defined(__ATmega128__) || defined(__AVR_ATmega128__)
+		ParityError = 1 << UPE,
+#else
+		ParityError = 1 << PE,
+#endif
+		ErrorMask = OverrunError | FramingError | ParityError
+	 };
+};
+
+DECLARE_ENUM_OPERATIONS(UsartBase::UsartMode)
+
+template<class Regs=Usart0Regs>
+class Usart :public UsartBase
+{
+public:
+	template<unsigned long baund>
 	static inline void SetBaundRate()
 	{
 		const unsigned int ubrr = (F_CPU/16/baund-1);
@@ -110,6 +167,16 @@ class UsartBase
 		Regs::Ubrrh::Set(ubrrToUse>>8);
 	}
 
+	static void DisableTx()
+	{
+		Regs::Ucsrb::And(~(1 << TXEN));
+	}
+
+	static void EnableTx()
+	{
+		Regs::Ucsrb::Or(1 << TXEN);
+	}
+
 	static void Disable()
 	{
 		Regs::Ucsra::Set(0);
@@ -119,147 +186,74 @@ class UsartBase
 		Regs::Ubrrh::Set(0);
 	}
 
-};
-
-template<class Regs=Usart0Regs>
-class PollUsart :public UsartBase<Regs>
-{
-	public:
-	static inline void EnableTxRx()
-	{
-		Regs::Ucsrb::Set(0x00); 
-		Regs::Ucsrc::Set(ursel | (1 << UCSZ1) | (1 << UCSZ0));
-		Regs::Ucsrb::Set( (0 << RXCIE) | (0 << TXCIE) | (0 << UDRIE) | (1 << RXEN) | (1 << TXEN));
-	}
-
 	template<unsigned long baund>
-	static inline void Init()
+	static inline void Init(UsartMode usartMode = Default)
 	{
-		UsartBase<Regs>:: template SetBaundRate<baund>();
-		EnableTxRx();
+		SetBaundRate<baund>();
+		Regs::Ucsrb::Set(0x00); 
+		Regs::Ucsrc::Set(ursel | (uint8_t)(usartMode >> 8));
+		Regs::Ucsrb::Set((uint8_t)(usartMode));
 	}
 
-	static inline void Init(unsigned long baund)
+	static inline void Init(unsigned long baund, UsartMode usartMode = Default)
 	{
-		UsartBase<Regs>:: SetBaundRate(baund);
-		EnableTxRx();
+		SetBaundRate(baund);
+		Regs::Ucsrb::Set(0x00); 
+		Regs::Ucsrc::Set(ursel | (uint8_t)(usartMode >> 8));
+		Regs::Ucsrb::Set((uint8_t)(usartMode));
 	}
 
-	static bool Putch(uint8_t c)
+	void EnableInterrupts(InterruptFlags interruptSources = AllInterrupts)
 	{
-		if(!Regs::Ucsra::template BitIsSet<(UDRE)>() )
-			return false;
+		Regs::Ucsrb::AndOr(~AllInterrupts, interruptSources);
+	}
+
+	void DisableInterrupts(InterruptFlags interruptSources = AllInterrupts)
+	{
+		Regs::Ucsrb::And(~interruptSources);
+	}
+
+	static void Write(uint8_t c)
+	{
+		while(!TxReady())
+			;
 		Regs::Udr::Set(c);
-		return true;
 	}
 
-	static bool Getch(uint8_t &c)
+	static uint8_t Read()
 	{
-		if(!Regs::Ucsra::template BitIsSet<(RXC)>() )
-			return false;
-		c = Regs::Udr::Get();
-		return true;
+		while(! RxReady())
+			;
+		return Regs::Udr::Get();
 	}
 
-	static uint8_t BytesRecived()
+	static bool TxReady()
 	{
-		return Regs::Ucsra::template BitIsSet<(RXC)>() ? 1 : 0;
-	}
-};
-
-
-template<int TxSize, int RxSize, class Regs=Usart0Regs>
-class Usart :public UsartBase<Regs>
-{
-public:
-
-	static inline void EnableTxRx()
-	{
-		Regs::Ucsrb::Set(0x00); 
-		Regs::Ucsrc::Set(ursel | (1 << UCSZ1) | (1 << UCSZ0));
-		Regs::Ucsrb::Set( (1 << RXCIE) | (0 << TXCIE) | (1 << UDRIE) | (1 << RXEN) | (1 << TXEN));
+		return Regs::Ucsra::template BitIsSet<(UDRE)>();
 	}
 
-	template<unsigned long baund>
-	static inline void Init()
+	static bool RxReady()
 	{
-		UsartBase<Regs>:: template SetBaundRate<baund>();
-		EnableTxRx();
+		return Regs::Ucsra::template BitIsSet<(RXC)>();
 	}
-
-	static inline void Init(unsigned long baund)
-	{
-		UsartBase<Regs>:: template SetBaundRate(baund);
-		EnableTxRx();
-	}
-
-	static bool Putch(uint8_t c)
-	{
-		if(_tx.empty())
-		{
-			while(!Regs::Ucsra::template BitIsSet<(UDRE)>() );
-			Regs::Udr::Set(c);
-			Regs::Ucsrb::Or(1 << UDRIE);
-			return true;
-		}
-		return _tx.push_back(c);
-	}
-
-	static bool Getch(uint8_t &c)
-	{
-		c = _rx.front();
-		return _rx.pop_front();
-	}
-
-	static inline void TxHandler()
-	{
-		uint8_t c;
-		if(_tx.empty())
-			Regs::Ucsrb::And( ~(1 << UDRIE) );
-		else
-		{
-			Regs::Udr::Set(_tx.front());
-			_tx.pop_front();
-
-		}
-	}
-
-	static inline void RxHandler()
-	{
-		if(!_rx.push_back(Regs::Udr::Get()))//buffer overlow
-		{
-			//TODO: error handling
-			_rx.clear();
-		}	
-	}
-
-	static void DropBuffers()
-	{
-		_rx.clear();
-	}
-
-	static uint8_t BytesRecived()
-	{
-		return _rx.size();
-	}
-
-	static void Disable()
-	{
 		
-		UsartBase<Regs>::Disable();
-		_rx.clear();
-		_tx.clear();
+	static InterruptFlags InterruptSource()
+	{
+		InterruptFlags result = NoInterrupt;
+		if(Regs::Ucsra::template BitIsSet<(RXC)>())
+			result |= RxNotEmpty;
+		if(Regs::Ucsra::template BitIsSet<(UDRE)>())
+			result |= TxEmpty;
+		if(Regs::Ucsra::template BitIsSet<(TXC)>())
+			result |= TxCompleteInt;
+		return NoInterrupt;
 	}
-
-private:
-	static Containers::RingBufferPO2<RxSize, char> _rx;
-	static Containers::RingBufferPO2<TxSize, char> _tx;
+	
+	static Error GetError()
+	{
+		return Regs::Ucsra::Get() & ErrorMask;
+	}
 };
-
-template<int TxSize, int RxSize, class Regs>
-	Containers::RingBufferPO2<RxSize, char> Usart<TxSize, RxSize, Regs>::_rx;
-template<int TxSize, int RxSize, class Regs>
-	Containers::RingBufferPO2<TxSize, char> Usart<TxSize, RxSize, Regs>::_tx;
 
 }
 

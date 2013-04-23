@@ -32,7 +32,7 @@ namespace Mcucpp
 			Fast	= Div4,
 			Medium	= Div16,
 			Slow	= Div64,
-			Slowest = Div128,
+			Slowest = Div128
 		};
 		
 		enum ModeFlags
@@ -46,7 +46,7 @@ namespace Mcucpp
 			ClockPhase1Edge = 0,
 			ClockPhase2Edge = 1 << CPHA,
 			Master = 1 << MSTR,
-			Slave = 0,
+			Slave = 0
 		};
 	};
 	

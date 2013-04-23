@@ -28,7 +28,6 @@ namespace Mcucpp
 	#define ControlRegB TCCR0B
 	#endif
 
-
 		class BaseTimer0
 		{
 			public:

@@ -1,10 +1,9 @@
 #pragma once
+#include <__compatibility.h>
 
 #ifndef MCUCPP_ATOMIC_H
 #error Do not include '<Arch>/_atomic.h' files directly, use 'atomic.h' instead.
 #endif
-
-#include <__compatibility.h>
 
 namespace Mcucpp
 {
@@ -38,6 +37,7 @@ namespace Mcucpp
 			*ptr = tmp OPERATION value;\
 			return tmp;\
 		}\
+		return T(0); \
 	}\
 	template<class T, class T2>\
 	static T OP_NAME ## AndFetch(volatile T * ptr, T2 value)\
@@ -47,7 +47,9 @@ namespace Mcucpp
 			*ptr = *ptr OPERATION value;\
 			return *ptr;\
 		}\
+		return T(0); \
 	}
+	
 	
 	class Atomic 
 	{
@@ -66,6 +68,22 @@ namespace Mcucpp
 			{
 				return *ptr;
 			}
+			return T(0); // shutup compiler
+		}
+		
+		static uint8_t Fetch(volatile uint8_t * ptr)
+		{
+			return *ptr;
+		}
+		
+		static int8_t Fetch(volatile int8_t * ptr)
+		{
+			return *ptr;
+		}
+		
+		static char Fetch(volatile char * ptr)
+		{
+			return *ptr;
 		}
 
 		template<class T, class T2>

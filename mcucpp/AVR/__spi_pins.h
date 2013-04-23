@@ -256,13 +256,7 @@
 	typedef Pb3 MisoPin;
 	typedef Pb1 SckPin;
 
-#elif defined(__ATmega8A__) // atmega8a
-	typedef Pb2 SsPin;
-	typedef Pb3 MosiPin;
-	typedef Pb4 MisoPin;
-	typedef Pb5 SckPin;
-
-#elif defined(__ATmega8__) || defined(__AVR_ATmega8__) // atmega8
+#elif defined(__ATmega8__) || defined(__AVR_ATmega8__) || defined(__ATmega8A__) // atmega8
 	typedef Pb2 SsPin;
 	typedef Pb3 MosiPin;
 	typedef Pb4 MisoPin;

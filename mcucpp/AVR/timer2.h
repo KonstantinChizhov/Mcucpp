@@ -119,7 +119,7 @@ namespace Mcucpp
 
 			static void SetMode(TimerMode mode)
 			{
-				TCCR2 = (TCCR2 & TimerModeClearMask) | mode;
+				ControlRegA = (ControlRegA & TimerModeClearMask) | mode;
 			}
 
 			template<int number> class OutputCompare;
@@ -130,12 +130,20 @@ namespace Mcucpp
 		public:
 			static void Set(DataT val)
 			{
-				OCR2 = val;
+				#ifdef OCR2
+					OCR2 = val;
+				#else
+					OCR2A = val;
+				#endif
 			}
 
 			static DataT Get()
 			{
-				return OCR2;
+				#ifdef OCR2
+					return OCR2;
+				#else
+					return OCR2A;
+				#endif
 			}
 
 			static void EnableInterrupt()
