@@ -421,13 +421,13 @@ namespace IO
 		template <> struct PinWriteIterator<NullType>
 		{
 			template<class DataType>
-			static inline DataType AppendValue(DataType value, DataType result)
+			static inline DataType AppendValue(DataType, DataType result)
 			{
 				return result;
 			}
 
 			template<class DataType>
-			static inline DataType AppendReadValue(DataType portValue, DataType result)
+			static inline DataType AppendReadValue(DataType, DataType result)
 			{
 				return result;
 			}
@@ -564,13 +564,13 @@ namespace IO
 		{
 			typedef ValueType DataType;
 
-			static void Write(DataType value)
+			static void Write(DataType)
 			{   }
 
-			static void Set(DataType value)
+			static void Set(DataType)
 			{   }
 
-			static void Clear(DataType value)
+			static void Clear(DataType)
 			{   }
 
 			static DataType PinRead()
@@ -579,7 +579,7 @@ namespace IO
 			}
 
 			template<class Configuration>
-			static void SetConfiguration(Configuration config, DataType mask)
+			static void SetConfiguration(Configuration, DataType)
 			{	}
 
 			static DataType OutRead()

@@ -34,7 +34,7 @@ namespace Mcucpp
 	void basic_ostream<OutputPolicy, char_type, IOS>::PutInteger(T value)
 	{
 		const int bufferSize = ConvertBufferSize<T>::value;
-		char_type buffer[bufferSize];
+		char_type buffer[bufferSize+1];
 		const int maxPrefixSize = 3;
 		char_type prefix[maxPrefixSize];
 		char_type *prefixPtr = prefix + maxPrefixSize;
@@ -45,7 +45,7 @@ namespace Mcucpp
 			{
 				if(value < 0)
 				{
-					value = -value;
+					value = Util::abs(value);
 					*--prefixPtr = trates::Minus();
 				} else if(IOS::flags() & IOS::showpos)
 					*--prefixPtr = trates::Plus();
@@ -66,7 +66,7 @@ namespace Mcucpp
 
 		typedef typename Util::Unsigned<T>::Result UT;
 		UT uvalue = static_cast<UT>(value);
-		char_type * str = UtoaBuiltinDiv(uvalue, buffer + bufferSize, Base());
+		char_type * str = Utoa(uvalue, buffer + bufferSize, Base());
 
 		int outputSize = buffer + bufferSize - str + prefix + maxPrefixSize - prefixPtr;
 

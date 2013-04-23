@@ -8,7 +8,7 @@
 
 namespace Mcucpp
 {	
-	static const uint32_t ftoaTable[] FLASH =
+	static const uint32_t ftoaTable[] FLASH_STORAGE =
 	{
 		0xF0BDC21A,
 		0x3DA137D5,

@@ -135,7 +135,9 @@ namespace Mcucpp
         {
             streamsize_t i;
             char_type c = get();
-			for(i = 0; c != delim && i < size && good(); c=get(), i++)
+			for(i = 0; !((c == delim) || (delim == ' ' && isspace(c)))
+				&& i < size && good(); 
+				c=get(), i++)
 			{
 			    *s++ = c;
 			}
@@ -147,6 +149,25 @@ namespace Mcucpp
 
 		basic_istream& operator>> (bool &value)
 		{
+			char_type c = SkipWs();
+			if(c == trates::DigitToLit(1))
+			{
+				value = true;
+			}
+			else if(c == trates::DigitToLit(0))
+			{
+				value = false;
+			}
+			else if((IOS::flags() & IOS::boolalpha) )
+			{
+				putback(c);
+				char_type buffer[6];
+				get(buffer, 5, ' ');
+				if(StringMatch(buffer, trates::True()))
+					value = true;
+				if(StringMatch(buffer, trates::False()))
+					value = false;
+			}
 			return *this;
 		}
 

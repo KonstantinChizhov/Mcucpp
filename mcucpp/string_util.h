@@ -20,7 +20,36 @@ namespace Mcucpp
 	}
 
 	template<class T, class char_type>
-	char_type * UtoaBuiltinDiv(T value, char_type *bufferEnd, unsigned radix = 0)
+	char_type * UtoaOct(T value, char_type *bufferEnd)
+	{
+		*bufferEnd = 0;
+
+		do
+		{
+			uint8_t c = value & 0x07;
+			value >>= 3;
+			*--bufferEnd = char_trates<char_type>::DigitToLit(c);
+		}
+		while (value);
+		return bufferEnd;
+	}
+
+	template<class T, class char_type>
+	char_type * UtoaHex(T value, char_type *bufferEnd)
+	{
+		*bufferEnd = 0;
+		do
+		{
+			uint8_t c = value & 0x0f;
+			value >>= 4;
+			*--bufferEnd = char_trates<char_type>::DigitToLit(c);
+		}
+		while (value);
+		return bufferEnd;
+	}
+
+	template<class T, class char_type>
+	char_type * UtoaBuiltinDiv(T value, char_type *bufferEnd, uint_fast8_t radix = 10)
 	{
 		char_type *ptr = bufferEnd;
 		do
@@ -32,6 +61,19 @@ namespace Mcucpp
 		}
 		while (value != 0);
 		return ptr;
+	}
+
+	template<class T, class char_type>
+	char_type * Utoa(T value, char_type *bufferEnd, uint_fast8_t radix = 10)
+	{
+		if(radix == 10)
+			return UtoaFastDiv(value, bufferEnd);
+		if(radix == 16)
+			return UtoaHex(value, bufferEnd);
+		if(radix == 8)
+			return UtoaOct(value, bufferEnd);
+		*bufferEnd = 0;
+		return bufferEnd;
 	}
 
 	template<class T>
@@ -56,6 +98,34 @@ namespace Mcucpp
 	inline bool isspace(char_type c)
 	{
 		return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\0';
+	}
+	
+	// ASCII chars only
+	template<class char_type>
+	inline char_type tolower(char_type c)
+	{
+		if(c >= 'A' && c <= 'Z')
+			return c - 'A' + 'a';
+		return c;
+	}
+	
+	template<class char_type>
+	inline bool toapper(char_type c)
+	{
+		if(c >= 'a' && c <= 'z')
+			return c - 'a' + 'A';
+		return c;
+	}
+
+	template<class Str1T, class Str2T>
+	inline bool StringMatch(Str1T str1, Str2T str2)
+	{
+		do
+		{
+			if(*str2 == 0)
+				return true;
+		}while(*str1++ == *str2++);
+		return *str1 == *str2;
 	}
 
 	template<class T, class StrT>

@@ -24,7 +24,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
-
+#pragma once
 #include <stdint.h>
 
 namespace Mcucpp
@@ -38,39 +38,59 @@ namespace Mcucpp
 	};
 
 
-	//Spi::Read<uint32_t, BigEndian>();
-
 	template<class Source>
 	class BinaryStream :public Source
 	{
 	public:
-		using Source::Read;
-		using Source::Write;
+		BinaryStream()
+		{}
 
-		static inline uint32_t ReadU32Be();
-		static inline uint32_t ReadU32Le();
-		static inline uint16_t ReadU16Be();
-		static inline uint16_t ReadU16Le();
+		template<class T1>
+		BinaryStream(T1 arg1)
+			:Source(arg1)
+		{
+		}
 
-		static inline void WriteU32Be(uint32_t value);
-		static inline void WriteU32Le(uint32_t value);
-		static inline void WriteU16Be(uint16_t value);
-		static inline void WriteU16Le(uint16_t value);
+		template<class T1, class T2>
+		BinaryStream(T1 arg1, T2 arg2)
+			:Source(arg1, arg2)
+		{
+		}
+
+		template<class T1, class T2, class T3>
+		BinaryStream(T1 arg1, T2 arg2, T3 arg3)
+			:Source(arg1, arg2, arg3)
+		{
+		}
+
+		inline uint32_t ReadU32Be();
+		inline uint32_t ReadU32Le();
+		inline uint16_t ReadU16Be();
+		inline uint16_t ReadU16Le();
+		inline uint8_t ReadU8(){ return Source::Read(); }
+		inline uint8_t Read(){ return Source::Read(); }
+
+		inline void WriteU32Be(uint32_t value);
+		inline void WriteU32Le(uint32_t value);
+		inline void WriteU16Be(uint16_t value);
+		inline void WriteU16Le(uint16_t value);
+		inline void WriteU8(uint8_t value){ Source::Write(value); }
+		inline void Write(uint8_t value){ Source::Write(value); }
 
 		/// Reads and discards specified number of bytes
 		/// Returns last byte read
-		static inline uint8_t Ignore(size_t bytes);
+		inline uint8_t Ignore(size_t bytes);
 
 		/// Reads and discards specified number of bytes or until 'delim' byte is found
 		/// Returns last byte read
-		static inline uint8_t Ignore(size_t bytes, uint8_t delim);
+		inline uint8_t Ignore(size_t bytes, uint8_t delim);
 
 		/// Reads and discards specified number of bytes while read byte is eq to 'value'
 		/// Returns last byte read
-		static inline uint8_t IgnoreWhile(size_t bytes, uint8_t value);
+		inline uint8_t IgnoreWhile(size_t bytes, uint8_t value);
 
 		template<class PtrType>
-		static inline void Read(PtrType buffer, size_t size)
+		inline void Read(PtrType buffer, size_t size)
 		{
 			for(size_t i = 0; i < size; ++i)
 			{
@@ -80,7 +100,7 @@ namespace Mcucpp
 		}
 
 		template<class PtrType>
-		static inline void Write(PtrType buffer, size_t size)
+		inline void Write(PtrType buffer, size_t size)
 		{
 			for(size_t i = 0; i < size; ++i)
 			{
@@ -161,7 +181,7 @@ namespace Mcucpp
 	template<class Source>
 	uint8_t BinaryStream<Source>::Ignore(size_t bytes)
 	{
-		uint8_t value;
+		uint8_t value = 0;
 		for(size_t i = 0; i < bytes; ++i)
 		{
 			value = Source::Read();
@@ -172,7 +192,7 @@ namespace Mcucpp
 	template<class Source>
 	uint8_t BinaryStream<Source>::Ignore(size_t bytes, uint8_t delim)
 	{
-		uint8_t value;
+		uint8_t value = 0;
 		for(size_t i = 0; i < bytes; ++i)
 		{
 			value = Source::Read();
@@ -185,7 +205,7 @@ namespace Mcucpp
 	template<class Source>
 	uint8_t BinaryStream<Source>::IgnoreWhile(size_t bytes, uint8_t expected)
 	{
-		uint8_t value;
+		uint8_t value = expected;
 		for(size_t i = 0; i < bytes; ++i)
 		{
 			value = Source::Read();

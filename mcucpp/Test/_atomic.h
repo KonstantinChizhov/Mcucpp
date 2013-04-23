@@ -37,6 +37,7 @@ namespace Mcucpp
 			*ptr = tmp OPERATION value;\
 			return tmp;\
 		}\
+		return T();\
 	}\
 	template<class T, class T2>\
 	static T OP_NAME ## AndFetch(volatile T * ptr, T2 value)\
@@ -46,6 +47,7 @@ namespace Mcucpp
 			*ptr = *ptr OPERATION value;\
 			return *ptr;\
 		}\
+		return T();\
 	}
 
 	class Atomic
@@ -65,6 +67,7 @@ namespace Mcucpp
 			{
 				return *ptr;
 			}
+			return T();
 		}
 
 		template<class T, class T2>

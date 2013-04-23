@@ -1,77 +1,150 @@
+#pragma once
 
 #include <crc.h>
+#include <noncopyable.h>
+
 namespace Mcucpp
 {
-	template<class CrcClass, class Source>
+	template<class CrcClassParam, class Source>
 	class CrcAdapter :public Source
 	{
-		typedef typename CrcClass::ResultType CrcType;
-		static CrcType _rxCrc;
-		static CrcType _txCrc;
+		typedef typename CrcClassParam::ResultType CrcType;
+		Source &GetBase()
+		{
+			return static_cast<Source&>(*this);
+		}
 	public:
-		static uint8_t Read()
+		typedef CrcClassParam CrcClass;
+
+		CrcAdapter()
+			:Crc(GetBase())
+		{
+		}
+		////////////////////////////////////////////////////////////
+		/// Template constructors to bypass parameters to base class
+		//  constructors.
+		////////////////////////////////////////////////////////////
+		template<class T1>
+		CrcAdapter(T1 arg1)
+			:Source(arg1),
+			Crc(GetBase())
+		{
+		}
+
+		template<class T1, class T2>
+		CrcAdapter(T1 arg1, T2 arg2)
+			:Source(arg1, arg2),
+			Crc(GetBase())
+		{
+		}
+
+		template<class T1, class T2, class T3>
+		CrcAdapter(T1 arg1, T2 arg2, T3 arg3)
+			:Source(arg1, arg2, arg3),
+			Crc(GetBase())
+		{
+		}
+		
+		uint8_t Read()
 		{
 			uint8_t c = Source::Read();
-			_rxCrc = CrcUpdate<CrcClass>(c, _rxCrc);
+			Crc.UpdateRx(c);
 			return c;
 		}
 		
-		static void Write(uint8_t c)
+		void Write(uint8_t c)
 		{
-			_txCrc = CrcUpdate<CrcClass>(c, _txCrc);
+			Crc.UpdateTx(c);
 			Source::Write(c);
 		}
 		
-		class Crc
+		class RxTxCrc :NonCopyable
 		{
+			CrcType _rxCrc;
+			CrcType _txCrc;
+			Source &_source;
 		public:
-			static void ResetRx()
+			RxTxCrc(Source &source)
+				:_source(source)
+			{
+				ResetRx();
+				ResetTx();
+			}
+
+			void UpdateRx(uint8_t c)
+			{
+				_rxCrc = CrcUpdate<CrcClass>(c, _rxCrc);
+			}
+
+			void UpdateTx(uint8_t c)
+			{
+				_txCrc = CrcUpdate<CrcClass>(c, _txCrc);
+			}
+
+			void ResetRx()
 			{
 				_rxCrc = CrcClass::Init;
 			}
 			
-			static void ResetTx()
+			void ResetTx()
 			{
 				_txCrc = CrcClass::Init;
 			}
 			
-			static CrcType GetRx()
+			CrcType GetRx()
 			{
 				return _rxCrc;
 			}
 			
-			static CrcType GetTx()
+			CrcType GetTx()
 			{
 				return _txCrc;
 			}
 			
+			bool ReadMsbAndValidate()
+			{
+				CrcType expectedCrc = 0;
+				for(size_t i = 0; i < sizeof(CrcType); i++)
+				{
+					expectedCrc |= (uint8_t)_source.Read();
+					expectedCrc <<= 8;
+				}
+				
+				return expectedCrc != _rxCrc;
+			}
+			
+			bool ReadLsbAndValidate()
+			{
+				CrcType expectedCrc = 0;
+				for(size_t i = 0; i < sizeof(CrcType); i++)
+				{
+					expectedCrc |= (CrcType)_source.Read() << ((sizeof(CrcType) - 1) * 8);
+					expectedCrc >>= 8;
+				}	
+				return expectedCrc != _rxCrc;
+			}
+			
 			// Send accumulated CRC to communication device LSB
-			static void SendLsb()
+			void SendLsb()
 			{
 				CrcType crc = _txCrc;
-				for(int i = 0; i < sizeof(CrcType); i++)
+				for(size_t i = 0; i < sizeof(CrcType); i++)
 				{
-					Source::Write((uint8_t)crc);
+					_source.Write((uint8_t)crc);
 					crc >>= 8;
 				}
 			}
 			
 			// Send accumulated CRC to communication device MSB
-			static void SendMsb()
+			void SendMsb()
 			{
 				CrcType crc = _txCrc;
-				for(int i = 0; i < sizeof(CrcType); i++)
+				for(size_t i = 0; i < sizeof(CrcType); i++)
 				{
-					Source::Write((uint8_t)(crc >> ((sizeof(CrcType)-1)*8)));
+					_source.Write((uint8_t)(crc >> ((sizeof(CrcType) - 1) * 8)));
 					crc <<= 8;
 				}
 			}
-		};
+		} Crc;
 	};
-	
-	template<class CrcClass, class Source>
-	typename CrcClass::ResultType CrcAdapter<CrcClass, Source>::_rxCrc = CrcClass::Init;
-	
-	template<class CrcClass, class Source>
-	typename CrcClass::ResultType CrcAdapter<CrcClass, Source>::_txCrc = CrcClass::Init;
 }

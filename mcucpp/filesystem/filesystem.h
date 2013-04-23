@@ -1,0 +1,1 @@
+namespace Mcucpp{	class IFsDriver	{	public:		virtual bool CreateDirectory()	};		class FileSystem	{			};}

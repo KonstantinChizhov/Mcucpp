@@ -1,3 +1,4 @@
+
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
@@ -24,82 +25,32 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
-
 #pragma once
+#include <stdint.h>
 
-#ifndef IOPORTS_HPP
-#define IOPORTS_HPP
-
-// Common base for all gpio ports
-#include "gpiobase.h"
-
-// Platform specific io ports implementation
-// Add appropriate platform specific folder to your include paths
-#include "ports.h"
 namespace Mcucpp
 {
-namespace IO
-{
-	class NullPort :public GpioBase
+	class BufferReader
 	{
- 	public:
-		typedef DontCareConfiguration Configuration;
-		typedef GpioBase Base;
-		typedef uint8_t DataT;
-		static void Write(DataT)
-		{	}
-		static void ClearAndSet(DataT, DataT)
-		{	}
-		static DataT Read()
+	public:
+
+		uint8_t Read()
 		{
-			return 0;
-		}
-		static void Set(DataT)
-		{	}
-		static void Clear(DataT)
-		{	}
-		static void Toggle(DataT)
-		{	}
-		static DataT PinRead()
-		{
-			return 0;
+			if(_pos >= _size)
+				return 0;
+			return _ptr[_pos++];
 		}
 
-		template<DataT clearMask, DataT>
-		static void ClearAndSet()
-		{}
+		BufferReader(const uint8_t *buffer, size_t size)
+		{
+			_size = size;
+			_ptr = buffer;
+			_pos = 0;
+		}
 
-		template<DataT>
-		static void Toggle()
-		{}
-
-		template<DataT>
-		static void Set()
-		{}
-
-		template<DataT>
-		static void Clear()
-		{}
-
-		template<unsigned pin, class Config>
-		static void SetPinConfiguration(Config)
-		{}
-		template<class Config>
-		static void SetConfiguration(DataT mask, Config)
-		{}
-
-		template<DataT mask, Configuration>
-		static void SetConfiguration()
-		{}
-
-		template<DataT mask, GenericConfiguration>
-		static void SetConfiguration()
-		{}
-
-		enum{Id = '-'};
-		enum{Width=sizeof(DataT)*8};
+	private:
+		const uint8_t *_ptr;
+		size_t _size;
+		size_t _pos;
 	};
-
 }
-}
-#endif//IOPORTS_HPP

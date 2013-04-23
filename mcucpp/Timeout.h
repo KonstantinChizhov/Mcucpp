@@ -24,82 +24,65 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
-
 #pragma once
+#include <stdint.h>
 
-#ifndef IOPORTS_HPP
-#define IOPORTS_HPP
-
-// Common base for all gpio ports
-#include "gpiobase.h"
-
-// Platform specific io ports implementation
-// Add appropriate platform specific folder to your include paths
-#include "ports.h"
 namespace Mcucpp
 {
-namespace IO
-{
-	class NullPort :public GpioBase
+	class NeverTimeout
 	{
- 	public:
-		typedef DontCareConfiguration Configuration;
-		typedef GpioBase Base;
-		typedef uint8_t DataT;
-		static void Write(DataT)
-		{	}
-		static void ClearAndSet(DataT, DataT)
-		{	}
-		static DataT Read()
+	public:
+		template<class T>
+		NeverTimeout(T)
 		{
-			return 0;
-		}
-		static void Set(DataT)
-		{	}
-		static void Clear(DataT)
-		{	}
-		static void Toggle(DataT)
-		{	}
-		static DataT PinRead()
-		{
-			return 0;
 		}
 
-		template<DataT clearMask, DataT>
-		static void ClearAndSet()
-		{}
+		bool Tick()
+		{
+			return true;
+		}
+		void Reset()
+		{
+		}
+		bool IsTimeout() { return false; }
 
-		template<DataT>
-		static void Toggle()
-		{}
-
-		template<DataT>
-		static void Set()
-		{}
-
-		template<DataT>
-		static void Clear()
-		{}
-
-		template<unsigned pin, class Config>
-		static void SetPinConfiguration(Config)
-		{}
-		template<class Config>
-		static void SetConfiguration(DataT mask, Config)
-		{}
-
-		template<DataT mask, Configuration>
-		static void SetConfiguration()
-		{}
-
-		template<DataT mask, GenericConfiguration>
-		static void SetConfiguration()
-		{}
-
-		enum{Id = '-'};
-		enum{Width=sizeof(DataT)*8};
+		template<class T>
+		void Set(T)
+		{
+		}
 	};
+	
+	
+	template<class T>
+	class TimeoutCounter
+	{
+		T _value, _resetValue;
+	public:
+		TimeoutCounter(T timeoutTicks)
+			:_value(timeoutTicks), _resetValue(timeoutTicks)
+		{
+		}
 
+		bool IsTimeout() { return _value == 0; }
+		
+		bool Tick()
+		{
+			if(_value)
+			{
+				_value--;
+				return true;
+			}
+			return false;
+		}
+
+		void Reset()
+		{
+			_value = _resetValue;
+		}
+
+		void Set(T newValue)
+		{
+			_value = _resetValue = newValue;
+		}
+	};
 }
-}
-#endif//IOPORTS_HPP

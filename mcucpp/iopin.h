@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2010
+// Date			: 2013
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification,
@@ -30,11 +30,23 @@
 
 #include "static_assert.h"
 #include <stdint.h>
+#include "gpiobase.h"
+
 namespace Mcucpp
 {
 namespace IO
 {
-
+	namespace Private
+	{
+		template<class PortConfig> struct ConfigSelector
+		{
+			typedef PortConfig RealConfig;
+		};
+		template<> struct ConfigSelector<GpioBase::DontCareConfiguration>
+		{
+			typedef GpioBase::GenericConfiguration RealConfig;
+		};
+	}
 	// this class represents one pin in a IO port.
 	// It is fully static.
 	template<class PORT, uint8_t PIN, class CONFIG_PORT = PORT>
@@ -44,7 +56,9 @@ namespace IO
 	public:
 		typedef PORT Port;
 		typedef CONFIG_PORT ConfigPort;
-		typedef typename ConfigPort::Configuration Configuration;
+
+		typedef typename Private::ConfigSelector<typename ConfigPort::Configuration>::
+			RealConfig Configuration;
 
 		static const unsigned Number = PIN;
 		static const bool Inverted = false;

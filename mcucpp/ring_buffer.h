@@ -292,7 +292,7 @@ namespace Mcucpp
 			_last++;
 			if(_last >= SIZE)
 				_last = 0;
-			Atomic::AddAndFetch(&_count, 1);
+			Atomic::FetchAndAdd(&_count, 1);
 			return true;
 		}
 
@@ -305,7 +305,7 @@ namespace Mcucpp
 			_last++;
 			if(_last >= SIZE)
 				_last = 0;
-			Atomic::AddAndFetch(&_count, 1);
+			Atomic::FetchAndAdd(&_count, 1);
 			return true;
 		}
 
@@ -314,7 +314,7 @@ namespace Mcucpp
 		{
 			if(Atomic::Fetch(&_count) != 0)
 			{
-				Atomic::SubAndFetch(&_count, 1);
+				Atomic::FetchAndSub(&_count, 1);
 				_first++;
 				if(_first >= SIZE)
 					_first = 0;

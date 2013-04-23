@@ -4,7 +4,7 @@
 
 #define FLASH_PTR(PTR_TYPE) PTR_TYPE const __flash*
 
-#define FLASH __flash
+#define FLASH_STORAGE __flash
 
 template<class PtrT>
 inline  PtrT __flash* MakeFlashPtr( PtrT __flash* ptr){return ptr;}
@@ -124,17 +124,17 @@ protected:
 	PtrType _address;
 };
 
-#define FLASH PROGMEM
+#define FLASH_STORAGE PROGMEM
 #define FLASH_PTR(PTR_TYPE) ProgmemPtr<PTR_TYPE>
 
 template<class PtrT>
-inline ProgmemPtr<PtrT> MakeFlashPtr(PtrT *ptr){return ProgmemPtr<PtrT>(ptr);}
+inline ProgmemPtr<PtrT> MakeFlashPtr(const PtrT *ptr){return ProgmemPtr<PtrT>(ptr);}
 
 #else
 
 template<class PtrT>
 inline const PtrT * MakeFlashPtr(const PtrT *ptr){return ptr;}
-#define FLASH
+#define FLASH_STORAGE
 #define FLASH_PTR(PTR_TYPE) const PTR_TYPE*
 
 #endif

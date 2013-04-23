@@ -1,6 +1,8 @@
 #ifndef CRC16_H
 #define CRC16_H
+
 #include <stdint.h>
+#include <stddef.h>
 #include <template_utils.h>
 
 namespace Mcucpp

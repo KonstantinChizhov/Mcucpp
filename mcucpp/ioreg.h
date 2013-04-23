@@ -31,6 +31,16 @@ namespace Mcucpp
 		STRUCT_TYPE* operator->(){return ((STRUCT_TYPE *)(STRUCT_PTR));}\
 	}
 
+#define IO_BITFIELD_WRAPPER(REG_NAME, CLASS_NAME, DATA_TYPE, BITFIELD_OFFSET, BITFIELD_LENGTH) \
+	struct CLASS_NAME\
+	{\
+		typedef DATA_TYPE DataT;\
+		static const DataT Mask = (DataT(1u) << BITFIELD_LENGTH) - 1;\
+		static DataT Get(){return (REG_NAME >> BITFIELD_OFFSET) & Mask;}\
+		static void Set(DataT value){REG_NAME = (REG_NAME & ~Mask) | ((value & Mask) << BITFIELD_OFFSET);}\
+	}
+	
+
 // A stub for IO register
 // Any data written is ignored
 // Always reads as zero

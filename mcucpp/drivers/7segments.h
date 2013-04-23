@@ -43,7 +43,7 @@ namespace Mcucpp
 	public:
 		static uint8_t Map(uint8_t bcd)
 		{
-			static const FLASH uint8_t table[] = "\x3f\x06\x5b\x4f\x66\x6d\x7d\x7\x7f\x6f\x77\x7c\x39\x5e\x79\x71";
+			static const FLASH_STORAGE uint8_t table[] = "\x3f\x06\x5b\x4f\x66\x6d\x7d\x7\x7f\x6f\x77\x7c\x39\x5e\x79\x71";
 			FLASH_PTR(uint8_t) tablePtr(table);
 			return *(tablePtr + size_t(bcd));
 		}

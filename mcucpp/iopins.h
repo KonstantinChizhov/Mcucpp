@@ -143,6 +143,7 @@ namespace Mcucpp
 {
 namespace IO
 {
+	typedef TPin<NullPort, 0> NullPin;
 	//Short pin definations
 
 	#ifdef MCUCPP_HAS_PORTA

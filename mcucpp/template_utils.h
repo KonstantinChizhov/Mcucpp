@@ -5,11 +5,17 @@ namespace Mcucpp
 {
 	namespace Util
 	{
-		template<class T, T IntegralTypeCheck=T(0)>
-		struct IsSigned
+		template<class T> struct IsSigned
 		{
-			enum{value = T(-1) < T(0)};
+			enum{value = 1};
 		};
+
+		template<> struct IsSigned<unsigned int>{ enum{value = 0};	};
+		template<> struct IsSigned<unsigned char>{ enum{value = 0};	};
+		template<> struct IsSigned<unsigned short>{ enum{value = 0};	};
+		template<> struct IsSigned<unsigned long>{ enum{value = 0};	};
+		template<> struct IsSigned<unsigned long long>{ enum{value = 0};	};
+
 
 		template <uint64_t Arg, unsigned Base>
 		struct Log
@@ -73,6 +79,7 @@ namespace Mcucpp
 
 		template<> struct Unsigned<int> {typedef unsigned int Result;};
 		template<> struct Unsigned<char> {typedef unsigned char Result;};
+		template<> struct Unsigned<signed char> {typedef unsigned char Result;};
 		template<> struct Unsigned<long> {typedef unsigned long Result;};
 		template<> struct Unsigned<short> {typedef unsigned short Result;};
 		template<> struct Unsigned<long long> {typedef unsigned long long Result;};
@@ -85,8 +92,18 @@ namespace Mcucpp
 
 		template<class T> T (max)(T a, T b) {return a > b ? a : b;}
 		template<class T> T (min)(T a, T b) {return a > b ? b : a;}
-		template<class T> T (abs)(T a) {return a >= T(0) ? a : -a;}
 		template<class T> T (sqr)(T a) {return a*a;}
+
+		template<bool Signed> struct AbsHelper
+		{
+			template<class T> static T Abs(T value){return value >= T(0) ? value : -value;}
+		};
+		template<> struct AbsHelper<false>
+		{
+			template<class T> static T Abs(T value){return value;}
+		};
+
+		template<class T> T (abs)(T a) {return AbsHelper< IsSigned<T>::value >::Abs(a);}
 
 
 		template<class T, T arg>
@@ -112,7 +129,7 @@ namespace Mcucpp
 			static const uint16_t t2 = ((t1 >> 2) & 0x3333) | ((t1 & 0x3333) << 2);
 			static const uint16_t t3 = ((t2 >> 4) & 0x0F0F) | ((t2 & 0x0F0F) << 4);
 		public:
-			static const uint16_t value = uint16_t(t3 >> 8) | uint16_t(t3 << 8);
+			static const uint16_t value = (uint16_t)(t3 >> 8) | (uint16_t)(t3 << 8);
 		};
 
 		template<uint8_t arg>

@@ -1,3 +1,5 @@
+
+
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
@@ -24,82 +26,60 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
-
 #pragma once
+#include <stdint.h>
+#include <ring_buffer.h>
+#include <Timeout.h>
 
-#ifndef IOPORTS_HPP
-#define IOPORTS_HPP
-
-// Common base for all gpio ports
-#include "gpiobase.h"
-
-// Platform specific io ports implementation
-// Add appropriate platform specific folder to your include paths
-#include "ports.h"
 namespace Mcucpp
 {
-namespace IO
-{
-	class NullPort :public GpioBase
+	template<class Source, size_t BufferSizeParam, class TimeoutMonitor = NeverTimeout>
+	class BufferedOutput :public Source
 	{
- 	public:
-		typedef DontCareConfiguration Configuration;
-		typedef GpioBase Base;
-		typedef uint8_t DataT;
-		static void Write(DataT)
-		{	}
-		static void ClearAndSet(DataT, DataT)
-		{	}
-		static DataT Read()
+		Containers::RingBuffer<BufferSizeParam, uint8_t, Atomic> _buffer;
+		TimeoutMonitor _timeoutMonitor;
+	public:
+		BufferedOutput(unsigned timeout = -1)
+			:_timeoutMonitor(timeout)
 		{
-			return 0;
-		}
-		static void Set(DataT)
-		{	}
-		static void Clear(DataT)
-		{	}
-		static void Toggle(DataT)
-		{	}
-		static DataT PinRead()
-		{
-			return 0;
+		
 		}
 
-		template<DataT clearMask, DataT>
-		static void ClearAndSet()
-		{}
+		void SetTimeout(unsigned timeout)
+		{
+			_timeoutMonitor.Set(timeout);
+		}
 
-		template<DataT>
-		static void Toggle()
-		{}
-
-		template<DataT>
-		static void Set()
-		{}
-
-		template<DataT>
-		static void Clear()
-		{}
-
-		template<unsigned pin, class Config>
-		static void SetPinConfiguration(Config)
-		{}
-		template<class Config>
-		static void SetConfiguration(DataT mask, Config)
-		{}
-
-		template<DataT mask, Configuration>
-		static void SetConfiguration()
-		{}
-
-		template<DataT mask, GenericConfiguration>
-		static void SetConfiguration()
-		{}
-
-		enum{Id = '-'};
-		enum{Width=sizeof(DataT)*8};
+		void Write(uint8_t c)
+		{
+			Source::EnableTx();
+			Source::EnableInterrupts(Source::TxEmpty);
+			if(Source::TxReady())
+			{
+				Source::Write(c);
+			}
+			else
+			{
+				_timeoutMonitor.Reset();
+				while(!_buffer.push_back(c) && _timeoutMonitor.Tick())
+					;
+			}
+		}
+		
+		void TxInterruptHandler()
+		{
+			if(!Source::TxReady())
+				return;
+			if(_buffer.empty())
+			{
+				//Source::DisableTx();
+				Source::DisableInterrupts(Source::TxEmpty);
+			}
+			else
+			{
+				Source::Write(_buffer.front());
+				_buffer.pop_front();
+			}
+		}
 	};
-
 }
-}
-#endif//IOPORTS_HPP
