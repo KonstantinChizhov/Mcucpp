@@ -14,6 +14,11 @@
 #include <static_assert.h>
 #define USE_SPLIT_PORT_CONFIGURATION 8
 
+#define USE_PORTA
+#define USE_PORTB
+#define USE_PORTC
+#define USE_PORTD
+
 namespace Mcucpp
 {
 	namespace IO

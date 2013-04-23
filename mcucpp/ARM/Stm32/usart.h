@@ -1,6 +1,8 @@
 
 #pragma once
 #include <clock.h>
+#include <ioreg.h>
+#include <static_assert.h>
 
 namespace Mcucpp
 {
@@ -25,61 +27,167 @@ namespace Mcucpp
 			Default = RxTxEnable,
 
 			OneStopBit         = 0,
-			HalfStopBit        = USART_CR2_STOP_0,
-			TwoStopBits        = USART_CR2_STOP_1,
-			OneAndHalfStopBits = (USART_CR2_STOP_0 | USART_CR2_STOP_1)
+			HalfStopBit        = USART_CR2_STOP_0 << 16,
+			TwoStopBits        = USART_CR2_STOP_1 << 16,
+			OneAndHalfStopBits = (USART_CR2_STOP_0 | USART_CR2_STOP_1) << 16
+		};
+		
+		enum InterrupFlags
+		{
+			NoInterrupt = 0,
+			
+			ParityErrorInt = USART_CR1_PEIE,
+			TxEmptyInt     = USART_CR1_TXEIE,
+			TxCompleteInt  = USART_CR1_TCIE,
+			RxNotEmptyInt  = USART_CR1_RXNEIE,
+			IdleInt        = USART_CR1_IDLEIE,
+			
+			LineBreakInt   = USART_CR2_LBDIE << 4,
+			
+			ErrorInt       = USART_CR3_EIE << 16,
+			CtsInt         = USART_CR3_CTSIE << 16
+		};
+		
+		enum Error
+		{
+			NoError = 0,
+			OverrunError = USART_SR_ORE,
+			NoiseError = USART_SR_NE,
+			FramingError = USART_SR_FE,
+			ParityError = USART_SR_PE
 		};
 
 		static const int EOF = -1;
+	protected:
+	
+		static const unsigned ErrorMask = USART_SR_ORE | USART_SR_NE | USART_SR_FE | USART_SR_PE;
+		
+		static const unsigned CR1ModeMask = 
+			USART_CR1_M |
+			USART_CR1_PCE |
+			USART_CR1_PS |
+			USART_CR1_RE |
+			USART_CR1_TE;
+		
+		static const unsigned CR2ModeMask = USART_CR2_STOP_0 | USART_CR2_STOP_1;
+		enum
+		{
+			CR1ModeShift = 0,
+			CR2ModeShift = 16
+		};
+		
+		static const unsigned CR1InterruptMask = 
+			USART_CR1_PEIE | 
+			USART_CR1_TXEIE | 
+			USART_CR1_TCIE | 
+			USART_CR1_RXNEIE |
+			USART_CR1_IDLEIE;
+			
+		static const unsigned CR2InterruptMask = USART_CR2_LBDIE;
+		static const unsigned CR3InterruptMask = USART_CR3_EIE | USART_CR3_CTSIE;
+		
+		enum
+		{
+			CR1InterrupFlagsShift = 0,
+			CR2InterrupFlagsShift = 4,
+			CR3InterrupFlagsShift = 16
+		};
+			
+		BOOST_STATIC_ASSERT(
+			((CR1InterruptMask << CR1InterrupFlagsShift) & 
+			(CR2InterruptMask << CR2InterrupFlagsShift) &
+			(CR3InterruptMask << CR3InterrupFlagsShift)) == 0
+			);
 	};
 
 	inline UsartBase::UsartMode operator|(UsartBase::UsartMode left, UsartBase::UsartMode right)
-	{	return static_cast<UsartBase::UsartMode>(static_cast<int>(left) | static_cast<int>(right));	}
+	{	return static_cast<UsartBase::UsartMode>(static_cast<unsigned>(left) | static_cast<unsigned>(right));	}
+	
+	inline UsartBase::InterrupFlags operator|(UsartBase::InterrupFlags left, UsartBase::InterrupFlags right)
+	{	return static_cast<UsartBase::InterrupFlags>(static_cast<unsigned>(left) | static_cast<unsigned>(right));	}
+
+	inline UsartBase::Error operator|(UsartBase::Error left, UsartBase::Error right)
+	{	return static_cast<UsartBase::Error>(static_cast<unsigned>(left) | static_cast<unsigned>(right));	}
 
 
 	namespace Private
 	{
-		template<class Sr, class Dr, class Brr, class Cr1, class Cr2, class Cr3, class ClockCtrl>
+		template<class Regs, IRQn_Type IQRNumber, class ClockCtrl>
 		class Usart :public UsartBase
 		{
-			public:
-			static void Init(unsigned baund, UsartMode flags = Default)
+		public:
+			static void Init(unsigned baud, UsartMode flags = Default)
 			{
 				ClockCtrl::Enable();
-				unsigned brr = Clock::SysClock::FPeriph() / baund;
-				Brr::Set(brr);
-				Cr1::Set((flags & 0xffff) | USART_CR1_UE );
-				Cr2::Set((flags >> 16) & 0xffff);
+				unsigned brr = Clock::SysClock::FPeriph() / baud;
+				Regs()->BRR = brr;
+				Regs()->CR1 = (((flags >> CR1ModeShift) & CR1ModeMask) | USART_CR1_UE );
+				Regs()->CR2 = ((flags >> CR2ModeShift) & CR1ModeMask);
 			}
 
-			static bool Putch(uint8_t c)
+			static void Write(uint8_t c)
 			{
-				while((Sr::Get() & USART_SR_TXE) == 0);
-				Dr::Set(c);
-				return true;
+				while((Regs()->SR & USART_SR_TXE) == 0);
+				Regs()->DR = c;
 			}
-
-			static int Getch()
+			
+			static uint8_t Read()
 			{
-				if(Sr::Get() & USART_SR_RXNE)
-					return Dr::Get();
-				return EOF;
-			}
-
-			static bool Write(uint8_t c)
-			{
-				return Putch();
+				if(RxReady())
+					return Regs()->DR;
+				return 0;
 			}
 
 			static bool TxReady()
 			{
-				return (Sr::Get() & USART_SR_TXE) == 0;
+				return (Regs()->SR & USART_SR_TXE) == 0;
 			}
 
 			static bool RxReady()
 			{
-				return Sr::Get() & USART_SR_RXNE;
+				return Regs()->SR & USART_SR_RXNE;
 			}
+			
+			static void EnableInterrupt(InterrupFlags flags)
+			{
+				Regs()->CR1 = ((flags >> CR1InterrupFlagsShift) & CR1InterruptMask) | (Regs()->CR1 & ~CR1InterruptMask);
+				Regs()->CR2 = ((flags >> CR2InterrupFlagsShift) & CR2InterruptMask) | (Regs()->CR2 & ~CR2InterruptMask);
+				Regs()->CR3 = ((flags >> CR3InterrupFlagsShift) & CR3InterruptMask) | (Regs()->CR3 & ~CR3InterruptMask);
+				if(flags)
+					NVIC_EnableIRQ(IQRNumber);
+			}
+			
+			static InterrupFlags InterruptSource()
+			{
+				InterrupFlags result = NoInterrupt;
+				if(GetError() != NoError)
+					result = result | ErrorInt;
+					
+				if(Regs()->SR & USART_SR_CTS)
+					result = result | CtsInt;
+					
+				if(Regs()->SR & USART_SR_LBD)
+					result = result | LineBreakInt;
+					
+				if(Regs()->SR & USART_SR_TXE)
+					result = result | TxEmptyInt;
+					
+				if(Regs()->SR & USART_SR_TC)
+					result = result | TxCompleteInt;
+					
+				if(Regs()->SR & USART_SR_RXNE)
+					result = result | RxNotEmptyInt;
+					
+				if(Regs()->SR & USART_SR_IDLE)
+					result = result | IdleInt;
+				return NoInterrupt;
+			}
+			
+			static Error GetError()
+			{
+				return static_cast<Error>(Regs()->SR & ErrorMask);
+			}
+			
 
 			class Dma
 			{
@@ -94,25 +202,17 @@ namespace Mcucpp
 		};
 	}
 
-#define DECLARE_USART(SR, DR, BRR, CR1, CR2, CR3, CLOCK, className) \
+#define DECLARE_USART(REGS, IRQ, CLOCK, className) \
 	namespace Private \
 	{\
-		IO_REG_WRAPPER(SR, className ## Sr, uint32_t);\
-		IO_REG_WRAPPER(DR, className ## Dr, uint32_t);\
-		IO_REG_WRAPPER(BRR, className ## Brr, uint32_t);\
-		IO_REG_WRAPPER(CR1, className ## Cr1, uint32_t);\
-		IO_REG_WRAPPER(CR2, className ## Cr2, uint32_t);\
-		IO_REG_WRAPPER(CR3, className ## Cr3, uint32_t);\
+		IO_STRUCT_WRAPPER(REGS, className ## _REGS, USART_TypeDef);\
 	}\
 	typedef Private::Usart<\
-		Private::className ## Sr, \
-		Private::className ## Dr, \
-		Private::className ## Brr,\
-		Private::className ## Cr1,\
-		Private::className ## Cr2,\
-		Private::className ## Cr3,\
+		Private::className ## _REGS, \
+		IRQ,\
 		CLOCK\
 		> className
 
-		DECLARE_USART(USART1->SR, USART1->DR, USART1->BRR, USART1->CR1, USART1->CR2, USART1->CR3, Clock::Usart1Clock, Usart1);
+		DECLARE_USART(USART1, USART1_IRQn, Clock::Usart1Clock, Usart1);
+		DECLARE_USART(USART2, USART2_IRQn, Clock::Usart2Clock, Usart2);
 }

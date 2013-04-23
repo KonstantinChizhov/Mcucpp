@@ -7,7 +7,7 @@
 #ifndef MDR_1986BE9x_PORTS_H
 #define MDR_1986BE9x_PORTS_H
 
-#include "ioreg.h"
+#include <ioreg.h>
 #include "MDR32Fx.h"
 #include "clock.h"
 
@@ -50,35 +50,35 @@ namespace Mcucpp
 				PullDownIn = PulldownField,
 				PullUpOrDownIn = PullUpIn,
 				
-				Out = OutFast,
 				OutFast = OutputEnable | SpeedFast | AnalogField,
 				OutSlow = OutputEnable | SpeedSlow | AnalogField,
 				OutFastest = OutputEnable | SpeedFastest | AnalogField,
+				Out = OutFast,
 				
-				OpenDrainOut = OpenDrainOutFast,
 				OpenDrainOutFast = OutFast | OpenDrainField,
 				OpenDrainOutSlow = OutSlow | OpenDrainField,
 				OpenDrainOutFastest = OpenDrainOut | OpenDrainField,
+				OpenDrainOut = OpenDrainOutFast,
 				
-				AltOut = AltOutFast,
 				AltOutFast = OutFast | ModeMainFunc,
 				AltOutSlow = OutSlow | ModeMainFunc,
 				AltOutFastest =  OutFastest | ModeMainFunc,
+				AltOut = AltOutFast,
 				
-				Alt2Out = Alt2OutFast,
 				Alt2OutFast = OutFast | ModeAltFunc,
 				Alt2OutSlow = OutSlow | ModeAltFunc,
 				Alt2OutFastest =  OutFastest | ModeAltFunc,
+				Alt2Out = Alt2OutFast,
 				
-				RemapOut = Alt2OutFast,
 				RemapOutFast = OutFast | ModeRemapFunc,
 				RemapOutSlow = OutSlow | ModeRemapFunc,
 				RemapOutFastest =  OutFastest | ModeRemapFunc,
+				RemapOut = Alt2OutFast,
 				
-				AltOpenDrain = AltOpenDrainFast,
 				AltOpenDrainFast = AltOutFast | OpenDrainField,
 				AltOpenDrainSlow = AltOutSlow | OpenDrainField,
-				AltOpenDrainFastest = AltOutFastest | OpenDrainField
+				AltOpenDrainFastest = AltOutFastest | OpenDrainField,
+				AltOpenDrain = AltOpenDrainFast
 			};
 			
 			static inline unsigned UnpackConfig(unsigned mask, unsigned value, unsigned configuration)
@@ -208,13 +208,13 @@ namespace Mcucpp
 					else
 						GpioStruct()->PULL &= ((~mask) << 16) | ((~mask) & 0x0000ffff);
 					
-					if((unsigned)configuration & (unsigned)(SchmittTriggerField | OpenDrainField) == 
+					if(((unsigned)configuration & (unsigned)(SchmittTriggerField | OpenDrainField)) == 
 						(unsigned)(SchmittTriggerField | OpenDrainField))
 						GpioStruct()->PD |= mask | (mask << 16);
-					else if((unsigned)configuration & (unsigned)(SchmittTriggerField | OpenDrainField) == 
+					else if(((unsigned)configuration & (unsigned)(SchmittTriggerField | OpenDrainField)) == 
 						(unsigned)(SchmittTriggerField))
 						GpioStruct()->PD |= mask;
-					else if((unsigned)configuration & (unsigned)(SchmittTriggerField | OpenDrainField) == 
+					else if(((unsigned)configuration & (unsigned)(SchmittTriggerField | OpenDrainField)) == 
 						(unsigned)(OpenDrainField))
 						GpioStruct()->PD |= (mask << 16);
 					else
@@ -244,13 +244,13 @@ namespace Mcucpp
 					else
 						GpioStruct()->PULL &= ((~mask) << 16) | ((~mask) & 0x0000ffff);
 					
-					if((unsigned)configuration & (unsigned)(SchmittTriggerField | OpenDrainField) == 
+					if(((unsigned)configuration & (unsigned)(SchmittTriggerField | OpenDrainField)) == 
 						(unsigned)(SchmittTriggerField | OpenDrainField))
 						GpioStruct()->PD |= mask | (mask << 16);
-					else if((unsigned)configuration & (unsigned)(SchmittTriggerField | OpenDrainField) == 
+					else if(((unsigned)configuration & (unsigned)(SchmittTriggerField | OpenDrainField)) == 
 						(unsigned)(SchmittTriggerField))
 						GpioStruct()->PD |= mask;
-					else if((unsigned)configuration & (unsigned)(SchmittTriggerField | OpenDrainField) == 
+					else if(((unsigned)configuration & (unsigned)(SchmittTriggerField | OpenDrainField)) == 
 						(unsigned)(OpenDrainField))
 						GpioStruct()->PD |= (mask << 16);
 					else
@@ -270,14 +270,14 @@ namespace Mcucpp
 				}
 				enum{Id = ID};
 			};
-
+		}
 
 	#define MAKE_PORT(PortStruct, ClkEnReg, className, ID) \
 	   namespace Private{\
 			IO_STRUCT_WRAPPER(PortStruct, className ## Regs, MDR_PORT_TypeDef);\
 		}\
 		  typedef Private::PortImplementation<\
-				className ## Regs, \
+				Private:: className ## Regs, \
 				ClkEnReg,\
 				ID> className \
 
@@ -288,6 +288,12 @@ namespace Mcucpp
 	MAKE_PORT(MDR_PORTE, Clock::PorteClock, Porte, 'E');
 	MAKE_PORT(MDR_PORTF, Clock::PortfClock, Portf, 'F');
 
+	#define MCUCPP_HAS_PORTA 1
+	#define MCUCPP_HAS_PORTB 1
+	#define MCUCPP_HAS_PORTC 1
+	#define MCUCPP_HAS_PORTD 1
+	#define MCUCPP_HAS_PORTE 1
+	#define MCUCPP_HAS_PORTF 1
 	//==================================================================================================
 	}//namespace IO
 }
