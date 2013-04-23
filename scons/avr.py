@@ -22,21 +22,23 @@ def setup_gnu_tools(env, prefix):
 	env['PROGSUFFIX'] = '.elf'
 	
 	device = env['DEVICE']
+	env['DEVICE_NAME'] = device['name']
+	
 	env.Append(CPPDEFINES = {})
 	if 'defines' in device:
 		env.Append(CPPDEFINES = device['defines'])
 	if 'clock' in device:
 		env.Append(CPPDEFINES = {'F_CPU' : device['clock'] })
+		env['F_CPU'] = device['clock']
 	
 	env['CFLAGS'] = ["-std=gnu99", "-Wredundant-decls","-Wnested-externs"]
 	
 	env['CCFLAGS'] = [
-		"-mcpu=" + device['cpu'],
+		"-mmcu=" + device['cpu'],
 		"-gdwarf-2",
 		"-funsigned-char",
 		"-funsigned-bitfields",
 		"-fshort-enums",
-		"-fno-split-wide-types",
 		"-ffunction-sections",
 		"-fdata-sections",
 		"-Wall",
@@ -44,7 +46,9 @@ def setup_gnu_tools(env, prefix):
 		"-Wextra",
 		"-Wpointer-arith",
 		"-Wunused",
-		#"-pedantic"
+		"-ffunction-sections",
+		#"-pedantic",
+		'-fpack-struct'
 	]
 	if 'archOptions' in device:
 		for option in device['archOptions']:
@@ -57,14 +61,14 @@ def setup_gnu_tools(env, prefix):
 		"-fno-rtti",
 		"-fuse-cxa-atexit",
 		"-Woverloaded-virtual",
-		"-std=c++03"
 	]
 	
 	env['ASFLAGS'] = [
-		"-mcpu=" + device['cpu'],
+		"-mmcu=" + device['cpu'],
 		"-gdwarf-2",
 		"-xassembler-with-cpp",
 	]
+	
 	
 	linkerscript = ""
 	if 'linkerscript' in device:
@@ -72,14 +76,14 @@ def setup_gnu_tools(env, prefix):
 		linkerscript = '"-T%s"' % linkerscript
 	
 	env['LINKFLAGS'] = [
-		"-mcpu=" + device['cpu'],
+		"-mmcu=" + device['cpu'],
 		"-Wl,--gc-sections",
-		"-nostartfiles",
+		"-Wl,-Map=${TARGET.base}.map,--cref",
 		linkerscript
 	]
 	
 	hexBuilder = Builder(
-		action = '$OBJCOPY -O ihex --only-section .text --only-section .rodata --only-section .ctors --only-section .dtors --only-section .data $SOURCE $TARGET', 
+		action = '$OBJCOPY -O ihex -R .eeprom -R .fuse -R .lock -R .signature $SOURCE $TARGET', 
 		src_suffix = ".elf",
 		suffix = ".hex")
 	
@@ -88,14 +92,27 @@ def setup_gnu_tools(env, prefix):
 		src_suffix = ".elf",
 		suffix = ".lss")
 	
+	env['SIMULAVR_OUT_PORT'] = '0x24'
+	env['SIMULAVR_IN_PORT'] = '0x25'
+	env['SIMULAVR_ABORT_PORT'] = '0x22'
+	env['SIMULAVR_ERROR_PORT'] = '0x20'
+	env['SIMULAVR_OUT_FILE'] = '-'
+	env['SIMULAVR_IN_FILE'] = '-'
+	
+	simulavrBuilder = Builder(
+		action = 'simulavr.exe -V --device $DEVICE_NAME --file $SOURCE --cpufrequency $F_CPU --trace $TARGET -W $SIMULAVR_OUT_PORT,$SIMULAVR_OUT_FILE -R $SIMULAVR_IN_PORT,$SIMULAVR_IN_FILE -a SIMULAVR_ABORT_PORT -e SIMULAVR_ERROR_PORT', 
+		src_suffix = ".elf",
+		suffix = ".log")
+	
 	env.Append(BUILDERS = {
 		'Hex': hexBuilder,
-		'Disassembly': disasmBuilder})
+		'Disassembly': disasmBuilder,
+		'Simulation': simulavrBuilder})
 	
 	env.AddMethod(print_size, 'Size')
 	
 def generate(env, **kw):
-	setup_gnu_tools(env, 'arm-none-eabi-')
+	setup_gnu_tools(env, 'avr-')
 
 def exists(env):
-	return env.Detect('arm-none-eabi-gcc')
+	return env.Detect('avr-gcc')
