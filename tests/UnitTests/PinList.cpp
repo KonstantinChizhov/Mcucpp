@@ -28,39 +28,39 @@ void PinTest()
 
 	Port::Write(0);
 	Port::template SetConfiguration<DataT(-1), Port::In>();
-	EXPECT_EQ(Port::OutReg, 0u);
+	EXPECT_EQ(0u, Port::OutReg);
 	Pin::Set();
-	EXPECT_EQ(Port::OutReg, mask);
+	EXPECT_EQ(mask, Port::OutReg);
 	Pin::Clear();
-	EXPECT_EQ(Port::OutReg, 0u);
+	EXPECT_EQ(0u, Port::OutReg);
 	Pin::Set(1);
-	EXPECT_EQ(Port::OutReg, mask);
+	EXPECT_EQ(mask, Port::OutReg);
 	Pin::Set(0);
-	EXPECT_EQ(Port::OutReg, 0u);
+	EXPECT_EQ(0u, Port::OutReg);
 	Pin::Toggle();
-	EXPECT_EQ(Port::OutReg, mask);
+	EXPECT_EQ(mask, Port::OutReg);
 	Pin::Toggle();
-	EXPECT_EQ(Port::OutReg, 0u);
+	EXPECT_EQ(0u, Port::OutReg);
 
 	Pin::SetDirRead();
-	EXPECT_EQ(Port::DirReg, 0u);
+	EXPECT_EQ(0u, Port::DirReg);
 	Pin::SetDirWrite();
-	EXPECT_EQ(Port::DirReg, mask);
+	EXPECT_EQ(mask, Port::DirReg);
 
 	Pin::SetDir(0);
-	EXPECT_EQ(Port::DirReg, 0u);
+	EXPECT_EQ(0u, Port::DirReg);
 	Pin::SetDir(1);
-	EXPECT_EQ(Port::DirReg, mask);
+	EXPECT_EQ(mask, Port::DirReg);
 
 	Pin::SetConfiguration(Port::In);
-	EXPECT_EQ(Port::DirReg, 0u);
+	EXPECT_EQ(0u, Port::DirReg);
 	Pin::SetConfiguration(Port::Out);
-	EXPECT_EQ(Port::DirReg, mask);
+	EXPECT_EQ(mask, Port::DirReg);
 
 	Pin::template SetConfiguration<Port::In>();
-	EXPECT_EQ(Port::DirReg, 0u);
+	EXPECT_EQ(0u, Port::DirReg);
 	Pin:: template SetConfiguration<Port::Out>();
-	EXPECT_EQ(Port::DirReg, mask);
+	EXPECT_EQ(mask, Port::DirReg);
 
 	Port::InReg = 0;
 	EXPECT_FALSE(Pin::IsSet());
@@ -117,34 +117,34 @@ void TestOnePortPinList(unsigned listValue, unsigned portValue)
     Pins::Write(listValue);
     EXPECT_EQ(Port::OutReg,  portValue);
     val = Pins::Read();
-    EXPECT_EQ(val, listValue);
+    EXPECT_EQ(listValue, val);
 
     Port::DirReg = 0;
     Pins::SetConfiguration(listValue, Pins::Out);
-    EXPECT_EQ(Port::DirReg, portValue);
+    EXPECT_EQ(portValue, Port::DirReg);
 
     Port::Write(0);
     Port::DirReg = 0;
 
     Port::InReg = portValue;
     val = Pins::PinRead();
-    EXPECT_EQ(val, listValue);
+    EXPECT_EQ(listValue, val);
 
     Port::InReg = 0;
     val = Pins::PinRead();
-    EXPECT_EQ(val, 0);
+    EXPECT_EQ(0, val);
 
     Pins::Write(0);
-    EXPECT_EQ(Port::OutReg, 0u);
+    EXPECT_EQ(0u, Port::OutReg);
 
     Pins::Set(listValue);
-    EXPECT_EQ(Port::OutReg, portValue);
+    EXPECT_EQ(portValue, Port::OutReg);
 
     Pins::Clear(listValue);
-    EXPECT_EQ(Port::OutReg, 0u);
+    EXPECT_EQ(0u, Port::OutReg);
 
     Pins::SetConfiguration(Pins::In);
-    EXPECT_EQ(Port::DirReg, 0u);
+    EXPECT_EQ(0u, Port::DirReg);
 
     cout << "\tOK" << endl;
 }
@@ -162,34 +162,34 @@ void TestOnePortConstIface()
     Pins::template Write<listValue>();
     EXPECT_EQ(Port::OutReg,  portValue);
     val = Pins::Read();
-    EXPECT_EQ(val, listValue);
+    EXPECT_EQ(listValue, val);
 
     Port::DirReg = 0;
     Pins::template SetConfiguration<listValue, Pins::Out>();
-    EXPECT_EQ(Port::DirReg, portValue);
+    EXPECT_EQ(portValue, Port::DirReg);
 
     Port::template Write<0>();
     Port::DirReg = 0;
 
     Port::InReg = portValue;
     val = Pins::PinRead();
-    EXPECT_EQ(val, listValue);
+    EXPECT_EQ(listValue, val);
 
     Port::InReg = 0;
     val = Pins::PinRead();
-    EXPECT_EQ(val, 0);
+    EXPECT_EQ(0, val);
 
     Port::template Write<0>();
-    EXPECT_EQ(Port::OutReg, 0u);
+    EXPECT_EQ(0u, Port::OutReg);
 
     Pins::template Set<listValue>();
-    EXPECT_EQ(Port::OutReg, portValue);
+    EXPECT_EQ(portValue, Port::OutReg);
 
     Pins::template Clear<listValue>();
-    EXPECT_EQ(Port::OutReg, 0u);
+    EXPECT_EQ(0u, Port::OutReg);
 
     Pins::template SetConfiguration<0xff, Pins::In>();
-    EXPECT_EQ(Port::DirReg, 0u);
+    EXPECT_EQ(0u, Port::DirReg);
 
     cout << "\tOK" << endl;
 }
@@ -201,27 +201,27 @@ void Test2PortConfiguration(unsigned listValue, unsigned portValue, unsigned por
     cout << __FUNCTION__ << "\t";
     PrintPinList<Pins>::Print();
     Pins::Write(listValue);
-    EXPECT_EQ(Port1::OutReg, portValue);
-    EXPECT_EQ(Port2::OutReg, portValue2);
+    EXPECT_EQ(portValue, Port1::OutReg);
+    EXPECT_EQ(portValue2, Port2::OutReg);
     val = Pins::Read();
-    EXPECT_EQ(val, listValue);
+    EXPECT_EQ(listValue, val);
 
     Port1::OutReg = 0;
     Pins::Set(listValue);
-    EXPECT_EQ(Port1::OutReg, portValue);
-    EXPECT_EQ(Port2::OutReg, portValue2);
+    EXPECT_EQ(portValue, Port1::OutReg);
+    EXPECT_EQ(portValue2, Port2::OutReg);
     val = Pins::Read();
-    EXPECT_EQ(val, listValue);
+    EXPECT_EQ(listValue, val);
 
     Pins::Clear(listValue);
-    EXPECT_EQ(Port1::OutReg, 0u);
-    EXPECT_EQ(Port2::OutReg, 0u);
+    EXPECT_EQ(0u, Port1::OutReg);
+    EXPECT_EQ(0u, Port2::OutReg);
     val = Pins::Read();
-    EXPECT_EQ(val, 0u);
+    EXPECT_EQ(0u, val);
 
     Pins::SetConfiguration(listValue, Pins::Out);
-    EXPECT_EQ(Port1::DirReg, portValue);
-    EXPECT_EQ(Port2::DirReg, portValue2);
+    EXPECT_EQ(portValue, Port1::DirReg);
+    EXPECT_EQ(portValue2, Port2::DirReg);
     cout << "\tOK" << endl;
 }
 
@@ -294,6 +294,8 @@ TEST(GPIO, PinListTest)
 
     TestOnePortPinList<Pins1Clone >(0x1f, 0x5e);
 
+    TestOnePortPinList<PinList<Pa1, Pa3, NullPin, Pa0> >(0x0b, 0x0b);
+
     TestOnePortConstIface<PinList<Pa1, Pa3, Pa2, Pa0>, 0x0f, 0x0f>();
     TestOnePortConstIface<PinList<Pa0, Pa2, Pa1, Pa3>, 0x0f, 0x0f>();
     TestOnePortConstIface<PinList<Pa2, Pa1, Pa3, Pa4, Pa6>, 0x1f, 0x5e>();
@@ -306,3 +308,15 @@ TEST(GPIO, PinListTest)
     Test2PortConfiguration<PinList<Pa1, Pa3, Pa2, Pa0, Pb1, Pb3, Pb2, Pb0>, Porta, Portb>(0xff, 0x0f, 0x0f);
     Test2PortConfiguration<PinList<Pa1, Pa2, Pa3, Pa0, Pb0, Pb1, Pb2, Pb3>, Porta, Portb>(0xff, 0x0f, 0x0f);
 }
+
+TEST(GPIO, NullPin)
+{
+	NullPin::Set();
+	NullPin::Set(false);
+	NullPin::Set(true);
+	NullPin::Clear();
+	NullPin::Toggle();
+	NullPin::SetConfiguration(NullPin::Port::Out);
+	EXPECT_FALSE(NullPin::IsSet());
+}
+

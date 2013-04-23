@@ -172,3 +172,22 @@ TEST(Format, ReaderSeek)
 	EXPECT_EQ(12345678u, val);
 	EXPECT_EQ(sizeof(str)-1, (size_t)in.tellg());
 }
+
+TEST(Format, ReaderBool)
+{
+	istringstream in("0 1 true false");
+	if(!in) FAIL();
+	in.setf(istringstream::boolalpha);
+	bool val = true;
+	in >> val;
+	EXPECT_EQ(false, val);
+	val = false;
+	in >> val;
+	EXPECT_EQ(true, val);
+	val = false;
+	in >> val;
+	EXPECT_EQ(true, val);
+	val = true;
+	in >> val;
+	EXPECT_EQ(false, val);
+}

@@ -54,9 +54,9 @@ __attribute__((OS_main))
 int main()
 {
 
-	delegate1<void, uint32_t> d(foo, &Foo::Func);
-	delegate1<void, uint32_t> d2(Hello);
-	delegate<int> d3(bar, &Bar::Func);
+	Mcucpp::Delegate1<void, uint32_t> d(foo, &Foo::Func);
+	Mcucpp::Delegate1<void, uint32_t> d2(Hello);
+	Mcucpp::Delegate<int> d3(bar, &Bar::Func);
 
 	d(123);
 	d2(987);

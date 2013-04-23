@@ -4,29 +4,24 @@
 #include <format_parser.h>
 #include <flashptr.h>
 
-FLASH char str1[] = "Str = %|-12|\nPORTA = %|-x10|\n";
-FLASH char str2[] = "Hello world!!";
+const FLASH_STORAGE char str1[] = "Str = %|-12|\nPORTA = %|-x10|\n";
+const FLASH_STORAGE char str2[] = "Hello world!!";
 using namespace Mcucpp;
 
-typedef Usart<16, 16> MyUsart;
-
-
-ISR(USART_UDRE_vect)
-{
-	MyUsart::TxHandler();
-}
-
-template<class Src>
-struct RawWriter
+typedef Usart<Usart0Regs> MyUsart;
+struct UsartWriter
 {
 	void put(char c)
 	{
-		while(!Src::Putch(c));
+		if(c == '\n')
+			Usart<Usart0Regs>::Write('\r');
+		Usart<Usart0Regs>::Write(c);
 	}
 };
 
-typedef basic_ostream<RawWriter<MyUsart> > ostream;
+typedef basic_ostream<UsartWriter> ostream;
 
+ostream cout;
 
 ostream& operator<<(ostream &s, ProgmemPtr<char> str)
 {
@@ -34,19 +29,16 @@ ostream& operator<<(ostream &s, ProgmemPtr<char> str)
 	return s;
 }
 
-ostream cout;
 #include <iopins.h>
 #include <pinlist.h>
 
 int main()
 {
-
-	MyUsart::Init<115200>();
-	sei ();
+	MyUsart::Init<9600>();
 // Format string stored in flash
 	cout % Format(MakeFlashPtr(str1)) % MakeFlashPtr(str2) % PORTA;
 //  Format string stored in ram
-//	cout % IO::Format("%|-20| -- %|10|\n") % "Hello world" % 12345;
+	cout % Format("%|-20| -- %|10|\n") % "Hello world" % 12345;
 	while(1)
 	{
 		

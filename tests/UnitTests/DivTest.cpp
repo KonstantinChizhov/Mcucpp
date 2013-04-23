@@ -1,5 +1,6 @@
 #include <gtest\gtest.h>
 #include <div.h>
+#include <fastdiv10.h>
 #include <fstream>
 #include <cstdlib>
 
@@ -43,4 +44,27 @@ TEST(Div, Test64x32signed)
 {
 	//GenerateTestSigned64x32();
 	#include "div64x32sTests.h"
+}
+
+TEST(Div10, FastDiv10)
+{
+	using namespace Mcucpp;
+	for(uint32_t i = 0; i < 256; i++)
+	{
+		divmod10_t<uint8_t> res8 = divmodu10((uint8_t)i);
+		EXPECT_EQ(i/10, res8.quot);
+		EXPECT_EQ(i%10, res8.rem);
+	}
+
+	for(uint32_t i = 0; i < 0x00010000; i++)
+	{
+		divmod10_t<uint16_t> res16 = divmodu10((uint16_t)i);
+		EXPECT_EQ(i/10, res16.quot);
+		EXPECT_EQ(i%10, res16.rem);
+	}
+
+	divmodu10((unsigned)100);
+	divmodu10((unsigned long)100);
+	divmodu10((unsigned short)100);
+	divmodu10((unsigned long long)100);
 }

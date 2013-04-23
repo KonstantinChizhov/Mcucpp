@@ -15,8 +15,10 @@ tests = [\
 	'FormatWriter.cpp',
 	'istream_test.cpp',
 	'PinList.cpp',
-	'timers.cpp'
+	'timers.cpp',
+	'UsartTests.cpp'
 	]
+
 tests_objects = testEnv.Object(tests + g_test_sources)
 mcucpp_tests = testEnv.Program('mcucpp_tests', tests_objects)
 test_result = testEnv.Test('mcucpp_test_result', mcucpp_tests)

@@ -20,7 +20,7 @@ TEST(FixedPoint, Init)
 
 	fixed16_t p2(100);
 	EXPECT_EQ(100, p2.IntegerPart());
-	EXPECT_EQ(0u, p2.FractionalPart());
+	EXPECT_EQ(0, p2.FractionalPart());
 
 	fixed8_t p3(0);
 	EXPECT_EQ(0, p3.IntegerPart());
