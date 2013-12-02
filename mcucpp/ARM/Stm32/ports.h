@@ -18,77 +18,57 @@
 #define USE_PORTB
 #define USE_PORTC
 #define USE_PORTD
+//#define USE_PORTE
+//#define USE_PORTF
+//#define USE_PORTG
 
 namespace Mcucpp
 {
 	namespace IO
 	{
-		class NativePortBase :public GpioBase
+		class NativePortBase
 		{
 		public:
 			enum{Width=16};
-			typedef NativePortBase Base;
 			typedef uint16_t DataT;
 			enum Configuration
 			{
-				AnalogIn = 0,
-				In = 0x04,
-				PullUpOrDownIn = 0x08,
-				Out = 0x03, // default Out is Out50Mhz
-				Out10Mhz = 0x01,
-				Out2Mhz = 0x02,
-				Out50Mhz = 0x03,
-				OpenDrainOut = 0x07,
-				OpenDrainOut10Mhz = 0x05,
-				OpenDrainOut2Mhz = 0x06,
-				OpenDrainOut50Mhz = 0x07,
-				AltOut = 0x0B,
-				AltOut10Mhz = 0x09,
-				AltOut2Mhz = 0x0A,
-				AltOut50Mhz = 0x0B,
-				AltOpenDrain = 0x0f,
-				AltOpenDrain10Mhz = 0x0C,
-				AltOpenDrain2Mhz = 0x0E,
-				AltOpenDrain50Mhz = 0x0f
+				Analog =  0,
+				In =      0x04,
+				Out =     0x03,
+				AltFunc = 0x0B
 			};
-
-			static inline unsigned UnpackConfig(unsigned mask, unsigned value, Configuration configuration)
+			
+			enum PullMode
+			{
+				NoPullUp = 0,
+				PullUp   = 0x08,
+				PullDown = 0x18
+			};
+			
+			enum DriverType
+			{
+				PushPull  = 0,
+				OpenDrain = 4
+			};
+			
+			enum Speed
+			{
+				Slow    = 1,
+				Fast    = 2,
+				Fastest = 3
+			};
+			
+			static inline unsigned UnpackConfig(unsigned mask, unsigned value, unsigned configuration, unsigned configMask)
 			{
 				mask = (mask & 0xf0) << 12 | (mask & 0x0f);
 				mask = (mask & 0x000C000C) << 6 | (mask & 0x00030003);
 				mask = (mask & 0x02020202) << 3 | (mask & 0x01010101);
-				return (value & ~(mask*0x0f)) | mask * configuration;
+				return (value & ~(mask*configMask)) | mask * configuration;
 			}
-
-			static Configuration MapConfiguration(GenericConfiguration config)
-			{
-				switch(config)
-				{
-				case GpioBase::In: return In;
-				case GpioBase::AnalogIn: return AnalogIn;
-				case GpioBase::PullUpOrDownIn: return PullUpOrDownIn;
-				case GpioBase::OpenDrainOut: return OpenDrainOut;
-				case GpioBase::AltOut: return AltOut;
-				case GpioBase::AltOpenDrain: return AltOpenDrain;
-				//case GpioBase::Out:
-				default:
-				  return Out;
-				}
-			}
-			template<GenericConfiguration config>
-			struct MapConfigurationConst
-			{
-				static const Configuration value = Out;
-			};
+			
 		};
-
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::In>{static const Configuration value = In;};
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::AnalogIn>{static const Configuration value = AnalogIn;};
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::OpenDrainOut>{static const Configuration value = OpenDrainOut;};
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::AltOut>{static const Configuration value = AltOut;};
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::AltOpenDrain>{static const Configuration value = AltOpenDrain;};
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::PullUpOrDownIn>{static const Configuration value = PullUpOrDownIn;};
-
+		
 		namespace Private
 		{
 			template<unsigned mask>
@@ -101,48 +81,37 @@ namespace Mcucpp
 				static const unsigned value = mask3;
 			};
 
-			template<class ConfigReg, unsigned mask, NativePortBase::Configuration config>
-			struct WriteConfig
-			{
-				static void Write()
-				{
-				  const unsigned configMask = ConfigurationMask<mask>::value;
-				  unsigned result = (ConfigReg::Get() & ~(configMask*0x0f)) | configMask * config;
-				  ConfigReg::Set(result);
-				}
-			};
-
-			template<class CRL, class CRH, class IDR, class ODR, class BSRR, class BRR, class LCKR, class ClkEnReg, int ID>
+			template<class Regs, class ClkEnReg, int ID>
 			class PortImplementation :public NativePortBase
 			{
 			public:
 				static DataT Read()
 				{
-				  return ODR::Get();
+				  return Regs()->ODR;
 				}
 				static void Write(DataT value)
 				{
-					ODR::Set(value);
+					Regs()->ODR = value;
 				}
 				static void ClearAndSet(DataT clearMask, DataT value)
 				{
-					BSRR::Set(value | (uint32_t)clearMask << 16);
+					Regs()->BSRR = (value | (uint32_t)clearMask << 16);
 				}
 				static void Set(DataT value)
 				{
-					BSRR::Set(value);
+					Regs()->BSRR = value;
 				}
 				static void Clear(DataT value)
 				{
-					BSRR::Set((uint32_t)value << 16);
+					Regs()->BSRR = ((uint32_t)value << 16);
 				}
 				static void Toggle(DataT value)
 				{
-					ODR::Xor(value);
+					Regs()->ODR ^= value;
 				}
 				static DataT PinRead()
 				{
-					return IDR::Get();
+					return Regs()->IDR;
 				}
 
 				// constant interface
@@ -150,50 +119,85 @@ namespace Mcucpp
 				template<DataT clearMask, DataT value>
 				static void ClearAndSet()
 				{
-					BSRR::Set(value | (uint32_t)clearMask << 16);
+					Regs()->BSRR = (value | (uint32_t)clearMask << 16);
 				}
 
 				template<DataT value>
 				static void Toggle()
 				{
-					ODR::Xor(value);
+					Regs()->ODR ^= value;
 				}
 
 				template<DataT value>
 				static void Set()
 				{
-					BSRR::Set(value);
+					Regs()->BSRR = value;
 				}
 
 				template<DataT value>
 				static void Clear()
 				{
-					BSRR::Set((uint32_t)value << 16);
+					Regs()->BSRR = ((uint32_t)value << 16);
 				}
 
 				template<unsigned pin>
 				static void SetPinConfiguration(Configuration configuration)
 				{
-					BOOST_STATIC_ASSERT(pin < Width);
+					STATIC_ASSERT(pin < Width);
 					if(pin < 8)
 					{
-						CRL::AndOr(~(0x0fu << pin*4), (unsigned)configuration << pin*4);
+						Regs()->CRL = (Regs()->CRL & ~(0x0fu << pin*4)) | ((unsigned)configuration << pin*4);
 					}
 					else
 					{
-						CRH::AndOr(~(0x0fu << (pin-8)*4), (unsigned)configuration << (pin-8)*4);
+						Regs()->CRH = (Regs()->CRH & ~(0x0fu << (pin-8)*4)) | ((unsigned)configuration << (pin-8)*4);
 					}
 				}
 				static void SetConfiguration(DataT mask, Configuration configuration)
 				{
-					CRL::Set(UnpackConfig(mask, CRL::Get(), configuration));
-					CRH::Set(UnpackConfig((mask>>8), CRH::Get(), configuration));
+					Regs()->CRL = NativePortBase::UnpackConfig(mask, Regs()->CRL, configuration, 0x0f);
+					Regs()->CRH = NativePortBase::UnpackConfig((mask>>8), Regs()->CRH, configuration, 0x0f);
 				}
+				
 				template<DataT mask, Configuration configuration>
 				static void SetConfiguration()
 				{
-				  WriteConfig<CRL, mask, configuration>::Write();
-				  WriteConfig<CRH, (mask>>8), configuration>::Write();
+					unsigned configMask = ConfigurationMask<mask>::value;
+					Regs()->CRL = (Regs()->CRL & ~(configMask*0x0f)) | configMask * configuration;
+					
+					configMask = ConfigurationMask<(mask>>8)>::value;
+					Regs()->CRH = (Regs()->CRH & ~(configMask*0x0f)) | configMask * configuration;
+				}
+				
+				static void SetSpeed(DataT mask, Speed speed)
+				{
+					Regs()->CRL = NativePortBase::UnpackConfig(mask, Regs()->CRL, speed, 0x03);
+					Regs()->CRH = NativePortBase::UnpackConfig((mask>>8), Regs()->CRH, speed, 0x03);
+				}
+				
+				static void SetPullUp(DataT mask, PullMode pull)
+				{
+					Regs()->CRL = NativePortBase::UnpackConfig(mask, Regs()->CRL, pull & 0x08, 0x0f);
+					Regs()->CRH = NativePortBase::UnpackConfig((mask>>8), Regs()->CRH, pull & 0x08, 0x0f);
+					if(pull & 0x10) // pullup
+					{
+						Set(mask); 
+					}
+					else //pulldown
+					{
+						Clear(mask); 
+					}
+				}
+				
+				static void SetDriverType(DataT mask, DriverType driver)
+				{
+					Regs()->CRL = NativePortBase::UnpackConfig(mask, Regs()->CRL, driver, 0x04);
+					Regs()->CRH = NativePortBase::UnpackConfig((mask>>8), Regs()->CRH, driver, 0x04);
+				}
+				
+				static void AltFuncNumber(DataT mask, uint8_t number)
+				{
+					// nothing to do
 				}
 
 				static void Enable()
@@ -209,10 +213,10 @@ namespace Mcucpp
 			};
 
 			/*Lower part of port. Need for effective configuration writing*/
-			template<class CRL, class CRH, class IDR, class ODR, class BSRR, class BRR, class LCKR, class ClkEnReg, int ID>
-			class PortImplementationL :public PortImplementation<CRL, CRH, IDR, ODR, BSRR, BRR, LCKR, ClkEnReg, ID>
+			template<class Regs, class ClkEnReg, int ID>
+			class PortImplementationL :public PortImplementation<Regs, ClkEnReg, ID>
 			{
-				typedef PortImplementation<CRL, CRH, IDR, ODR, BSRR, BRR, LCKR, ClkEnReg, ID> Base;
+				typedef PortImplementation<Regs, ClkEnReg, ID> Base;
 				public:
 					typedef typename Base::Configuration Configuration;
 					typedef typename Base::DataT DataT;
@@ -220,25 +224,26 @@ namespace Mcucpp
 					template<unsigned pin>
 					static void SetPinConfiguration(Configuration configuration)
 					{
-						BOOST_STATIC_ASSERT(pin < 8);
-						CRL::AndOr(~(0x0fu << pin*4), (uint32_t)configuration << pin*4);
+						STATIC_ASSERT(pin < 8);
+						Regs()->CRL = (Regs()->CRL & ~(0x0fu << pin*4)) | ((unsigned)configuration << pin*4);
 					}
 					static void SetConfiguration(DataT mask, Configuration configuration)
 					{
-						CRL::Set(NativePortBase::UnpackConfig(mask, CRL::Get(), configuration));
+						Regs()->CRL = NativePortBase::UnpackConfig(mask, Regs()->CRL, configuration, 0x0f);
 					}
 					template<DataT mask, Configuration configuration>
 					static void SetConfiguration()
 					{
-						 WriteConfig<CRL, mask, configuration>::Write();
+						unsigned configMask = ConfigurationMask<mask>::value;
+						Regs()->CRL = (Regs()->CRL & ~(configMask*0x0f)) | configMask * configuration;
 					}
 			};
 
 			 /*Hight part of port. Need for effective configuration writing*/
-			template<class CRL, class CRH, class IDR, class ODR, class BSRR, class BRR, class LCKR, class ClkEnReg, int ID>
-			class PortImplementationH :public PortImplementation<CRL, CRH, IDR, ODR, BSRR, BRR, LCKR, ClkEnReg, ID>
+			template<class Regs, class ClkEnReg, int ID>
+			class PortImplementationH :public PortImplementation<Regs, ClkEnReg, ID>
 			{
-				typedef PortImplementation<CRL, CRH, IDR, ODR, BSRR, BRR, LCKR, ClkEnReg, ID> Base;
+				typedef PortImplementation<Regs, ClkEnReg, ID> Base;
 				public:
 					typedef typename Base::Configuration Configuration;
 					typedef typename Base::DataT DataT;
@@ -246,94 +251,71 @@ namespace Mcucpp
 				template<unsigned pin>
 				static void SetPinConfiguration(Configuration configuration)
 				{
-					BOOST_STATIC_ASSERT(pin >= 8 && pin < 16);
-					CRH::AndOr(~(0x0fu << (pin-8)*4), (uint32_t)configuration << (pin-8)*4);
+					STATIC_ASSERT(pin >= 8 && pin < 16);
+					Regs()->CRH = (Regs()->CRH & ~(0x0fu << (pin-8)*4)) | ((unsigned)configuration << (pin-8)*4);
 				}
 				static void SetConfiguration(DataT mask, Configuration configuration)
 				{
-				  CRH::Set(NativePortBase::UnpackConfig(mask>>8, CRH::Get(), configuration));
+					Regs()->CRH = NativePortBase::UnpackConfig((mask>>8), Regs()->CRH, configuration, 0x0f);
 				}
 				template<DataT mask, Configuration configuration>
 				static void SetConfiguration()
 				{
-					WriteConfig<CRH, (mask>>8), configuration>::Write();
+					unsigned configMask = ConfigurationMask<(mask>>8)>::value;
+					Regs()->CRH = (Regs()->CRH & ~(configMask*0x0f)) | configMask * configuration;
 				}
 			};
 		}
 
-	#define MAKE_PORT(CRL, CRH, IDR, ODR, BSRR, BRR, LCKR, ClkEnReg, className, ID) \
+	#define MAKE_PORT(REGS, ClkEnReg, className, ID) \
 	   namespace Private{\
-			IO_REG_WRAPPER(CRL, className ## Crl, uint32_t);\
-			IO_REG_WRAPPER(CRH, className ## Crh, uint32_t);\
-			IO_REG_WRAPPER(IDR, className ## Idr, uint32_t);\
-			IO_REG_WRAPPER(ODR, className ## Odr, uint32_t);\
-			IO_REG_WRAPPER(BSRR, className ## Bsrr, uint32_t);\
-			IO_REG_WRAPPER(BRR, className ## Brr, uint32_t);\
-			IO_REG_WRAPPER(LCKR, className ## Lckr, uint32_t);\
+			IO_STRUCT_WRAPPER(REGS, className ## Regs, GPIO_TypeDef);\
 		}\
 		  typedef Private::PortImplementation<\
-				Private::className ## Crl, \
-				Private::className ## Crh, \
-				Private::className ## Idr, \
-				Private::className ## Odr, \
-				Private::className ## Bsrr, \
-				Private::className ## Brr, \
-				Private::className ## Lckr, \
+				Private::className ## Regs, \
 				ClkEnReg,\
 				ID> className; \
 			typedef Private::PortImplementationL<\
-				Private::className ## Crl, \
-				Private::className ## Crh, \
-				Private::className ## Idr, \
-				Private::className ## Odr, \
-				Private::className ## Bsrr, \
-				Private::className ## Brr, \
-				Private::className ## Lckr, \
+				Private::className ## Regs, \
 				ClkEnReg,\
 				ID> className ## L; \
 			typedef Private::PortImplementationH<\
-				Private::className ## Crl, \
-				Private::className ## Crh, \
-				Private::className ## Idr, \
-				Private::className ## Odr, \
-				Private::className ## Bsrr, \
-				Private::className ## Brr, \
-				Private::className ## Lckr, \
+				Private::className ## Regs, \
 				ClkEnReg,\
 				ID> className ## H; \
 
 	#ifdef USE_PORTA
-	MAKE_PORT(GPIOA->CRL, GPIOA->CRH, GPIOA->IDR, GPIOA->ODR, GPIOA->BSRR, GPIOA->BRR, GPIOA->LCKR, Clock::PortaClock, Porta, 'A')
+	MAKE_PORT(GPIOA, Clock::PortaClock, Porta, 'A')
 	#define MCUCPP_HAS_PORTA
 	#endif
 
 	#ifdef USE_PORTB
-	MAKE_PORT(GPIOB->CRL, GPIOB->CRH, GPIOB->IDR, GPIOB->ODR, GPIOB->BSRR, GPIOB->BRR, GPIOB->LCKR, Clock::PortbClock, Portb, 'B')
+	MAKE_PORT(GPIOB, Clock::PortbClock, Portb, 'B')
 	#define MCUCPP_HAS_PORTB
 	#endif
 
 	#ifdef USE_PORTC
-	MAKE_PORT(GPIOC->CRL, GPIOC->CRH, GPIOC->IDR, GPIOC->ODR, GPIOC->BSRR, GPIOC->BRR, GPIOC->LCKR, Clock::PortcClock, Portc, 'C')
+	MAKE_PORT(GPIOC, Clock::PortcClock, Portc, 'C')
 	#define MCUCPP_HAS_PORTC
 	#endif
 
 	#ifdef USE_PORTD
-	MAKE_PORT(GPIOD->CRL, GPIOD->CRH, GPIOD->IDR, GPIOD->ODR, GPIOD->BSRR, GPIOD->BRR, GPIOD->LCKR, Clock::PortdClock, Portd, 'D')
+	MAKE_PORT(GPIOD, Clock::PortdClock, Portd, 'D')
 	#define MCUCPP_HAS_PORTD
 	#endif
 
 	#ifdef USE_PORTE
-	MAKE_PORT(GPIOE->CRL, GPIOE->CRH, GPIOE->IDR, GPIOE->ODR, GPIOE->BSRR, GPIOE->BRR, GPIOE->LCKR, Clock::PorteClock, Porte, 'E')
+	MAKE_PORT(GPIOE, Clock::PorteClock, Porte, 'E')
 	#define MCUCPP_HAS_PORTE
 	#endif
 
 	#ifdef USE_PORTF
-	MAKE_PORT(GPIOF->CRL, GPIOF->CRH, GPIOF->IDR, GPIOF->ODR, GPIOF->BSRR, GPIOF->BRR, GPIOF->LCKR, Clock::PortfClock, Portf, 'F')
+	MAKE_PORT(GPIOF, Clock::PortfClock, Portf, 'F')
 	#define MCUCPP_HAS_PORTF
 	#endif
 
 	#ifdef USE_PORTG
-	MAKE_PORT(GPIOG->CRL, GPIOG->CRH, GPIOG->IDR, GPIOG->ODR, GPIOG->BSRR, GPIOG->BRR, GPIOG->LCKR, Clock::PortgClock, Portg, 'G')
+	MAKE_PORT(GPIOG, Clock::PortgClock, Portg, 'G')
 	#define MCUCPP_HAS_PORTG
 	#endif
 

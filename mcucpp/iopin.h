@@ -30,35 +30,25 @@
 
 #include "static_assert.h"
 #include <stdint.h>
-#include "gpiobase.h"
 
 namespace Mcucpp
 {
 namespace IO
 {
-	namespace Private
-	{
-		template<class PortConfig> struct ConfigSelector
-		{
-			typedef PortConfig RealConfig;
-		};
-		template<> struct ConfigSelector<GpioBase::DontCareConfiguration>
-		{
-			typedef GpioBase::GenericConfiguration RealConfig;
-		};
-	}
 	// this class represents one pin in a IO port.
 	// It is fully static.
 	template<class PORT, uint8_t PIN, class CONFIG_PORT = PORT>
 	class TPin
 	{
-		BOOST_STATIC_ASSERT(PIN < PORT::Width);
+		STATIC_ASSERT(PIN < PORT::Width);
 	public:
 		typedef PORT Port;
 		typedef CONFIG_PORT ConfigPort;
-
-		typedef typename Private::ConfigSelector<typename ConfigPort::Configuration>::
-			RealConfig Configuration;
+		
+		typedef typename ConfigPort::Speed Speed;
+		typedef typename ConfigPort::PullMode PullMode;
+		typedef typename ConfigPort::DriverType DriverType;
+		typedef typename ConfigPort::Configuration Configuration;
 
 		static const unsigned Number = PIN;
 		static const bool Inverted = false;
@@ -72,7 +62,12 @@ namespace IO
 		static void SetDirRead();
 		static void SetDirWrite();
 		static void SetConfiguration(Configuration configuration);
-
+		
+		static void SetDriverType(DriverType driverType);
+		static void SetPullUp(PullMode pullMode);
+		static void SetSpeed(Speed speed);
+		static void AltFuncNumber(uint8_t funcNumber);
+	
 		template<Configuration configuration>
 		static void SetConfiguration()
 		{

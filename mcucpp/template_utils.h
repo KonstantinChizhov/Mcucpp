@@ -1,5 +1,34 @@
+//*****************************************************************************
+//
+// Author		: Konstantin Chizhov
+// Date			: 2013
+// All rights reserved.
+
+// Redistribution and use in source and binary forms, with or without modification, 
+// are permitted provided that the following conditions are met:
+// Redistributions of source code must retain the above copyright notice, 
+// this list of conditions and the following disclaimer.
+
+// Redistributions in binary form must reproduce the above copyright notice, 
+// this list of conditions and the following disclaimer in the documentation and/or 
+// other materials provided with the distribution.
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY 
+// OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+// EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//*****************************************************************************
+
 #pragma once
 #include <stdint.h>
+#include <stddef.h>
+#include <static_assert.h>
 
 namespace Mcucpp
 {
@@ -105,6 +134,28 @@ namespace Mcucpp
 
 		template<class T> T (abs)(T a) {return AbsHelper< IsSigned<T>::value >::Abs(a);}
 
+		static inline float abs(float a)
+		{
+			union FloatToInt
+			{
+				float f;
+				uint32_t i;
+			} fi;
+			fi.f = a;
+			fi.i &= 0x7fffffff;
+			return fi.f;
+		}
+
+		template<class T>
+		inline uint8_t ilog2 (T x)
+		{
+			int8_t res = -1;
+			do
+			{
+				res++;
+			}while(x >>= 1);
+			return res;
+		}
 
 		template<class T, T arg>
 		struct ReverseBits;
@@ -152,5 +203,110 @@ namespace Mcucpp
 		template<> struct HiResType <int16_t> { typedef  int32_t Result; };
 		template<> struct HiResType<uint32_t> { typedef uint64_t Result; };
 		template<> struct HiResType <int32_t> { typedef uint64_t Result; };
+		
+		template<unsigned long x>
+		class PopulatedBits
+		{
+			static const unsigned long x1 = (x & 0x55555555) + ((x >> 1) & 0x55555555);
+			static const unsigned long x2 = (x1 & 0x33333333) + ((x1 >> 2) & 0x33333333);
+			static const unsigned long x3 = (x2 & 0x0f0f0f0f) + ((x2 >> 4) & 0x0f0f0f0f);
+			static const unsigned long x4 = (x3 & 0x00ff00ff) + ((x3 >> 8) & 0x00ff00ff);
+		public:
+			static const unsigned long value = (x4 & 0x0000ffff) + ((x4 >> 16) & 0x0000ffff);
+		};
+		
+		template <class ForwardIterator, class T>
+		void fill (ForwardIterator first, ForwardIterator last, const T& val)
+		{
+			while (first != last)
+			{
+				*first = val;
+				++first;
+			}
+		}
+		
+		template <class ForwardIterator, class T>
+		void fill_n (ForwardIterator first, size_t count, const T& val)
+		{
+			while (count--)
+			{
+				*first = val;
+				++first;
+			}
+		}
+		
+		
+		template <class InputIterator, class OutputIterator>
+		void copy (InputIterator source, OutputIterator target, size_t count)
+		{
+			for(size_t i = 0; i < count; i++)
+			{
+				*target = *source;
+				target++;
+				source++;
+			}
+		}
+		
+		template<class InputIterator, class OutputIterator>
+		OutputIterator copy (InputIterator first, InputIterator last, OutputIterator target)
+		{
+			while (first!=last)
+			{
+				*target = *first;
+				++target; 
+				++first;
+			}
+			return target;
+		}
+		
+		template<class T> void swap(T &a, T &b)
+		{
+			T tmp = a;
+			a = b;
+			b = tmp;
+		}
+
+		static inline uint32_t sqrt(uint32_t value)
+		{
+			uint32_t result = 0;
+			uint32_t add = 0x8000;   
+			for(int i = 0; i < 16; i++)
+			{
+				uint32_t rootGuess = result | add;
+				uint32_t guess = rootGuess * rootGuess;
+				if (value >= guess)
+				{
+					result = rootGuess;           
+				}
+				add >>= 1;
+			}
+			return result;
+		}
+
+		static inline int32_t sqrt(int32_t value)
+		{
+			return sqrt((uint32_t)value);
+		}
+
+		static inline float sqrt(float value)
+		{
+			STATIC_ASSERT(sizeof(float) == 4);
+			const uint32_t InitialGuessConstant = (1 << 29) - (1 << 22);
+			union FloatToInt
+			{
+				float f;
+				uint32_t i;
+			}fToInt;
+			
+			fToInt.f = value;
+			fToInt.i &= 0x7fffffff;
+			fToInt.i = InitialGuessConstant + (fToInt.i >> 1);
+
+			float guess = fToInt.f;
+			guess = 0.5f * (guess + value / guess);
+            guess = 0.5f * (guess + value / guess);
+
+			return guess;
+		}
 	}
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include <stm32f10x.h>
+#include <core_cm3.h>
 
 namespace Mcucpp
 {
@@ -25,38 +25,97 @@ namespace Mcucpp
 
 	namespace Private
 	{
-		inline uint8_t LDREX(uint8_t *addr)
+		inline uint8_t LDREX(unsigned char *addr)
 		{
 			return __LDREXB(addr);
+		}
+		
+		inline uint8_t LDREX(signed char *addr)
+		{
+			return __LDREXB((uint8_t *)addr);
+		}
+		
+		inline uint8_t LDREX(char *addr)
+		{
+			return __LDREXB((uint8_t *)addr);
 		}
 
 		inline uint16_t LDREX(uint16_t *addr)
 		{
 			return __LDREXH(addr);
 		}
-
-		inline uint32_t LDREX(uint32_t *addr)
+		
+		inline uint16_t LDREX(int16_t *addr)
 		{
-			return __LDREXW(addr);
+			return __LDREXH((uint16_t *)addr);
+		}
+			
+		inline uint32_t LDREX(int *addr)
+		{
+			return __LDREXW((uint32_t*)addr);
+		}
+		
+		inline uint32_t LDREX(unsigned *addr)
+		{
+			return __LDREXW((uint32_t*)addr);
+		}
+		
+			inline uint32_t LDREX(long *addr)
+		{
+			return __LDREXW((uint32_t*)addr);
+		}
+		
+		inline uint32_t LDREX(unsigned long *addr)
+		{
+			return __LDREXW((uint32_t*)addr);
 		}
 
-		inline uint32_t STREX(uint8_t value, uint8_t *addr)
+		inline uint32_t STREX(unsigned char value, unsigned char *addr)
 		{
-			return __STREXB(value, addr);
+			return __STREXB((uint8_t)value, (uint8_t*)addr);
+		}
+		
+		inline uint32_t STREX(signed char value, signed char *addr)
+		{
+			return __STREXB((uint8_t)value, (uint8_t*)addr);
+		}
+		
+		inline uint32_t STREX(char value, char *addr)
+		{
+			return __STREXB((uint8_t)value, (uint8_t*)addr);
 		}
 
 		inline uint32_t STREX(uint16_t value, uint16_t *addr)
 		{
 			return __STREXH(value, addr);
 		}
-
-		inline uint32_t STREX(uint32_t value, uint32_t *addr)
+		
+		inline uint32_t STREX(int16_t value, int16_t *addr)
 		{
-			return __STREXW(value, addr);
+			return __STREXH((uint16_t)value, (uint16_t*)addr);
+		}
+
+		inline uint32_t STREX(int value, int *addr)
+		{
+			return __STREXW((uint32_t)value, (uint32_t*)addr);
+		}
+		
+		inline uint32_t STREX(unsigned value, unsigned *addr)
+		{
+			return __STREXW((uint32_t)value, (uint32_t*)addr);
+		}
+		
+		inline uint32_t STREX(unsigned long  value, unsigned long *addr)
+		{
+			return __STREXW((uint32_t)value, (uint32_t*)addr);
+		}
+		
+		inline uint32_t STREX(long  value, long *addr)
+		{
+			return __STREXW((uint32_t)value, (uint32_t*)addr);
 		}
 	}
 
-// TODO: reimplement it with LDREX/STREX
 #define DECLARE_OP(OPERATION, OP_NAME) \
 	template<class T, class T2>\
 	static T FetchAnd ## OP_NAME (volatile T * ptr, T2 value)\
@@ -92,13 +151,11 @@ namespace Mcucpp
 		DECLARE_OP(^, Xor)
 
 		template<class T>
-		static T Fetch(volatile T * ptr)
+		static T Fetch(volatile const T * ptr)
 		{
-			T value;
-			do
-			{
-				value = Private::LDREX((T*)ptr);
-			}while(Private::STREX(value, (T*)ptr));
+			__DSB();
+			T value = *ptr;
+			return value;
 		}
 
 		template<class T, class T2>

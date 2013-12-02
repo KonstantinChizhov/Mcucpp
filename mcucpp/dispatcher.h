@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2010
+// Date			: 2013
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification,
@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include "containers.h"
+#include <containers.h>
 #include <atomic.h>
 
 namespace Mcucpp
@@ -46,7 +46,10 @@ namespace Mcucpp
 	public:
 		Dispatcher()
 		{
-			memset(_timers, 0, sizeof(TimerData) * TimersLenght);
+			for(size_t i=0; i < TimersLenght; i++)
+			{
+				_timers[i].task = 0;
+			}
 		}
 
 		bool SetTask(task_t task)

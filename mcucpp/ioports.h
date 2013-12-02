@@ -31,20 +31,18 @@
 #define IOPORTS_HPP
 
 // Common base for all gpio ports
-#include "gpiobase.h"
 
 // Platform specific io ports implementation
 // Add appropriate platform specific folder to your include paths
-#include "ports.h"
+#include <ports.h>
+
 namespace Mcucpp
 {
 namespace IO
 {
-	class NullPort :public GpioBase
+	class NullPort :public Mcucpp::IO::NativePortBase
 	{
  	public:
-		typedef DontCareConfiguration Configuration;
-		typedef GpioBase Base;
 		typedef uint8_t DataT;
 		static void Write(DataT)
 		{	}
@@ -89,10 +87,6 @@ namespace IO
 		{}
 
 		template<DataT mask, Configuration>
-		static void SetConfiguration()
-		{}
-
-		template<DataT mask, GenericConfiguration>
 		static void SetConfiguration()
 		{}
 

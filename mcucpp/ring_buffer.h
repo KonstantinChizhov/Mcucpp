@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include "static_assert.h"
+#include <static_assert.h>
 #include <stddef.h>
 #include <atomic.h>
 #include <debug.h>
@@ -49,7 +49,7 @@ namespace Mcucpp
 			typedef T& reference;
 			typedef const T& const_reference;
 		private:
-			BOOST_STATIC_ASSERT((SIZE&(SIZE-1))==0);//SIZE must be a power of 2
+			STATIC_ASSERT((SIZE&(SIZE-1))==0);//SIZE must be a power of 2
 			unsigned _buffer[(sizeof(value_type) * (SIZE + 1) - 1) / sizeof(unsigned)];
 			value_type *_data(){return reinterpret_cast<value_type*>(_buffer);}
 			const value_type *_data()const{return reinterpret_cast<const value_type*>(_buffer);}
@@ -325,3 +325,4 @@ namespace Mcucpp
 		}
 	}
 }
+

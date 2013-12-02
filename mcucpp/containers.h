@@ -29,6 +29,7 @@
 
 #ifndef CONTAINERS_HPP
 #define CONTAINERS_HPP
+
 #include <ring_buffer.h>
 #include <stack.h>
 #include <array.h>

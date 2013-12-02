@@ -42,9 +42,14 @@ namespace Mcucpp
 		}
 
 		BufferReader(const uint8_t *buffer, size_t size)
+			:_ptr(buffer),
+			_size(size),
+			_pos(0)
 		{
-			_size = size;
-			_ptr = buffer;
+		}
+		
+		void Reset()
+		{
 			_pos = 0;
 		}
 

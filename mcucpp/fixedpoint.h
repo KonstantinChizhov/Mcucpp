@@ -35,7 +35,7 @@ namespace Mcucpp
 	template<class T, size_t IntegerBits>
 	class FixedPoint
 	{
-		BOOST_STATIC_ASSERT(IntegerBits <= sizeof(T) * 8);
+		STATIC_ASSERT(IntegerBits <= sizeof(T) * 8);
 	public:
 		typedef T DataT;
 		typedef typename Util::Unsigned<T>::Result UnsignedT;

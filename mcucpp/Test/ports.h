@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2010
+// Date			: 2013
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification,
@@ -32,36 +32,38 @@ namespace Mcucpp
 {
 	namespace IO
 	{
-		class TestPortBase :public GpioBase
+		class NativePortBase
 		{
 			public:
 			enum Configuration
 			{
-				AnalogIn = 0,
+				Analog = 0,
 				In = 0x00,
-				PullUpOrDownIn = 0x00,
 				Out = 0x01,
 				AltOut = 0x01,
 			};
-
-			static Configuration MapConfiguration(GenericConfiguration config)
+			
+			enum PullMode
 			{
-				if(config & GpioBase::Out)
-					return Out;
-				return In;
-			}
-
-			template<GenericConfiguration config>
-			struct MapConfigurationConst
+				NoPullUp = 0,
+				PullUp   = 1,
+				PullDown = 2
+			};
+			
+			enum DriverType
 			{
-				static const Configuration value = In;
+				PushPull  = 0,
+				OpenDrain = 1
+			};
+			
+			enum Speed
+			{
+				Slow    = 0,
+				Fast    = 1,
+				Fastest = 2
 			};
 		};
 
-		template<> struct TestPortBase::MapConfigurationConst<GpioBase::Out>{static const Configuration value = Out;};
-		template<> struct TestPortBase::MapConfigurationConst<GpioBase::OpenDrainOut>{static const Configuration value = Out;};
-		template<> struct TestPortBase::MapConfigurationConst<GpioBase::AltOut>{static const Configuration value = Out;};
-		template<> struct TestPortBase::MapConfigurationConst<GpioBase::AltOpenDrain>{static const Configuration value = Out;};
 
 		class NullCallback
 		{
@@ -76,7 +78,7 @@ namespace Mcucpp
 		namespace Test
 		{
 			template<class DataType, unsigned Identity, class CallbackT = NullCallback>
-			class TestPort :public TestPortBase
+			class TestPort :public NativePortBase
 			{
 				typedef TestPort<DataType, Identity, CallbackT> Self;
 				static void StoreRegs()
@@ -94,12 +96,11 @@ namespace Mcucpp
 				public:
 
 				typedef DataType DataT;
-				typedef TestPortBase Base;
 				template<unsigned pin>
 				static void SetPinConfiguration(Configuration configuration)
 				{
 					StoreRegs();
-					BOOST_STATIC_ASSERT(pin < Width);
+					STATIC_ASSERT(pin < Width);
 					if(configuration)
 						DirReg |= 1 << pin;
 					else
@@ -126,6 +127,26 @@ namespace Mcucpp
 					else
 						DirReg &= ~mask;
 					PortCallback();
+				}
+				
+				static void SetSpeed(DataT mask, Speed speed)
+				{
+					// TODO
+				}
+				
+				static void SetPullUp(DataT mask, PullMode pull)
+				{
+					// TODO
+				}
+				
+				static void SetDriverType(DataT mask, DriverType driver)
+				{
+					// TODO
+				}
+				
+				static void AltFuncNumber(DataT mask, uint8_t number)
+				{
+					// TODO
 				}
 
 				static void Write(DataT value)
@@ -208,6 +229,16 @@ namespace Mcucpp
 					OutReg ^= value;
 					PortCallback();
 				}
+				
+				static void Enable()
+				{
+				
+				}
+				
+				static void Disable()
+				{
+				
+				}
 
 				enum{Id = Identity};
 				enum{Width=sizeof(DataT)*8};
@@ -238,7 +269,21 @@ namespace Mcucpp
 			volatile DataType TestPort<DataType, Identity, CallbackT>::PrevDirReg;
 
 			template<class DataType, unsigned Identity, class CallbackT>
-					CallbackT *TestPort<DataType, Identity, CallbackT>::callback = 0;
+			CallbackT *TestPort<DataType, Identity, CallbackT>::callback = 0;
 		}
+		
+		typedef Test::TestPort<uint32_t, 'A'> Porta;
+		typedef Test::TestPort<uint32_t, 'B'> Portb;
+		typedef Test::TestPort<uint32_t, 'C'> Portc;
+		typedef Test::TestPort<uint32_t, 'D'> Portd;
+		typedef Test::TestPort<uint32_t, 'E'> Porte;
+		typedef Test::TestPort<uint32_t, 'F'> Portf;
+		
+		#define MCUCPP_HAS_PORTA
+		#define MCUCPP_HAS_PORTB
+		#define MCUCPP_HAS_PORTC
+		#define MCUCPP_HAS_PORTD
+		#define MCUCPP_HAS_PORTE
+		#define MCUCPP_HAS_PORTF
 	}
 }

@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2012
+// Date			: 2013
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification,

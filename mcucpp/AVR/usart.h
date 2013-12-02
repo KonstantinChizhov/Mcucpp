@@ -1,3 +1,30 @@
+//*****************************************************************************
+//
+// Author		: Konstantin Chizhov
+// Date			: 2013
+// All rights reserved.
+
+// Redistribution and use in source and binary forms, with or without modification, 
+// are permitted provided that the following conditions are met:
+// Redistributions of source code must retain the above copyright notice, 
+// this list of conditions and the following disclaimer.
+
+// Redistributions in binary form must reproduce the above copyright notice, 
+// this list of conditions and the following disclaimer in the documentation and/or 
+// other materials provided with the distribution.
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY 
+// OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+// EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//*****************************************************************************
+
 #ifndef USART_HPP
 #define USART_HPP
 
@@ -6,6 +33,7 @@
 #include "ioreg.h"
 #include <static_assert.h>
 #include <enum.h>
+#include <debug.h>
 
 namespace Mcucpp
 {
@@ -46,10 +74,10 @@ public:
 	enum InterruptFlags
 	{
 		NoInterrupt = 0,
-		RxNotEmpty = 1 << RXCIE,
+		RxNotEmptyInt = 1 << RXCIE,
 		TxCompleteInt = 1 << TXCIE,
-		TxEmpty = 1 << UDRIE,
-		AllInterrupts = RxNotEmpty | TxCompleteInt | TxEmpty
+		TxEmptyInt = 1 << UDRIE,
+		AllInterrupts = RxNotEmptyInt | TxCompleteInt | TxEmptyInt
 	};
 	
 	enum UsartMode
@@ -85,11 +113,7 @@ public:
 		OverrunError = 1 << DOR,
 		NoiseError = 0,
 		FramingError = 1 << FE,
-#if defined(__ATmega128__) || defined(__AVR_ATmega128__)
-		ParityError = 1 << UPE,
-#else
 		ParityError = 1 << PE,
-#endif
 		ErrorMask = OverrunError | FramingError | ParityError
 	 };
 };
@@ -101,7 +125,7 @@ class Usart :public UsartBase
 {
 public:
 	template<unsigned long baund>
-	static inline void SetBaundRate()
+	static inline void SetBaudRate()
 	{
 		const unsigned int ubrr = (F_CPU/16/baund-1);
 		const unsigned int ubrr2x =	(F_CPU/8/baund-1);
@@ -117,7 +141,7 @@ public:
 					(rbaund2x - baund)*1000/rbaund2x;
 
 		// 2.5 % baud rate error tolerance
-		BOOST_STATIC_ASSERT(err2 < 25 || err1 < 25);
+		STATIC_ASSERT(err2 < 25 || err1 < 25);
 		unsigned int ubrrToUse;
 		if(err1 > err2)
 		{
@@ -133,7 +157,7 @@ public:
 		Regs::Ubrrh::Set(ubrrToUse>>8);
 	}
 
-	static inline void SetBaundRate(unsigned long baund)
+	static inline void SetBaudRate(unsigned long baund)
 	{
 		unsigned int ubrr = (F_CPU/16/baund-1);
 		unsigned int ubrr2x =	(F_CPU/8/baund-1);
@@ -186,31 +210,31 @@ public:
 		Regs::Ubrrh::Set(0);
 	}
 
-	template<unsigned long baund>
+	template<unsigned long baud>
 	static inline void Init(UsartMode usartMode = Default)
 	{
-		SetBaundRate<baund>();
+		SetBaudRate<baud>();
 		Regs::Ucsrb::Set(0x00); 
 		Regs::Ucsrc::Set(ursel | (uint8_t)(usartMode >> 8));
 		Regs::Ucsrb::Set((uint8_t)(usartMode));
 	}
 
-	static inline void Init(unsigned long baund, UsartMode usartMode = Default)
+	static inline void Init(unsigned long baud, UsartMode usartMode = Default)
 	{
-		SetBaundRate(baund);
+		SetBaudRate(baud);
 		Regs::Ucsrb::Set(0x00); 
 		Regs::Ucsrc::Set(ursel | (uint8_t)(usartMode >> 8));
 		Regs::Ucsrb::Set((uint8_t)(usartMode));
 	}
 
-	void EnableInterrupts(InterruptFlags interruptSources = AllInterrupts)
+	void EnableInterrupt(InterruptFlags interruptSources = AllInterrupts)
 	{
-		Regs::Ucsrb::AndOr(~AllInterrupts, interruptSources);
+		Regs::Ucsrb::Or((uint8_t)interruptSources);
 	}
 
-	void DisableInterrupts(InterruptFlags interruptSources = AllInterrupts)
+	void DisableInterrupt(InterruptFlags interruptSources = AllInterrupts)
 	{
-		Regs::Ucsrb::And(~interruptSources);
+		Regs::Ucsrb::And((uint8_t)~interruptSources);
 	}
 
 	static void Write(uint8_t c)
@@ -229,7 +253,8 @@ public:
 
 	static bool TxReady()
 	{
-		return Regs::Ucsra::template BitIsSet<(UDRE)>();
+		return Regs::Ucsra::template BitIsSet<(UDRE)>() && 
+			usartData.txBuffer == 0;
 	}
 
 	static bool RxReady()
@@ -241,19 +266,76 @@ public:
 	{
 		InterruptFlags result = NoInterrupt;
 		if(Regs::Ucsra::template BitIsSet<(RXC)>())
-			result |= RxNotEmpty;
+			result |= RxNotEmptyInt;
 		if(Regs::Ucsra::template BitIsSet<(UDRE)>())
-			result |= TxEmpty;
+			result |= TxEmptyInt;
 		if(Regs::Ucsra::template BitIsSet<(TXC)>())
 			result |= TxCompleteInt;
 		return NoInterrupt;
+	}
+	
+	static void ClearInterruptFlag(InterruptFlags interruptFlags)
+	{
+	
 	}
 	
 	static Error GetError()
 	{
 		return Regs::Ucsra::Get() & ErrorMask;
 	}
+	
+	template<uint8_t TxPinNumber, uint8_t RxPinNumber>
+	static void SelectTxRxPins()
+	{
+		STATIC_ASSERT(TxPinNumber == 0 && RxPinNumber == 0);
+	}
+	
+	static void SelectTxRxPins(uint8_t TxPinNumber, uint8_t RxPinNumber)
+	{
+		MCUCPP_ASSERT(TxPinNumber == 0 && RxPinNumber == 0);
+	}
+	
+	static void Write(uint8_t *buffer, size_t size, bool async=true)
+	{
+		if(!async)
+		{
+			while(size--) 
+				Write(*buffer++);
+		}
+		else
+		{
+			Write(*buffer++);
+			usartData.txBuffer = buffer;
+			usartData.txSize = size - 1;
+			EnableInterrupt(TxEmptyInt);
+		}
+	}
+	
+	static void TxIntHandler()
+	{
+		if(*usartData.txBuffer)
+		{
+			Regs::Udr::Set(*usartData.txBuffer++);
+			if(--usartData.txSize)
+			{
+				usartData.txBuffer = 0;
+			}
+		}
+	}
+private:
+	struct UsartData
+	{
+		uint8_t *txBuffer;
+		uint8_t *rxBuffer;
+		size_t txSize;
+		size_t rxSize;
+	};
+	static UsartData usartData;
 };
+
+template<class Regs>
+typename Usart<Regs>::UsartData Usart<Regs>::usartData;
+
 
 }
 

@@ -81,8 +81,8 @@ namespace Mcucpp
 				class CharMap = CharMap7Segment>
 	class Display7Segment: public Base7Segment
 	{
-		BOOST_STATIC_ASSERT(Segments::Length == 7 || Segments::Length == 8);
-		BOOST_STATIC_ASSERT(Commons::Length >= 2);
+		STATIC_ASSERT(Segments::Length == 7 || Segments::Length == 8);
+		STATIC_ASSERT(Commons::Length >= 2);
 
 		typedef typename StaticIf<Commons::Length <= 2, uint8_t,
 					typename StaticIf<Commons::Length <= 4, uint16_t,

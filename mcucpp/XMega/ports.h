@@ -103,11 +103,10 @@
 namespace IO
 {
 
-	class NativePortBase :public GpioBase
+	class NativePortBase
 	{
 		public:
 			typedef uint8_t DataT;
-			typedef NativePortBase Base;
 			enum{Width=sizeof(DataT)*8};
 		public:
 			/*TODO: Implement other configurations*/
@@ -119,13 +118,6 @@ namespace IO
 				Out = 0x01,
 				AltOut = 0x01,
 			};
-			
-			static Configuration MapConfiguration(GenericConfiguration config)
-			{
-				if(config & GpioBase::Out)
-					return Out;
-				return In;
-			}
 	};
 
 	template<class Port>
@@ -170,7 +162,7 @@ namespace IO
 		template<unsigned pin>
 		static void SetPinConfiguration(Configuration configuration)
 		{
-			BOOST_STATIC_ASSERT(pin < Width);
+			STATIC_ASSERT(pin < Width);
 			if(configuration)
 				Port::Port().DIRSET = 1 << pin;
 			else

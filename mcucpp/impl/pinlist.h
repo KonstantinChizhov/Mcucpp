@@ -1,3 +1,29 @@
+//*****************************************************************************
+//
+// Author		: Konstantin Chizhov
+// Date			: 2013
+// All rights reserved.
+
+// Redistribution and use in source and binary forms, with or without modification, 
+// are permitted provided that the following conditions are met:
+// Redistributions of source code must retain the above copyright notice, 
+// this list of conditions and the following disclaimer.
+
+// Redistributions in binary form must reproduce the above copyright notice, 
+// this list of conditions and the following disclaimer in the documentation and/or 
+// other materials provided with the distribution.
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY 
+// OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+// EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//*****************************************************************************
 
 #include <static_if.h>
 #include <select_size.h>
@@ -581,6 +607,21 @@ namespace IO
 			template<class Configuration>
 			static void SetConfiguration(Configuration, DataType)
 			{	}
+			
+			template<class Speed>
+			static void SetSpeed(Speed, DataType)
+			{	}
+			
+			template<class PullUp>
+			static void SetPullUp(PullUp, DataType)
+			{	}
+			
+			template<class DriverType>
+			static void SetDriverType(DriverType, DataType)
+			{	}
+			
+			static void AltFuncNumber(uint8_t, DataType)
+			{	}
 
 			static DataType OutRead()
 			{
@@ -604,10 +645,8 @@ namespace IO
 			template<class Configuration, Configuration config, DataType mask>
 			static void SetConfiguration()
 			{	}
-
-			template<GpioBase::GenericConfiguration config, DataType mask>
-			static void SetConfiguration()
-			{	}
+			
+			
         };
 
         template <class Head, class Tail, class PinList, class ValueType>
@@ -646,7 +685,6 @@ namespace IO
 			{
 				DataType result = PinWriteIterator<Pins>::AppendValue(value, DataType(0));
 				Port::Set(result);
-
 				PortWriteIterator<Tail, PinList, ValueType>::Set(value);
 			}
 
@@ -654,7 +692,6 @@ namespace IO
 			{
 				DataType result = PinWriteIterator<Pins>::AppendValue(value, DataType(0));
 				Port::Clear(result);
-
 				PortWriteIterator<Tail, PinList, ValueType>::Clear(value);
 			}
 
@@ -665,12 +702,36 @@ namespace IO
 				Port::SetConfiguration(portMask, config);
 				PortWriteIterator<Tail, PinList, ValueType>::SetConfiguration(config, mask);
 			}
-
-			static void SetConfiguration(GpioBase::GenericConfiguration config, DataType mask)
+			
+			template<class Speed>
+			static void SetSpeed(Speed speed, DataType mask)
 			{
 				DataType portMask = PinWriteIterator<Pins>::AppendValue(mask, DataType(0));
-				Port::SetConfiguration(portMask, Port::MapConfiguration(config) );
-				PortWriteIterator<Tail, PinList, ValueType>::SetConfiguration(config, mask);
+				Port::SetSpeed(portMask, speed);
+				PortWriteIterator<Tail, PinList, ValueType>::SetSpeed(speed, mask);
+			}
+			
+			template<class PullUp>
+			static void SetPullUp(PullUp pull, DataType mask)
+			{
+				DataType portMask = PinWriteIterator<Pins>::AppendValue(mask, DataType(0));
+				Port::SetPullUp(portMask, pull);
+				PortWriteIterator<Tail, PinList, ValueType>::SetPullUp(pull, mask);
+			}
+			
+			template<class DriverType>
+			static void SetDriverType(DriverType driver, DataType mask)
+			{
+				DataType portMask = PinWriteIterator<Pins>::AppendValue(mask, DataType(0));
+				Port::SetDriverType(portMask, driver);
+				PortWriteIterator<Tail, PinList, ValueType>::SetDriverType(driver, mask);
+			}
+
+			static void AltFuncNumber(uint8_t number, DataType mask)
+			{
+				DataType portMask = PinWriteIterator<Pins>::AppendValue(mask, DataType(0));
+				Port::AltFuncNumber(portMask, number);
+				PortWriteIterator<Tail, PinList, ValueType>::AltFuncNumber(number, mask);
 			}
 
 			static DataType PinRead()
@@ -760,36 +821,6 @@ namespace IO
 				const DataType portValue = PinConstWriteIterator<Pins, DataType, mask>::PortValue;
 				Port::template SetConfiguration<portValue, config>();
 				PortConfigurationIterator<Tail, PinList, Configuration, config, ValueType>::template SetConfiguration<mask>();
-			}
-		};
-
-		template <class Head, class Tail, class PinList, GpioBase::GenericConfiguration config, class ValueType>
-		struct PortConfigurationIterator< Typelist<Head, Tail>, PinList, GpioBase::GenericConfiguration, config, ValueType>
-		{
-			//pins on current port
-			typedef typename SelectPins<PinList, PinsWithPort<Head>::template Result>::Result Pins;
-			typedef Head Port; //Head points to current port i the list.
-			typedef typename Port::DataT PortType;
-			typedef typename StaticIf
-				<
-				  sizeof(PortType) >= sizeof(ValueType),
-				  PortType,
-				  ValueType
-				 >::Result DataType;
-
-			template<class DataType, DataType mask>
-			static void SetConfiguration()
-			{
-				const DataType portValue =
-					PinConstWriteIterator<Pins, DataType, mask>::PortValue;
-
-				const typename Port::Configuration portConfig =
-					Port::template MapConfigurationConst<config>::value;
-
-				Port::template SetConfiguration<portValue, portConfig>();
-
-				PortConfigurationIterator<Tail, PinList, GpioBase::GenericConfiguration, config, ValueType>::
-					template SetConfiguration<mask>();
 			}
 		};
 	}

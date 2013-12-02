@@ -35,6 +35,7 @@
 #include <atomic.h>
 #include <debug.h>
 #include <select_size.h>
+#include <iterator.h>
 
 // TODO: STL consistent iterators begin(), end(), rbegin(), rend() and etc.
 
@@ -51,6 +52,8 @@ public:
 	typedef T value_type;
 	typedef T& reference;
 	typedef const T& const_reference;
+	typedef T* iterator;
+	typedef Mcucpp::reverse_iterator<T*> reverse_iterator;
 private:
 	//value_type _data[SIZE];
 	unsigned _buffer[(sizeof(value_type) * (SIZE + 1) - 1) / sizeof(unsigned)];
@@ -82,8 +85,72 @@ public:
 	inline reference operator[](size_type i);
 	inline const_reference operator[](size_type i) const;
 	inline void set_all(const_reference value);
+	inline void assign (size_type n, const value_type& val);
 	inline bool resize(size_type sz);
+	iterator insert (iterator position, const value_type& val);
+    void insert (iterator position, size_type n, const value_type& val);
+	iterator begin(){return _data();}
+	iterator end(){return _data() + Atomic::Fetch(&_bottom);}
+	iterator rbegin(){return reverse_iterator(end());}
+	iterator rend(){return reverse_iterator(begin());}
 };
+
+template<size_t SIZE, class T, class Atomic>
+typename FixedArray<SIZE, T, Atomic>::iterator 
+	FixedArray<SIZE, T, Atomic>::insert (iterator position, const value_type& val)
+{
+	size_t size = Atomic::Fetch(&_bottom);
+	MCUCPP_ASSERT(position >= _data() && position <=  _data() + size);
+	if(size >= SIZE)
+		return position;
+
+	Atomic::FetchAndAdd(&_bottom, 1);
+	iterator end = _data() + size;
+	for(iterator i = end; i != position; i--)
+	{
+		*i = *(i - 1);
+	}
+	*position = val;
+	return position;
+}
+
+template<size_t SIZE, class T, class Atomic>
+void FixedArray<SIZE, T, Atomic>::insert (iterator position, size_type n, const value_type& val)
+{
+	size_t size = Atomic::Fetch(&_bottom);
+	MCUCPP_ASSERT(position > _data() && position <=  _data() + size);
+
+	if(size + n > SIZE)
+		return;
+
+	Atomic::FetchAndAdd(&_bottom, n);
+	iterator end = _data() + size;
+	for(iterator i = end; i != position; i--)
+	{
+		*i = *(i - n);
+	}
+	end = position + n;
+	for(iterator i = position; i != end; i++)
+	{
+		*i = val;
+	}
+	return;
+}
+
+template<size_t SIZE, class T, class Atomic>
+void FixedArray<SIZE, T, Atomic>::assign (size_type newSize, const_reference value)
+{
+	if (newSize > SIZE)
+		newSize = SIZE;
+	size_type oldSize;
+	do
+	{
+		oldSize = Atomic::Fetch(&_bottom);
+	} while (!Atomic::CompareExchange(&_bottom, oldSize, newSize));
+	
+	for (size_type i = 0; i < newSize; i++)
+		_data()[i] = value;
+}
 
 template<size_t SIZE, class T, class Atomic>
 void FixedArray<SIZE, T, Atomic>::set_all(const_reference value)
@@ -271,8 +338,16 @@ public:
 	inline reference operator[](size_type i);
 	inline const_reference operator[](size_type i) const;
 	inline void set_all(const_reference value);
+	inline void assign (size_type newSize, const_reference value);
 	inline bool resize(size_type sz);
 };
+
+template<size_t SIZE, class Atomic>
+void FixedArray<SIZE, bool, Atomic>::assign (size_type newSize, const_reference value)
+{
+	resize(newSize);
+	set_all(value);
+}
 
 template<size_t SIZE, class Atomic>
 void FixedArray<SIZE, bool, Atomic>::set_all(const_reference value)

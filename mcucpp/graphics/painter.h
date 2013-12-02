@@ -15,9 +15,9 @@ namespace Mcucpp
 		class Painter
 		{
 			// verify that Display::Coord is signed
-			BOOST_STATIC_ASSERT(IsSigned<typename Display::Coord>::value);
+			STATIC_ASSERT(IsSigned<typename Display::Coord>::value);
 			// and at least 16 bit
-			BOOST_STATIC_ASSERT(sizeof(typename Display::Coord) >= 2);
+			STATIC_ASSERT(sizeof(typename Display::Coord) >= 2);
 		public:
 			typedef typename Display::Coord Coord;
 			typedef typename Display::Color Color;

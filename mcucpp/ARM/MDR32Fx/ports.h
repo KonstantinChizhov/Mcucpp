@@ -17,11 +17,10 @@ namespace Mcucpp
 {
 	namespace IO
 	{
-		class NativePortBase :public GpioBase
+		class NativePortBase
 		{
 		public:
 			enum{Width=16};
-			typedef NativePortBase Base;
 			typedef uint16_t DataT;
 			enum ConfigurationFields
 			{
@@ -89,35 +88,7 @@ namespace Mcucpp
 				mask = (mask & 0x22222222) << 1 | (mask & 0x11111111);
 				return (value & ~(mask*0x03)) | mask * configuration;
 			}
-
-			static Configuration MapConfiguration(GenericConfiguration config)
-			{
-				switch(config)
-				{
-				case GpioBase::In: return In;
-				case GpioBase::AnalogIn: return AnalogIn;
-				case GpioBase::PullUpOrDownIn: return PullUpOrDownIn;
-				case GpioBase::OpenDrainOut: return OpenDrainOut;
-				case GpioBase::AltOut: return AltOut;
-				case GpioBase::AltOpenDrain: return AltOpenDrain;
-				//case GpioBase::Out:
-				default:
-				  return Out;
-				}
-			}
-			template<GenericConfiguration config>
-			struct MapConfigurationConst
-			{
-				static const Configuration value = Out;
-			};
 		};
-
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::In>{static const Configuration value = In;};
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::AnalogIn>{static const Configuration value = AnalogIn;};
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::OpenDrainOut>{static const Configuration value = OpenDrainOut;};
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::AltOut>{static const Configuration value = AltOut;};
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::AltOpenDrain>{static const Configuration value = AltOpenDrain;};
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::PullUpOrDownIn>{static const Configuration value = PullUpOrDownIn;};
 
 		namespace Private
 		{
@@ -183,7 +154,7 @@ namespace Mcucpp
 				template<unsigned pin>
 				static void SetPinConfiguration(Configuration configuration)
 				{
-					BOOST_STATIC_ASSERT(pin < Width);
+					STATIC_ASSERT(pin < Width);
 					uint32_t mask = 1 << pin;
 					SetConfiguration(mask, configuration);
 				}

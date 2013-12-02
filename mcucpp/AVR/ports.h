@@ -37,50 +37,49 @@
 #define AVR_PORTS_H
 
 #include <__compatibility.h>
-#include "atomic.h"
-#include "ioreg.h"
+#include <atomic.h>
+#include <ioreg.h>
+#include <template_utils.h>
 
 namespace Mcucpp
 {
 	namespace IO
 	{
-
-		class NativePortBase :public GpioBase
+		class NativePortBase
 		{
 			public:
 				typedef uint8_t DataT;
-				typedef NativePortBase Base;
 				enum{Width=sizeof(DataT)*8};
 				static const unsigned MaxBitwiseOutput = 5;
 			public:
 				enum Configuration
 				{
-					AnalogIn = 0,
+					Analog = 0,
 					In = 0x00,
-					PullUpOrDownIn = 0x00,
 					Out = 0x01,
-					AltOut = 0x01
+					AltFunc = 0x01
 				};
 				
-				static Configuration MapConfiguration(GenericConfiguration config)
+				enum PullMode
 				{
-					if(config & GpioBase::Out)
-						return Out;
-					return In;
-				}
+					NoPullUp = 0,
+					PullUp   = 1,
+					PullDown = 2
+				};
 				
-				template<GenericConfiguration config>
-				struct MapConfigurationConst
+				enum DriverType
 				{
-					static const Configuration value = In;
+					PushPull  = 0,
+					OpenDrain = 0
+				};
+				
+				enum Speed
+				{
+					Slow    = 0,
+					Fast    = 0,
+					Fastest = 0
 				};
 		};
-		
-
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::Out>{static const Configuration value = Out;};
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::OpenDrainOut>{static const Configuration value = Out;};
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::AltOut>{static const Configuration value = Out;};
-		template<> struct NativePortBase::MapConfigurationConst<GpioBase::AltOpenDrain>{static const Configuration value = Out;};
 		
 		//Port definitions for AtTiny, AtMega families.
 
@@ -139,6 +138,33 @@ namespace Mcucpp
 			{
 				return In::Get();
 			}
+			
+			static void SetSpeed(DataT mask, Speed speed)
+			{
+				// nothing to do
+			}
+			
+			static void SetPullUp(DataT mask, PullMode pull)
+			{
+				if(pull == PullUp)
+				{
+					ATOMIC
+					{
+						Dir::And(DataT(~mask));
+						Out::Or(mask);
+					}
+				}
+			}
+			
+			static void SetDriverType(DataT mask, DriverType driver)
+			{
+				// nothing to do
+			}
+			
+			static void AltFuncNumber(DataT mask, uint8_t number)
+			{
+				// nothing to do
+			}
 
 			// constant interface
 
@@ -148,7 +174,7 @@ namespace Mcucpp
 				const DataT bitsToSet = value & clearMask;
 				const DataT bitsToClear = DataT(~value & clearMask);
 
-				const unsigned countBitsToChange = PopulatedBits<clearMask>::value;
+				const unsigned countBitsToChange = Util::PopulatedBits<clearMask>::value;
 
 				if(countBitsToChange <= MaxBitwiseOutput && 
 					Id < 4)
@@ -169,7 +195,7 @@ namespace Mcucpp
 			template<DataT value>
 			static void Set()
 			{
-				if(PopulatedBits<value>::value <= MaxBitwiseOutput && 
+				if(Util::PopulatedBits<value>::value <= MaxBitwiseOutput && 
 					Id < 4)
 					SetBitWise<value, 1>();
 				else
@@ -179,7 +205,7 @@ namespace Mcucpp
 			template<DataT value>
 			static void Clear()
 			{
-				if(PopulatedBits<value>::value <= MaxBitwiseOutput && 
+				if(Util::PopulatedBits<value>::value <= MaxBitwiseOutput && 
 					Id < 4)
 					ClearBitWise<value, 1>();
 				else
@@ -191,7 +217,7 @@ namespace Mcucpp
 			template<unsigned pin>
 			static void SetPinConfiguration(Configuration configuration)
 			{
-				BOOST_STATIC_ASSERT(pin < Width);
+				STATIC_ASSERT(pin < Width);
 				if(configuration)
 					Dir::Or(1 << pin);
 				else
