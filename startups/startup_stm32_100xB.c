@@ -1,4 +1,4 @@
-#include "stm32f100_vectors.h"
+#include "vectors_stm32_100xB.h"
 #include <stm32f10x.h>
 
 void DefaultIrqHandler(void)
@@ -82,12 +82,8 @@ void (* const g_pfnVectors[])(void) =
 	USBWakeUp_IRQHandler
 };
 
+/* stm32 reset code */
 
-__attribute__((weak));
-void __lowlevel_init()
-{
-	// Do nothing
-}
 
 __attribute__((noreturn, __interrupt__)) void ResetISR(void)
 {
@@ -105,8 +101,6 @@ __attribute__((noreturn, __interrupt__)) void ResetISR(void)
 	{
 		*pDest++ = 0;
 	}
-	
-	__lowlevel_init();
 
 	// call global object ctors
 	typedef void (*voidFunc)();

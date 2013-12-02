@@ -291,7 +291,7 @@ namespace Mcucpp
 		static inline float sqrt(float value)
 		{
 			STATIC_ASSERT(sizeof(float) == 4);
-			const uint32_t InitialGuessConstant = (1 << 29) - (1 << 22);
+			const uint32_t InitialGuessConstant = (1ul << 29) - (1ul << 22);
 			union FloatToInt
 			{
 				float f;
@@ -299,7 +299,7 @@ namespace Mcucpp
 			}fToInt;
 			
 			fToInt.f = value;
-			fToInt.i &= 0x7fffffff;
+			fToInt.i &= 0x7ffffffful;
 			fToInt.i = InitialGuessConstant + (fToInt.i >> 1);
 
 			float guess = fToInt.f;

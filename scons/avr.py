@@ -111,6 +111,12 @@ def setup_gnu_tools(env, prefix):
 	
 	env.AddMethod(print_size, 'Size')
 	
+	env['CCCOMSTR'] = "AVR Compiling C: $TARGET"
+	env['CXXCOMSTR'] = "AVR Compiling C++: $TARGET"
+	env['ASCOMSTR'] = "AVR Assembling: $TARGET"
+	env['ASPPCOMSTR'] = "AVR Assembling: $TARGET"
+	env['LINKCOMSTR'] = "AVR Linking: $TARGET"
+	
 def generate(env, **kw):
 	setup_gnu_tools(env, 'avr-')
 

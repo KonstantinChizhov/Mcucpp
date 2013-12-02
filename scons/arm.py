@@ -94,6 +94,12 @@ def setup_gnu_tools(env, prefix):
 	
 	env.AddMethod(print_size, 'Size')
 	
+	env['CCCOMSTR'] = "ARM Compiling C: $TARGET"
+	env['CXXCOMSTR'] = "ARM Compiling C++: $TARGET"
+	env['ASCOMSTR'] = "ARM Assembling: $TARGET"
+	env['ASPPCOMSTR'] = "ARM Assembling: $TARGET"
+	env['LINKCOMSTR'] = "ARM Linking: $TARGET"
+	
 def generate(env, **kw):
 	setup_gnu_tools(env, 'arm-none-eabi-')
 

@@ -11,8 +11,10 @@ class MatrixKeyboard
 public:
 	static unsigned GetKeyCode()
 	{
-		Cols::template SetConfiguration<Cols::PullUpOrDownIn>();
+		Cols::template SetConfiguration<Cols::In>();
 		Cols::template Write(0);
+		Cols::SetPullUp(Cols::PullUp);
+		
 		Rows::template SetConfiguration<Rows::Out>();
 		unsigned result = 0;
 		
@@ -40,9 +42,12 @@ public:
 				}
 			}
 		}
-		Cols::template SetConfiguration<Cols::PullUpOrDownIn>();
+		Cols::template SetConfiguration<Cols::In>();
+		Cols::SetPullUp(Cols::PullUp);
 		Cols::template Write<0>();
-		Rows::template SetConfiguration<Rows::PullUpOrDownIn>();
+		Rows::template SetConfiguration<Rows::In>();
+		Rows::SetPullUp(Rows::PullUp);
+		
 		Cols::template Write<0>();
 		return result;
 	}
@@ -53,7 +58,7 @@ public:
 using namespace Mcucpp::IO;
 
 typedef PinList<Pb0Inv, Pb1Inv, Pb2Inv, Pb3Inv> KeybRows;
-typedef PinList<Pa4Inv, Pa5Inv, Pa6Inv, Pa7Inv> KeybCols;
+typedef PinList<Pb4Inv, Pb5Inv, Pb6Inv, Pb7Inv> KeybCols;
 
 typedef MatrixKeyboard<KeybRows, KeybCols, false> Keyb;
 

@@ -40,11 +40,9 @@ namespace Mcucpp
 		protected:
 		static void Delay()
 		{
-			Util::delay_us<200, F_CPU>();
+			delay_us<200, F_CPU>();
 		}
 	};
-
-
 
 	template<
 		class RS,
@@ -81,7 +79,7 @@ namespace Mcucpp
 			Strobe();
 			Strobe();
 			Strobe();
-			Util::delay_ms<60, F_CPU>();
+			delay_ms<60, F_CPU>();
 			DataBus::template Write<0x02>(); // set 4 bit mode
 			Strobe();
 			Write(0x28); // 4 bit mode, 1/16 duty, 5x8 font

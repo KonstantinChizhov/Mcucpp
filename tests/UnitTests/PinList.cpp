@@ -1,20 +1,13 @@
 #include <iostream>
 #include <string>
-#include "iopins.h"
-#include "pinlist.h"
+#include <iopins.h>
+#include <pinlist.h>
 #include <gtest.h>
 
 using namespace std;
 using namespace Mcucpp;
 using namespace IO;
-using namespace IO::Test;
 
-typedef TestPort<unsigned, 'A'> Porta;
-typedef TestPort<unsigned, 'B'> Portb;
-
-DECLARE_PORT_PINS(Porta, Pa)
-
-DECLARE_PORT_PINS(Portb, Pb)
 
 template<class Pin>
 void PinTest()
@@ -199,6 +192,12 @@ void Test2PortConfiguration(unsigned listValue, unsigned portValue, unsigned por
 {
     typename Pins::DataType val;
     cout << __FUNCTION__ << "\t";
+
+	Port1::OutReg = 0;
+	Port2::OutReg = 0;
+	Port1::DirReg = 0;
+	Port2::DirReg = 0;
+
     PrintPinList<Pins>::Print();
     Pins::Write(listValue);
     EXPECT_EQ(portValue, Port1::OutReg);
@@ -317,6 +316,7 @@ TEST(GPIO, NullPin)
 	NullPin::Clear();
 	NullPin::Toggle();
 	NullPin::SetConfiguration(NullPin::Port::Out);
+	NullPin::SetConfiguration(Mcucpp::IO::NativePortBase::Out);
 	EXPECT_FALSE(NullPin::IsSet());
 }
 

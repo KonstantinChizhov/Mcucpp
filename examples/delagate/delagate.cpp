@@ -14,8 +14,8 @@ public:
 		}Conv;
 
 		Conv.u32 = v;
-		DDRA = Conv.u8[0];
-		PORTA = Conv.u8[1];
+		DDRD = Conv.u8[0];
+		PORTD = Conv.u8[1];
 		DDRB = Conv.u8[2];
 		PORTB = Conv.u8[3];
 	}

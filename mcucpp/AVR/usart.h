@@ -28,6 +28,8 @@
 #ifndef USART_HPP
 #define USART_HPP
 
+#include <stdint.h>
+#include <stddef.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "ioreg.h"
@@ -113,7 +115,11 @@ public:
 		OverrunError = 1 << DOR,
 		NoiseError = 0,
 		FramingError = 1 << FE,
+#if defined(__ATmega128__) || defined(__AVR_ATmega128__)
+		ParityError = 1 << UPE,
+#else
 		ParityError = 1 << PE,
+#endif
 		ErrorMask = OverrunError | FramingError | ParityError
 	 };
 };

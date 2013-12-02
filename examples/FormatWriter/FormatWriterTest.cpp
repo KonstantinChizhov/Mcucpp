@@ -36,7 +36,7 @@ int main()
 {
 	MyUsart::Init<9600>();
 // Format string stored in flash
-	cout % Format(MakeFlashPtr(str1)) % MakeFlashPtr(str2) % PORTA;
+	cout % Format(MakeFlashPtr(str1)) % MakeFlashPtr(str2) % PORTB;
 //  Format string stored in ram
 	cout % Format("%|-20| -- %|10|\n") % "Hello world" % 12345;
 	while(1)

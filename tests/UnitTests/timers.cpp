@@ -1,10 +1,9 @@
 #include <iostream>
 #include <gtest.h>
 #include <cmath>
-
-
-#include <Timer.h>
+#include <timers.h>
 #include <timer_utils.h>
+
 using namespace Mcucpp;
 using namespace Timers;
 using namespace std;

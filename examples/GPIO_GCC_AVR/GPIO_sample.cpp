@@ -4,7 +4,7 @@
 
 
 // NOTE that you need to add library platform independent and platform specific
-// folders to compiler include files search paths:
+// folders to compiler include files search Pbths:
 // '../../mcucpp' and '../../mcucpp/AVR' respectively for this example
 
 // defination of TPin class
@@ -22,47 +22,47 @@ using namespace Mcucpp::IO;
 
 void Ports()
 {
-	// set all pins in PORTA to output
-	Porta::SetConfiguration(0xff, Porta::Out); // -> DDRA = 0xff;
+	// set all pins in Portb to output
+	Portb::SetConfiguration(0xff, Portb::Out); // -> DDRA = 0xff;
 	// write a value to port
-	Porta::Write(0x55);	// -> PORTA = 0x55;	
+	Portb::Write(0x55);	// -> Portb = 0x55;	
 	// set pins with mask
-	Porta::Set(0xAA); 	// -> PORTA |= 0xAA;
+	Portb::Set(0xAA); 	// -> Portb |= 0xAA;
 	// clear pins with mask
-	Porta::Clear(0xF0); // -> PORTA &= ~0xf0;
+	Portb::Clear(0xF0); // -> Portb &= ~0xf0;
 	// togle pins with mask
-	Porta::Toggle(0xFF);// -> PORTA ^= ~0xf0;
+	Portb::Toggle(0xFF);// -> Portb ^= ~0xf0;
 
 	uint8_t clearMask = 0x0F;
 	uint8_t outputValue = 0x03;
-	Porta::ClearAndSet(clearMask, outputValue);// -> PORTA = (PORTA & ~clearMask) | outputValue;
+	Portb::ClearAndSet(clearMask, outputValue);// -> Portb = (Portb & ~clearMask) | outputValue;
 	// read out register
 
-	// set all pins in PORTA to input
-	Porta::SetConfiguration(0xff, Porta::In);
-	uint8_t value = Porta::Read(); // -> 	uint8_t value = PORTA
+	// set all pins in Portb to input
+	Portb::SetConfiguration(0xff, Portb::In);
+	uint8_t value = Portb::Read(); // -> 	uint8_t value = Portb
 	// read input register
-	value = Porta::PinRead(); // -> value = PINA;
+	value = Portb::PinRead(); // -> value = PINA;
 
 	// template versions of port manipulations for writing constant values
 	// these functions are guaranteed to be inlined for maximum speed
 
-	Porta::SetConfiguration<0xff, Porta::Out>();
-	Porta::Set<0xAA>();
-	Porta::Clear<0xF0>();
-	Porta::Toggle<0xFF>();
+	Portb::SetConfiguration<0xff, Portb::Out>();
+	Portb::Set<0xAA>();
+	Portb::Clear<0xF0>();
+	Portb::Toggle<0xFF>();
 	const uint8_t clearMask2 = 0x0F;
 	const uint8_t outputValue2 = 0x03;
-	Porta::ClearAndSet<clearMask2, outputValue2>();
+	Portb::ClearAndSet<clearMask2, outputValue2>();
 }
 
 // working with individual pins
 void IndividualPins()
 {
-	// definition of one IO pin: pin 1 at PORTA
-	typedef TPin<Porta, 1> Pin1;
+	// definition of one IO pin: pin 1 at Portb
+	typedef TPin<Portb, 1> Pin1;
 	// or you can use predefined short name
-	// typedef Pa1 Pin1;
+	// typedef Pb1 Pin1;
 
 	// Configure pin as output
 	Pin1::SetConfiguration(Pin1::Port::Out); // DDRA |= (1 << PinNumber);
@@ -81,12 +81,12 @@ void IndividualPins()
 	}
 
 
-	// definition of one IO pin: pin 1 at PORTA with inverted logic
+	// definition of one IO pin: pin 1 at Portb with inverted logic
 	// ie. 'Set' will write logical 0 to pin and 'Clear' - logical 1.
 	// reading (IsSet) is not inverted
-	typedef InvertedPin<Porta, 1> Pin2;
+	typedef InvertedPin<Portb, 1> Pin2;
 	// or you can use predefined short name
-	// typedef Pa1Inv Pin2;
+	// typedef Pb1Inv Pin2;
 
 	// Configure pin as output
 	Pin2::SetConfiguration(Pin2::Port::Out);
@@ -112,10 +112,10 @@ void PinLists()
 	// One group can contain up to 32 pins from different ports.
 	// Pins in the group can have an arbitrary order.
 
-	typedef PinList<Pa1, Pb0, Pa2, Pb1, Pc3, Pc4, Pc5> Group1;
+	typedef PinList<Pb1, Pb0, Pb2, Pb1, Pc3, Pc4, Pc5> Group1;
 	
 	// You can include inverted pins to the group
-	typedef PinList<Pa1, Pb0Inv, Pa2, Pb1, Pc3Inv, Pc4, Pc5> Group2;
+	typedef PinList<Pb1, Pb0Inv, Pb2, Pb1, Pc3Inv, Pc4, Pc5> Group2;
 	
 	// PinList has interface similar to IO port interface,
 	// but is is a little simplified
@@ -188,7 +188,7 @@ void VPorts()
 	VPort<Portb> portb;
 	TestVPort(portb);
 
-	typedef PinList<Pa1, Pb0, Pa2, Pb1, Pc3, Pc4, Pc5> Group1;
+	typedef PinList<Pb1, Pb0, Pb2, Pb1, Pc3, Pc4, Pc5> Group1;
 	VPort<Group1> group1;
 	TestVPort(group1);
 }

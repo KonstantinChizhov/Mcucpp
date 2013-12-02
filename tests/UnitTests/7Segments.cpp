@@ -3,17 +3,11 @@
 #include <pinlist.h>
 #include <gtest.h>
 #include <iostream>
-#include <util.h>
+#include <template_utils.h>
 
 using namespace Mcucpp;
 using namespace IO;
 using namespace IO::Test;
-
-typedef TestPort<uint8_t, 'A'> Porta;
-typedef TestPort<uint8_t, 'B'> Portb;
-
-DECLARE_PORT_PINS(Porta, Pa)
-DECLARE_PORT_PINS(Portb, Pb)
 
 typedef PinList<Pa0, Pa1, Pa2, Pa3, Pa4, Pa5, Pa6, Pa7> Segments;
 typedef PinList<Pb0, Pb1, Pb2, Pb3, Pb4, Pb5, Pb6, Pb7> Commons;
@@ -38,7 +32,7 @@ char *GetDisplayStr()
 	for(int i=0; i<Disp::Digits; i++)
 	{
 		Disp::Update();
-		uint8_t index = ilog2(Portb::OutReg);
+		uint8_t index = Util::ilog2(Portb::OutReg);
 		EXPECT_LT(index, Disp::Digits);
 		buffer[index] = char(Porta::OutReg);
 	}

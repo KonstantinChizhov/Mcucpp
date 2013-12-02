@@ -130,12 +130,14 @@ namespace IO
 		static void SetConfiguration(ValueType mask, PortConfiguration config);
 		
 		static void SetSpeed(ValueType mask, Speed speed);
-		
 		static void SetPullUp(ValueType mask, PullMode pull);
-		
 		static void SetDriverType(ValueType mask, DriverType driver);
-
 		static void AltFuncNumber(ValueType mask, uint8_t funcNumber);
+		
+		static void SetSpeed(Speed speed)             {SetSpeed(ValueType(-1), speed);}
+		static void SetPullUp(PullMode pull)          {SetPullUp(ValueType(-1), pull);}
+		static void SetDriverType(DriverType driver)  {SetDriverType(ValueType(-1), driver);}
+		static void AltFuncNumber(uint8_t funcNumber) {AltFuncNumber(ValueType(-1), funcNumber);}
 
 		// constant writing interface
 

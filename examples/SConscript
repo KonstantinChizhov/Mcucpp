@@ -1,6 +1,6 @@
 import os
 
-avrGccDiviceList = ['atmega8', 'atmega16', 'atmega128', 'atmega168']
+avrGccDiviceList = ['atmega8', 'atmega16', 'atmega128']#, 'atmega168']
 avrGccExamplesList = ['AvrGccSpi', 'AvrGcc7Segments', 'delagate', 'GPIO_GCC_AVR', 'LcdTest', 'matrix_keyb', 'FormatWriter']
 
 def BuildAvrGccSample(deviceName, exampleName):

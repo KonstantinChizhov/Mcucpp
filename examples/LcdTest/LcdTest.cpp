@@ -5,7 +5,7 @@
 using namespace Mcucpp;
 using namespace Mcucpp::IO;
 
-typedef Lcd<Pc0, Pc1, Pc2, Pa4, Pa5, Pa6, Pa7 > Lcd1;
+typedef Lcd<Pc0, Pc1, Pc2, Pb4, Pb5, Pb6, Pb7 > Lcd1;
 
 
 int main()
