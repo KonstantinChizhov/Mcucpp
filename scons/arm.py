@@ -36,7 +36,7 @@ def setup_gnu_tools(env, prefix):
 		"-funsigned-char",
 		"-funsigned-bitfields",
 		"-fshort-enums",
-		"-fno-split-wide-types",
+		#"-fno-split-wide-types",
 		"-ffunction-sections",
 		"-fdata-sections",
 		"-Wall",
@@ -68,20 +68,30 @@ def setup_gnu_tools(env, prefix):
 	
 	linkerscript = ""
 	if 'linkerscript' in device:
-		linkerscript = os.path.join(env.Dir('.').srcnode().abspath, device['linkerscript'])
+		linkerscript = env.File(device['linkerscript']).srcnode().abspath
 		linkerscript = '"-T%s"' % linkerscript
 	
 	env['LINKFLAGS'] = [
 		"-mcpu=" + device['cpu'],
 		"-Wl,--gc-sections",
 		"-nostartfiles",
+		"-Wl,-Map=${TARGET.base}.map",
 		linkerscript
 	]
 	
+	if 'archOptions' in device:
+		for option in device['archOptions']:
+			env.Append(LINKFLAGS = "-%s" % option)
+	
 	hexBuilder = Builder(
-		action = '$OBJCOPY -O ihex --only-section .text --only-section .rodata --only-section .ctors --only-section .dtors --only-section .data $SOURCE $TARGET', 
+		action = '$OBJCOPY -O ihex --only-section .isr_vectors --only-section .text --only-section .rodata --only-section .ctors --only-section .dtors --only-section .data --only-section .crc_section $SOURCE $TARGET', 
 		src_suffix = ".elf",
 		suffix = ".hex")
+	
+	binBuilder = Builder(
+		action = '$OBJCOPY -O binary --only-section $SECTION_NAME $SOURCE $TARGET', 
+		src_suffix = ".elf",
+		suffix = ".bin")
 	
 	disasmBuilder = Builder(
 		action = '$OBJDUMP -h -S $SOURCE > $TARGET', 
@@ -90,7 +100,8 @@ def setup_gnu_tools(env, prefix):
 	
 	env.Append(BUILDERS = {
 		'Hex': hexBuilder,
-		'Disassembly': disasmBuilder})
+		'Disassembly': disasmBuilder,
+		'DumpSection': binBuilder})
 	
 	env.AddMethod(print_size, 'Size')
 	
@@ -99,7 +110,7 @@ def setup_gnu_tools(env, prefix):
 	env['ASCOMSTR'] = "ARM Assembling: $TARGET"
 	env['ASPPCOMSTR'] = "ARM Assembling: $TARGET"
 	env['LINKCOMSTR'] = "ARM Linking: $TARGET"
-	
+
 def generate(env, **kw):
 	setup_gnu_tools(env, 'arm-none-eabi-')
 

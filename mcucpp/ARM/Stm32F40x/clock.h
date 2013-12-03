@@ -49,9 +49,10 @@ namespace Mcucpp
 				return F_OSC;
 			}
 			
-			static uint32_t GetDivider() { return 1; }
-			
-			static uint32_t GetMultipler() { return 1; }
+			static uint32_t SetClockFreq(uint32_t)
+			{
+				return  ClockFreq();
+			}
 			
 			static uint32_t ClockFreq()
 			{
@@ -77,9 +78,10 @@ namespace Mcucpp
 				return 16000000u;
 			}
 			
-			static uint32_t GetDivider() { return 1; }
-			
-			static uint32_t GetMultipler() { return 1; }
+			static uint32_t SetClockFreq(uint32_t)
+			{
+				return  ClockFreq();
+			}
 			
 			static uint32_t ClockFreq()
 			{
@@ -105,9 +107,10 @@ namespace Mcucpp
 				return 32768;
 			}
 			
-			static uint32_t GetDivider() { return 1; }
-			
-			static uint32_t GetMultipler() { return 1; }
+			static uint32_t SetClockFreq(uint32_t)
+			{
+				return  ClockFreq();
+			}
 			
 			static uint32_t ClockFreq()
 			{
@@ -125,13 +128,57 @@ namespace Mcucpp
 			}
 		};
 		
+		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllM, uint32_t, 0, 6);
+		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllN, uint32_t, 6, 9);
+		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllP, uint32_t, 16, 2);
+		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllQ, uint32_t, 24, 4);
+		
 		class PllClock :public ClockBase
 		{
+			static const uint32_t  VcoMaxFreq  = 432000000ul;
+			static const uint32_t  VcoMinFreq  = 192000000ul;
+			static const uint32_t  UsbFreq     = 48000000ul;
+			static const uint32_t  PllMaxFreq  = 168000000ul;
+			static const uint32_t  PllnMaxFreq = 2000000ul;
+			static const uint32_t  PllnMinFreq = 1000000ul;	
+			
+			static uint32_t CalcVco(uint32_t vco, uint32_t &resPllm, uint32_t &resPlln)
+			{
+				const uint32_t inputClock = SrcClockFreq()();
+				uint32_t vcoMinErr = vco;
+				uint32_t bestVco = 0;
+				for(uint32_t pllm = 2; pllm < 64; pllm++)
+				{
+					uint32_t pllnFreq = inputClock / pllm;
+					if(pllnFreq < PllnMinFreq || pllnFreq > PllnMaxFreq)
+						continue;
+					uint32_t plln = (vco + pllnFreq/2) / pllnFreq;
+					uint32_t realVco = inputClock * plln / pllm;
+					if(realVco < VcoMinFreq || realVco > VcoMaxFreq)
+						continue;
+					uint32_t vcoErr;
+					if(realVco > vco)
+						vcoErr = realVco - vco;
+					else
+						vcoErr = vco - realVco;
+					if(vcoErr < vcoMinErr)
+					{
+						vcoMinErr = vcoErr;
+						bestVco = realVco;
+						resPllm = pllm;
+						resPlln = plln;
+					}
+					if(vcoErr == 0)
+						break;
+				}
+				return bestVco;
+			}
+			
 		public:
 			enum ClockSource
 			{
-				Internal = RCC_CFGR_PLLSRC_HSI_Div2,
-				External = RCC_CFGR_PLLSRC_PREDIV1,
+				Internal = RCC_PLLCFGR_PLLSRC_HSI,
+				External = RCC_PLLCFGR_PLLSRC_HSE,
 			};
 			
 			static uint32_t SrcClockFreq()
@@ -144,46 +191,69 @@ namespace Mcucpp
 			
 			static uint32_t GetDivider()
 			{
-				if ((RCC->CFGR & RCC_CFGR_PLLSRC) == 0)
-					return 2;
-				else
-					return (RCC->CFGR2 & RCC_CFGR2_PREDIV1) + 1;
+				return PllM::Get();
 			}
 			
 			static uint32_t GetMultipler()
 			{
-				return ((RCC->CFGR & RCC_CFGR_PLLMULL) >> 18) + 2;
-			}
-			
-			static void SetMultipler(uint8_t multiler)
-			{
-				multiler-=2;
-				if(multiler > 15)
-					multiler = 15;
-				RCC->CFGR = (RCC->CFGR & RCC_CFGR_PLLMULL) | (multiler << 18);
-			}
-			
-			static void SetDivider(uint8_t divider)
-			{
-				divider-=1;
-				if(divider > 15)
-					divider = 15;
-				RCC->CFGR2 = (RCC->CFGR2 & ~RCC_CFGR2_PREDIV1) | (divider);
+				return PllN::Get();
 			}
 			
 			static void SelectClockSource(ClockSource clockSource)
 			{
-				RCC->CFGR = (RCC->CFGR & ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE) ) | clockSource;
+				RCC->PLLCFGR = (RCC->PLLCFGR & ~(RCC_PLLCFGR_PLLSRC)) | clockSource;
+			}
+			
+			static uint32_t SetClockFreq(uint32_t freq)
+			{
+				if(freq > PllMaxFreq)
+					freq = PllMaxFreq;
+								
+				uint32_t resVco = 0, 
+							resPllp = 0, 
+							resPllq = 0, 
+							resPllm = 0,
+							resPlln = 0,
+							minErr  = freq,
+							bestFreq = 0;
+					
+				for(uint32_t pllq = 2; pllq < 16; pllq++)
+				{
+					uint32_t vco = UsbFreq * pllq;
+					if(vco < VcoMinFreq || vco > VcoMaxFreq)
+						continue;
+					vco = CalcVco(vco, resPllm, resPlln);
+					uint32_t pllp = (vco + freq/2) / freq;
+					uint32_t realFreq = vco / pllp;
+					uint32_t err;
+					if(realFreq > freq)
+						err = realFreq - freq;
+					else 
+						err = freq - realFreq;
+					if(err < minErr)
+					{
+						minErr = err;
+						resPllp = pllp;
+						resPllq = pllq;
+						bestFreq = realFreq;
+					}
+					if(err == 0) break;
+				}
+				PllN::Set(resPlln);
+				PllM::Set(resPllm);
+				PllP::Set(resPllp);
+				PllQ::Set(resPllq);
+				return bestFreq;
 			}
 			
 			static uint32_t ClockFreq()
 			{
-				return SrcClockFreq() / GetDivider() * GetMultipler();
+				return SrcClockFreq() / GetDivider() * GetMultipler() / PllP::Get();
 			}
 			
 			static bool Enable()
 			{
-				if ((RCC->CFGR & RCC_CFGR_PLLSRC) == 0)
+				if ((RCC->PLLCFGR & RCC_PLLCFGR_PLLSRC) == 0)
 				{
 					if (!HsiClock::Enable())
 						return false;
@@ -246,6 +316,14 @@ namespace Mcucpp
 				return true;
 			}
 			
+			static uint32_t SetClockFreq(uint32_t freq)
+			{
+				PllClock::SelectClockSource(PllClock::External);
+				PllClock::SetClockFreq(freq);
+				SelectClockSource(Pll);
+				return ClockFreq();
+			}
+			
 			static uint32_t ClockFreq()
 			{
 				uint32_t clockSrc = RCC->CFGR & RCC_CFGR_SWS;
@@ -280,6 +358,7 @@ namespace Mcucpp
 			}
 		};
 		
+		/*
 		IO_BITFIELD_WRAPPER(RCC->CFGR, AhbPrescalerBitField, uint32_t, 4, 4);
 		IO_BITFIELD_WRAPPER(RCC->CFGR, Apb1PrescalerBitField, uint32_t, 8, 3);
 		IO_BITFIELD_WRAPPER(RCC->CFGR, Apb2PrescalerBitField, uint32_t, 11, 3);
@@ -599,5 +678,6 @@ namespace Mcucpp
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_CAN1EN  , Apb1Clock> CanClock;
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_PWREN   , Apb1Clock> PwrClock;
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_DACEN   , Apb1Clock> DacClock;
+		*/
 	}
 }
