@@ -18,6 +18,7 @@ testEnv.Append(BUILDERS = {'Test' :  bld})
 if testEnv['CC'] == 'cl':
 	testEnv.Append(CXXFLAGS = ['/wd4503', '/wd4530'])
 	testEnv.Append(CPPDEFINES=['_VARIADIC_MAX=10'])
+	testEnv.Append(CPPPATH=['#/tests/include'])
 	
 testEnv['CCCOMSTR'] = "Compiling C: $TARGET"
 testEnv['CXXCOMSTR'] = "Compiling C++: $TARGET"

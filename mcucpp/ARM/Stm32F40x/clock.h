@@ -4,8 +4,8 @@
 #include "stm32f4xx.h"
 
 #ifndef F_OSC
-#warning F_OSC is not defined. F_OSC is in its default value 16 MHZ. Verify that external cristal freq is correct.  
-#define F_OSC 16000000u
+#warning F_OSC is not defined. F_OSC is in its default value 8 MHZ. Verify that external cristal freq is correct.  
+#define F_OSC 8000000u
 #endif
 
 
@@ -16,7 +16,7 @@ namespace Mcucpp
 		class ClockBase
 		{
 		protected:
-			static const uint32_t ClockStartTimeout = 4000;
+			static const uint32_t ClockStartTimeout = 1000000;
 			
 			static bool EnableClockSource(unsigned turnOnMask,  unsigned waitReadyMask)
 			{
@@ -144,7 +144,7 @@ namespace Mcucpp
 			
 			static uint32_t CalcVco(uint32_t vco, uint32_t &resPllm, uint32_t &resPlln)
 			{
-				const uint32_t inputClock = SrcClockFreq()();
+				const uint32_t inputClock = SrcClockFreq();
 				uint32_t vcoMinErr = vco;
 				uint32_t bestVco = 0;
 				for(uint32_t pllm = 2; pllm < 64; pllm++)
@@ -209,8 +209,7 @@ namespace Mcucpp
 				if(freq > PllMaxFreq)
 					freq = PllMaxFreq;
 								
-				uint32_t resVco = 0, 
-							resPllp = 0, 
+				uint32_t 	resPllp = 0, 
 							resPllq = 0, 
 							resPllm = 0,
 							resPlln = 0,
@@ -225,6 +224,8 @@ namespace Mcucpp
 					vco = CalcVco(vco, resPllm, resPlln);
 					uint32_t pllp = (vco + freq/2) / freq;
 					uint32_t realFreq = vco / pllp;
+					if(realFreq > PllMaxFreq)
+						continue;
 					uint32_t err;
 					if(realFreq > freq)
 						err = realFreq - freq;
@@ -318,6 +319,8 @@ namespace Mcucpp
 			
 			static uint32_t SetClockFreq(uint32_t freq)
 			{
+				SelectClockSource(Internal);
+				PllClock::Disable();
 				PllClock::SelectClockSource(PllClock::External);
 				PllClock::SetClockFreq(freq);
 				SelectClockSource(Pll);
