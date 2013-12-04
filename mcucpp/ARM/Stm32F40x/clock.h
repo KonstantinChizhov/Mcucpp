@@ -219,6 +219,8 @@ namespace Mcucpp
 					if(vco == 0)
 						continue;
 					uint32_t pllp = (vco + freq/2) / freq;
+					if(pllp == 1)
+						continue;
 					uint32_t realFreq = vco / pllp;
 					if(realFreq > PllMaxFreq)
 						continue;
@@ -240,7 +242,7 @@ namespace Mcucpp
 					return 0;
 				PllN::Set(resPlln);
 				PllM::Set(resPllm);
-				PllP::Set(resPllp);
+				PllP::Set(resPllp - 2);
 				PllQ::Set(resPllq);
 				return bestFreq;
 			}
@@ -250,8 +252,9 @@ namespace Mcucpp
 				uint32_t plln = PllN::Get();
 				uint32_t pllm = PllM::Get();
 				uint32_t pllp = PllP::Get();
-				if(pllp == 0 || pllm == 0)
+				if(pllm == 0)
 					return 0;
+				pllp += 2;
 				return SrcClockFreq() / pllm * plln / pllp;
 			}
 			
