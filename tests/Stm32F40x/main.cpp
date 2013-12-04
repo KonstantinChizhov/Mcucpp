@@ -11,7 +11,7 @@ int main()
 {
 	//clock1 = Clock::HseClock::Enable();
 	//clock1 = Clock::SysClock::SelectClockSource(Clock::SysClock::External);
-	
+	// 0x40023800
 	clock1 = Clock::SysClock::SetClockFreq(168000000);
 	clock2 = Clock::SysClock::ClockFreq();
 	while(1)

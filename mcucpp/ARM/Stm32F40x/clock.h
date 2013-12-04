@@ -16,7 +16,7 @@ namespace Mcucpp
 		class ClockBase
 		{
 		protected:
-			static const uint32_t ClockStartTimeout = 1000000;
+			static const uint32_t ClockStartTimeout = 100000;
 			
 			static bool EnableClockSource(unsigned turnOnMask,  unsigned waitReadyMask)
 			{
@@ -137,6 +137,8 @@ namespace Mcucpp
 		{
 			static const uint32_t  VcoMaxFreq  = 432000000ul;
 			static const uint32_t  VcoMinFreq  = 192000000ul;
+			static const uint32_t  PllnMax     = 432ul;
+			static const uint32_t  PllnMin     = 192ul;
 			static const uint32_t  UsbFreq     = 48000000ul;
 			static const uint32_t  PllMaxFreq  = 168000000ul;
 			static const uint32_t  PllnMaxFreq = 2000000ul;
@@ -153,6 +155,8 @@ namespace Mcucpp
 					if(pllnFreq < PllnMinFreq || pllnFreq > PllnMaxFreq)
 						continue;
 					uint32_t plln = (vco + pllnFreq/2) / pllnFreq;
+					if(plln < PllnMin || plln > PllnMax)
+						continue;
 					uint32_t realVco = inputClock * plln / pllm;
 					if(realVco < VcoMinFreq || realVco > VcoMaxFreq)
 						continue;
@@ -189,16 +193,6 @@ namespace Mcucpp
 					return HseClock::ClockFreq();
 			}
 			
-			static uint32_t GetDivider()
-			{
-				return PllM::Get();
-			}
-			
-			static uint32_t GetMultipler()
-			{
-				return PllN::Get();
-			}
-			
 			static void SelectClockSource(ClockSource clockSource)
 			{
 				RCC->PLLCFGR = (RCC->PLLCFGR & ~(RCC_PLLCFGR_PLLSRC)) | clockSource;
@@ -222,6 +216,8 @@ namespace Mcucpp
 					if(vco < VcoMinFreq || vco > VcoMaxFreq)
 						continue;
 					vco = CalcVco(vco, resPllm, resPlln);
+					if(vco == 0)
+						continue;
 					uint32_t pllp = (vco + freq/2) / freq;
 					uint32_t realFreq = vco / pllp;
 					if(realFreq > PllMaxFreq)
@@ -240,6 +236,8 @@ namespace Mcucpp
 					}
 					if(err == 0) break;
 				}
+				if(resPllp == 0 || resPlln == 0 || resPllm == 0 || resPllq == 0)
+					return 0;
 				PllN::Set(resPlln);
 				PllM::Set(resPllm);
 				PllP::Set(resPllp);
@@ -249,7 +247,12 @@ namespace Mcucpp
 			
 			static uint32_t ClockFreq()
 			{
-				return SrcClockFreq() / GetDivider() * GetMultipler() / PllP::Get();
+				uint32_t plln = PllN::Get();
+				uint32_t pllm = PllM::Get();
+				uint32_t pllp = PllP::Get();
+				if(pllp == 0 || pllm == 0)
+					return 0;
+				return SrcClockFreq() / pllm * plln / pllp;
 			}
 			
 			static bool Enable()
@@ -321,7 +324,7 @@ namespace Mcucpp
 			{
 				SelectClockSource(Internal);
 				PllClock::Disable();
-				PllClock::SelectClockSource(PllClock::External);
+				PllClock::SelectClockSource(PllClock::Internal);
 				PllClock::SetClockFreq(freq);
 				SelectClockSource(Pll);
 				return ClockFreq();
