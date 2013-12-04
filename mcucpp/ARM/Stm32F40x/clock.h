@@ -314,6 +314,14 @@ namespace Mcucpp
 						return false;
 				}else
 					return false;
+					
+				RCC->APB1ENR |= RCC_APB1ENR_PWREN;
+				PWR->CR |= PWR_CR_VOS;
+				RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
+				RCC->CFGR |= RCC_CFGR_PPRE2_DIV2;
+				RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;
+				
+				FLASH->ACR = FLASH_ACR_PRFTEN |FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
 	
 				RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | clockSelectMask;
 				
