@@ -8,6 +8,7 @@
 #define F_OSC 8000000u
 #endif
 
+#include "flash.h"
 
 namespace Mcucpp
 {
@@ -293,6 +294,8 @@ namespace Mcucpp
 			{
 				uint32_t clockStatusValue;
 				uint32_t clockSelectMask;
+				uint32_t currentFreq;
+				uint32_t targetFreq;
 				
 				if(clockSource == Internal)
 				{
@@ -320,24 +323,29 @@ namespace Mcucpp
 				RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
 				RCC->CFGR |= RCC_CFGR_PPRE2_DIV2;
 				RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;
-				
-				FLASH->ACR = FLASH_ACR_PRFTEN |FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
-	
+
 				RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | clockSelectMask;
+				
+				if(currentFreq < targetFreq)
+					Flash::ConfigureFreq(freq);
 				
 				while ((RCC->CFGR & RCC_CFGR_SWS) != clockStatusValue)
 				{
 				}
+				
+				if(currentFreq > targetFreq)
+					Flash::ConfigureFreq(freq);
 				return true;
 			}
 			
 			static uint32_t SetClockFreq(uint32_t freq)
 			{
+				uint32_t currentFreq = ClockFreq();
 				SelectClockSource(Internal);
 				PllClock::Disable();
 				PllClock::SelectClockSource(PllClock::Internal);
 				PllClock::SetClockFreq(freq);
-				SelectClockSource(Pll);
+					
 				return ClockFreq();
 			}
 			
