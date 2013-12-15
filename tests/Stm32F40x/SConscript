@@ -17,7 +17,7 @@ armEnv = Environment(DEVICE = Device,
 	CPPPATH=['#/mcucpp', '#/mcucpp/ARM/Stm32F40x', '#/mcucpp/ARM/CortexM4', '#/./'])
 
 armEnv.Append(LINKFLAGS = ["-nostdlib"])
-armEnv.Append(CCFLAGS = ["-O0", "-finline-limit=60"])
+armEnv.Append(CCFLAGS = ["-O3", "-finline-limit=60"])
 
 startup = armEnv.Object('test_startup_stm32_40x', '#/startups/startup_stm32_40x.c')
 app_objects = armEnv.Object(['main.cpp'])

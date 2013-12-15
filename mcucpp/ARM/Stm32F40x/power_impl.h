@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2012
+// Date			: 2013
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification, 
@@ -25,44 +25,40 @@
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
 
+
 #pragma once
+
+#include <stdint.h>
+#include <stddef.h>
+#include "ioreg.h"
+#include "stm32f4xx.h"
 
 namespace Mcucpp
 {
-	class Power
+	namespace Private
 	{
-	public:
-		// Stop the CPU but all peripherals remains active.
-		static inline void CpuOff(); 
-		
-		// Stop the CPU but all peripherals running at lower freq if supported by traget MCU, if not its equ to CpuSleep.
-		static inline void SleepLowFreq();
-		
-		// Stop the CPU and all peripherals exept that rinning asynchronously.
-		//	Wakeup only by async events such as external interrupt,
-		//	or interrupts from asynchronously running modules such as timers with external clock.
-		//	External Reset or Watchdog Reset.
-		static inline void AsyncPeriphOlny();
-		
-		// Stop the CPU and all peripherals clocks. Main clock remains running for faster wakeup. 
-		//	If not supported by target MCU this mode is equ to PowerDown
-		//	Wakeup only by async events such as external interrupt.
-		//	External Reset or Watchdog Reset.
-		static inline void Standby();
-		
-		// Stop the CPU and all peripherals clocks. Main clock is source disabled. 
-		//	Wakeup only by async events such as external interrupt.
-		//	External Reset or Watchdog Reset.
-		static inline void PowerDown();
-		
-		// Need to be called from interrupts to exit sleep mode on some paltforms
-		static inline void ExitSleepModeIrq();
-		
-		// Get supply voltage in 1/10 Volt unints if supported by hardware.
-		static inline unsigned GetVdd();
-		
-		static inline bool Detect();
-	};
+		IO_BITFIELD_WRAPPER(PWR->CR, PwrPls, uint32_t, 5, 3);
+	}
+	
+	bool Power::Detect()
+	{
+		return (PWR->CSR & PWR_CSR_PVDO) == 0;
+	}
+	
+	unsigned Power::GetVdd()
+	{
+		uint8_t voltageTable[] = {20, 21, 23, 25, 26, 27, 28, 29};
+		PWR->CR |= PWR_CR_PVDE;
+		uint32_t tmp = Private::PwrPls::Get();
+		for(int i = 0; i < 8; i++)
+		{
+			Private::PwrPls::Set((uint32_t)i);
+			if(!Detect())
+			{
+				Private::PwrPls::Set(tmp);
+				return voltageTable[i];
+			}
+		}
+		return 30;
+	}
 }
-
-#include <power_impl.h>
