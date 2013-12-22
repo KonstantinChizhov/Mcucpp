@@ -21,7 +21,8 @@ armEnv.Append(CCFLAGS = ["-O3", "-finline-limit=60"])
 
 startup = armEnv.Object('test_startup_stm32_40x', '#/startups/startup_stm32_40x.c')
 app_objects = armEnv.Object(['main.cpp'])
+dma = armEnv.Object('stmf4_test_dma', '#/mcucpp/ARM/Stm32F40x/src/dma.cpp')
 
-elf = armEnv.Program('Stm32f3HwTest', startup + app_objects)
+elf = armEnv.Program('Stm32f3HwTest', startup + app_objects + dma)
 lss = armEnv.Disassembly(elf)
 hex = armEnv.Hex(elf)

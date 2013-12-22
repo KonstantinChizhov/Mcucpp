@@ -83,8 +83,9 @@ namespace Mcucpp
 			CR1ModeShift = 0,
 			CR2ModeShift = 16
 		};
+		
 	};
-
+	
 	inline UsartBase::UsartMode operator|(UsartBase::UsartMode left, UsartBase::UsartMode right)
 	{	return static_cast<UsartBase::UsartMode>(static_cast<unsigned>(left) | static_cast<unsigned>(right));	}
 	
@@ -285,6 +286,11 @@ namespace Mcucpp
 						ptr++;
 					}
 				}
+			}
+			
+			static void SetTxCompleteCallback(TransferCallback callback)
+			{
+				DmaTxChannel::SetTransferCallback(callback);
 			}
 			
 			static void Break()

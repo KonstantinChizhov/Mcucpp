@@ -91,7 +91,7 @@ namespace Mcucpp
 			static const uint32_t  PllMaxFreq  = 168000000ul;
 			static const uint32_t  PllnMaxFreq = 2000000ul;
 			static const uint32_t  PllnMinFreq = 1000000ul;
-			static uint32_t CalcVco(uint32_t vco, uint32_t &resPllm, uint32_t &resPlln);
+			static inline uint32_t CalcVco(uint32_t vco, uint32_t &resPllm, uint32_t &resPlln);
 		public:
 			enum ClockSource
 			{
