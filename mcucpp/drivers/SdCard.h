@@ -35,7 +35,6 @@
 
 namespace Mcucpp
 {
-		
 	enum SdCardCommands
 	{
 		GO_IDLE_STATE = 0,

@@ -2,7 +2,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2012
+// Date			: 2013
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification, 
@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <stm32f4xx.h>
+
 namespace Mcucpp
 {
 	class Watchdog
@@ -36,7 +38,7 @@ namespace Mcucpp
 		static const uint16_t EnableKey = 0xCCCC;
 		static const uint16_t AccessKey = 0x5555;
 	public:
-		static const unsigned ClockFreq = 40000;
+		static const unsigned ClockFreq = 32000;
 		
 		static void Start(unsigned periodMSec)
 		{

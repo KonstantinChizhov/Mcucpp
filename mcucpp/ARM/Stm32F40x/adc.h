@@ -11,77 +11,26 @@ namespace Mcucpp
 {
 	namespace Private
 	{
-		typedef IO::PinList
+		using namespace IO;
+		typedef PinList
 		<
-			IO::Pa0,
-			IO::Pa1,
-			IO::Pa2,
-			IO::Pa3,
-			IO::Pa4,
-			IO::Pa5,
-			IO::Pa6,
-			IO::Pa7,
-			
-			IO::Pb0,
-			IO::Pb1,
-			
-			IO::Pc0,
-			IO::Pc1,
-			IO::Pc2,
-			IO::Pc3,
-			
-			IO::Pc4,
-			IO::Pc5
+			Pa0, Pa1, Pa2, Pa3, Pa4, Pa5, Pa6, Pa7, Pb0, Pb1, Pc0, Pc1, Pc2, Pc3, Pc4, Pc5
 		> Adc1Pins;
 		
-		typedef IO::PinList
+		typedef PinList
 		<
-			IO::Pa0,
-			IO::Pa1,
-			IO::Pa2,
-			IO::Pa3,
-			IO::Pa4,
-			IO::Pa5,
-			IO::Pa6,
-			IO::Pa7,
-			
-			IO::Pb0,
-			IO::Pb1,
-			
-			IO::Pc0,
-			IO::Pc1,
-			IO::Pc2,
-			IO::Pc3,
-			
-			IO::Pc4,
-			IO::Pc5
+			Pa0, Pa1, Pa2, Pa3, Pa4, Pa5, Pa6, Pa7, Pb0, Pb1, Pc0, Pc1, Pc2, Pc3, Pc4, Pc5
 		> Adc2Pins;
 		
-		typedef IO::PinList
+		typedef PinList
 		<
-			IO::Pa0,
-			IO::Pa1,
-			IO::Pa2,
-			IO::Pa3,
-			
-			IO::Pf6,
-			IO::Pf7,
-			IO::Pf8,
-			IO::Pf9,
-			IO::Pf10,
-			IO::Pf3,
-			
-			IO::Pc0,
-			IO::Pc1,
-			IO::Pc2,
-			IO::Pc3,
-			IO::Pf4,
-			IO::Pf5
+			Pa0, Pa1, Pa2, Pa3, Pf6, Pf7, Pf8, Pf9, Pf10, Pf3, Pc0, Pc1, Pc2, Pc3, Pf4, Pf5
 		> Adc3Pins;
 	}
 	
 	typedef void (* AdcCallback)(uint16_t *data, size_t count);
 	static inline void VoidAdcCallback(uint16_t *data, size_t count);
+	
 	struct AdcData
 	{
 		AdcData()
@@ -191,23 +140,6 @@ namespace Mcucpp
 				Regs()->SMPR1 = (Regs()->SMPR1 & ~(0x07 << shift)) | (bitFieldValue << shift);
 			}
 		}
-
-		static void SetChannel(uint8_t channel)
-		{
-			if(channel > 18)
-				return;
-				
-			if(!VerifyReady())
-				return;
-			
-			if(channel < Pins::Length)
-			{
-				Pins::SetConfiguration(1u << channel, Pins::Analog);
-			}
-			
-			Regs()->SQR1 = (Regs()->SQR1 & ~ADC_SQR1_L);
-			Regs()->SQR3 = (Regs()->SQR3 & ~0x1f) | (channel);
-		}
 		 
 		static void Init(AdcDivider divider = Div2, ClockSource = AdcClock, Vref = VCC)
 		{
@@ -223,7 +155,7 @@ namespace Mcucpp
 			Regs()->CR2 |= ADC_CR2_ADON;
 		}
 
-		static void StartAsync(uint8_t channel)
+		static void StartDirect(uint8_t channel)
 		{
 			if(channel > 18)
 				return;
@@ -252,7 +184,7 @@ namespace Mcucpp
 		
 		static uint16_t Read(uint8_t channel)
 		{
-			StartAsync(channel);
+			StartDirect(channel);
 			return Read();
 		}
 		
@@ -299,12 +231,12 @@ namespace Mcucpp
 			if(scanCount == 0 || channelsCount == 0)
 				return false;
 			
+			if(!callback)
+				callback = VoidAdcCallback;
+			
 			_adcData.callback = callback;
 			_adcData.data = dataBuffer;
 			_adcData.count = channelsCount * scanCount;
-			
-			if(!callback)
-				callback = VoidAdcCallback;
 			
 			if(channelsCount <= 16)
 			{
@@ -331,7 +263,7 @@ namespace Mcucpp
 						_adcData.data, &Regs()->DR, _adcData.count, channelNum);
 				
 				Regs()->CR1 |= ADC_CR1_SCAN;
-				Regs()->CR2 |= ADC_CR2_SWSTART | ADC_CR2_EOCS | ADC_CR2_DMA | (scanCount > 1 ? ADC_CR2_CONT : 0);
+				Regs()->CR2 |= ADC_CR2_SWSTART | ADC_CR2_DMA | (scanCount > 1 ? ADC_CR2_CONT : 0);
 			}
 			else return false;
 		}
@@ -339,6 +271,8 @@ namespace Mcucpp
 	private:
 		static void DmaHandler(void *, size_t)
 		{
+			Regs()->CR1 ~= ~ADC_CR1_SCAN;
+			Regs()->CR2 &= ~(ADC_CR2_SWSTART | ADC_CR2_DMA | ADC_CR2_CONT);
 			_adcData.callback(_adcData.data, _adcData.count);
 		}
 		

@@ -2,7 +2,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2012
+// Date			: 2013
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification, 
@@ -43,11 +43,27 @@ namespace Mcucpp
 				Period250ms = (1 << WDP2),
 				Period500ms = (1 << WDP2) | (1 << WDP0),
 				Period1s = (1 << WDP2) | (1 << WDP1),
-				Period2s = (1 << WDP0) | (1 << WDP1) | (1 << WDP0),
+				Period2s = (1 << WDP0) | (1 << WDP1) | (1 << WDP0)
 			};
 			
-			static void Start(Period period)
+			static void Start(unsigned periodMSec)
 			{
+				Period period = Period15ms;
+				if(periodMSec > 1000)
+					period = Period2s;
+				else if(periodMSec > 500)
+					period = Period1s;
+				else if(periodMSec > 250)
+					period = Period500ms;
+				else if(periodMSec > 120)
+					period = Period250ms;
+				else if(periodMSec > 60)
+					period = Period120ms;
+				else if(periodMSec > 30)
+					period = Period60ms;
+				else if(periodMSec > 15)
+					period = Period30ms;
+					
 				WDTCR = period | (1 << WDE);
 				Reset();
 			}
@@ -65,6 +81,11 @@ namespace Mcucpp
 			static void Reset()
 			{
 				asm("wdr");
+			}
+			
+			static bool CauseReset()
+			{
+				return false; //TODO
 			}
 	};
 }

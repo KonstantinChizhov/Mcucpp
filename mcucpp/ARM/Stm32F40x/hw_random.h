@@ -2,7 +2,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2012
+// Date			: 2013
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification, 
@@ -27,54 +27,51 @@
 //*****************************************************************************
 
 #pragma once
+#include <stm32f4xx.h>
+#include <clock.h>
 
 namespace Mcucpp
 {
-	class Watchdog
+	
+	class HwRandom
 	{
-		static const uint16_t ReloadKey = 0xAAAA;
-		static const uint16_t EnableKey = 0xCCCC;
-		static const uint16_t AccessKey = 0x5555;
+		static const unsigned Timeout = 40 * 4;
 	public:
-		static const unsigned ClockFreq = 40000;
-		
-		static void Start(unsigned periodMSec)
-		{
-			const unsigned MaxReload = (1 << 12) - 1;
-			unsigned reload  = (periodMSec * ClockFreq) / 1000;
-			unsigned prescaller = 0;
-			unsigned divider = 4;
-			while(reload / divider > MaxReload)
-			{
-				divider*=2;
-				prescaller++;
-			}
-			reload /= divider;
-			if(divider > 256)
-			{
-				prescaller = 7;
-				reload = MaxReload;
-			}
-			IWDG->KR = AccessKey;
-			IWDG->PR = prescaller;
-			IWDG->RLR = reload;
-			IWDG->KR = ReloadKey;
-			IWDG->KR = EnableKey;
-		}
-		
-		static void Disable()
-		{
-			
-		}
-		
-		static void Reset()
-		{
-			IWDG->KR = ReloadKey;
-		}
-		
-		static bool CauseReset()
-		{
-			return RCC->CSR & RCC_CSR_IWDGRSTF;
-		}
+		static inline void Init();
+		static inline uint32_t Next();
+		static inline uint32_t Next(uint32_t maxVal);
+		static inline bool IsOk();
 	};
+	
+	void HwRandom::Init()
+	{
+		Clock::RngClock::Enable();
+		if((RNG->CR & RNG_CR_RNGEN) == 0)
+		{
+			RNG->CR |= RNG_CR_RNGEN;
+		}
+	}
+	
+	HwRandom::HwRandom()
+	{
+		Init();
+	}
+	
+	uint32_t HwRandom::Next()
+	{
+		Init();
+		unsigned timeout = Timeout;
+		while((RNG->SR & RNG_SR_DRDY) == 0 && --timeout){}
+		return timeout != 0 ? RNG->DR : 0;
+	}
+	
+	uint32_t HwRandom::Next(uint32_t maxVal)
+	{
+		return Next() % maxVal;
+	}
+	
+	bool HwRandom::IsOk()
+	{
+		return (RNG->SR & (RNG_SR_CECS | RNG_SR_SECS)) == 0;
+	}
 }
