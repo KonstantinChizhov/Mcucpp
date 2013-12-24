@@ -29,18 +29,16 @@ namespace Mcucpp
 	}
 	
 	typedef void (* AdcCallback)(uint16_t *data, size_t count);
-	static inline void VoidAdcCallback(uint16_t *data, size_t count);
+	static inline void VoidAdcCallback(uint16_t *data, size_t count){}
 	
 	struct AdcData
 	{
 		AdcData()
-			:callback(VoidAdcCallback), count(0), data(0)
+			:callback(VoidAdcCallback)
 		{
 		}
 		
 		AdcCallback callback;
-		size_t count;
-		uint16_t *data;
 	};
 	
 	template<class Regs, class CommonRegs, class ClockCtrl, class InputPins, class DmaChannel, uint8_t channelNum>
@@ -224,6 +222,7 @@ namespace Mcucpp
 		
 		static void SetTrigger(Trigger trigger, TriggerMode mode)
 		{
+		
 		}
 		
 		static bool Start(uint8_t *channels, uint8_t channelsCount, uint16_t *dataBuffer, uint16_t scanCount, AdcCallback callback = VoidAdcCallback)
@@ -234,9 +233,11 @@ namespace Mcucpp
 			if(!callback)
 				callback = VoidAdcCallback;
 			
+			if(!VerifyReady())
+				return false;
+			Regs()->SR &= ~ADC_SR_OVR;
+			
 			_adcData.callback = callback;
-			_adcData.data = dataBuffer;
-			_adcData.count = channelsCount * scanCount;
 			
 			if(channelsCount <= 16)
 			{
@@ -260,24 +261,30 @@ namespace Mcucpp
 				
 				DmaChannel::SetTransferCallback(DmaHandler);
 				DmaChannel::Transfer(DmaChannel::Periph2Mem | DmaChannel::MemIncriment | DmaChannel::PriorityHigh | DmaChannel::PSize16Bits | DmaChannel::MSize16Bits,
-						_adcData.data, &Regs()->DR, _adcData.count, channelNum);
+						dataBuffer, &Regs()->DR, channelsCount * scanCount, channelNum);
 				
 				Regs()->CR1 |= ADC_CR1_SCAN;
-				Regs()->CR2 |= ADC_CR2_SWSTART | ADC_CR2_DMA | (scanCount > 1 ? ADC_CR2_CONT : 0);
+				Regs()->CR2 |= ADC_CR2_DMA  | ADC_CR2_EOCS | (scanCount > 1 ? ADC_CR2_CONT : 0);
+				Regs()->CR2 |= ADC_CR2_SWSTART;
+				
+				while(!DmaChannel::Ready())
+					;
+				return true;
 			}
 			else return false;
 		}
 		
 	private:
-		static void DmaHandler(void *, size_t)
+		static void DmaHandler(void * data, size_t size)
 		{
-			Regs()->CR1 ~= ~ADC_CR1_SCAN;
-			Regs()->CR2 &= ~(ADC_CR2_SWSTART | ADC_CR2_DMA | ADC_CR2_CONT);
-			_adcData.callback(_adcData.data, _adcData.count);
+			DmaChannel::Disable();
+			Regs()->CR2 &= ~(ADC_CR2_SWSTART | ADC_CR2_DMA | ADC_CR2_CONT | ADC_CR2_EOCS);
+			Regs()->CR1 &= ~ADC_CR1_SCAN;
+			_adcData.callback((uint16_t*)data, size);
 		}
 		
 		static AdcData _adcData;
-		
+		public:
 		static bool ReadSequence(DataT *data, uint8_t *channels, uint8_t channelsCount)
 		{
 			if(!VerifyReady())
@@ -302,13 +309,19 @@ namespace Mcucpp
 					}
 				}
 				Regs()->CR1 |= ADC_CR1_SCAN;
-				Regs()->CR2 |= ADC_CR2_SWSTART | ADC_CR2_EOCS;
-				for(unsigned i = 0; i < channelsCount; i++)
+				Regs()->CR2 |= ADC_CR2_SWSTART | ADC_CR2_EOCS | ADC_CR2_DMA | ADC_CR2_DDS;
+				
+				/*for(unsigned i = 0; i < channelsCount; i++)
 				{
 					while ((Regs()->SR & ADC_SR_EOC) == 0)
 						;
 					data[i] = Regs()->DR;
-				}
+				}*/
+				//DmaChannel::SetTransferCallback(DmaHandler);
+				DmaChannel::Transfer(DmaChannel::Periph2Mem | DmaChannel::MemIncriment | DmaChannel::PriorityHigh | DmaChannel::PSize16Bits | DmaChannel::MSize16Bits,
+						data, &Regs()->DR, channelsCount, channelNum);
+				while(!DmaChannel::Ready())
+					;
 				Regs()->CR1 &= ~ADC_CR1_SCAN;
 				return true;
 			}

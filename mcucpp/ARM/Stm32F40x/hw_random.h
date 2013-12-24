@@ -40,6 +40,7 @@ namespace Mcucpp
 		static inline void Init();
 		static inline uint32_t Next();
 		static inline uint32_t Next(uint32_t maxVal);
+		static inline void NextBytes(uint8_t *bytes, size_t size);
 		static inline bool IsOk();
 	};
 	
@@ -50,11 +51,6 @@ namespace Mcucpp
 		{
 			RNG->CR |= RNG_CR_RNGEN;
 		}
-	}
-	
-	HwRandom::HwRandom()
-	{
-		Init();
 	}
 	
 	uint32_t HwRandom::Next()
@@ -68,6 +64,25 @@ namespace Mcucpp
 	uint32_t HwRandom::Next(uint32_t maxVal)
 	{
 		return Next() % maxVal;
+	}
+	
+	void HwRandom::NextBytes(uint8_t *bytes, size_t size)
+	{
+		size_t sizeRounded4 = size & ~0x3u;
+		for(size_t i = 0; i < sizeRounded4; i += 4)
+		{
+			uint32_t value = Next();
+			bytes[i + 0] = uint8_t(value);
+			bytes[i + 1] = uint8_t(value >> 8);
+			bytes[i + 2] = uint8_t(value >> 16);
+			bytes[i + 3] = uint8_t(value >> 24);
+		}
+		uint32_t value = Next();
+		for(size_t i = sizeRounded4; i < size; i++)
+		{
+			bytes[i] = uint8_t(value);
+			value >>= 8;
+		}
 	}
 	
 	bool HwRandom::IsOk()

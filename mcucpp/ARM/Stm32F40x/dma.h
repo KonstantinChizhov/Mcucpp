@@ -60,14 +60,14 @@ namespace Mcucpp
 		inline void NotifyTransferComplete()
 		{
 			TransferCallback callback = transferCallback;
-			transferCallback = VoidDmaCallback;
+			//transferCallback = VoidDmaCallback;
 			callback(data, size);
 		}
 		
 		inline void NotifyError()
 		{
 			TransferErrorCallback callback = errorCallback;
-			errorCallback = VoidDmaCallback;
+			//errorCallback = VoidDmaCallback;
 			callback(data, size);
 		}
 	};
@@ -115,7 +115,7 @@ namespace Mcucpp
 		
 		static bool Ready()
 		{
-			return !Enabled() || TrasferComplete();
+			return ChannelRegs()->NDTR == 0 || !Enabled() || TrasferComplete();
 		}
 		
 		static bool Enabled()
@@ -125,7 +125,7 @@ namespace Mcucpp
 		
 		static void Disable()
 		{
-			ChannelRegs()->CCR &= DMA_SxCR_EN;
+			ChannelRegs()->CR &= DMA_SxCR_EN;
 		}
 		
 		static uint32_t RemainingTransfers()

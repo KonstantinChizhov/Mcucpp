@@ -288,9 +288,39 @@ namespace Mcucpp
 				}
 			}
 			
+			static void Read(void *data, size_t size, bool async = false)
+			{
+				uint8_t *ptr = (uint8_t*)data;
+				if(async && size > 1)
+				{
+					if(RxReady())
+					{
+						*ptr = Read();
+						ptr++;
+						size--;
+					}
+					Regs()->CR3 |= USART_CR3_DMAR;
+					Regs()->SR &= ~USART_SR_RXNE;
+					DmaRxChannel::Transfer(DmaRxChannel::Periph2Mem | DmaRxChannel::MemIncriment, ptr, &Regs()->DR, size, DmaRxChannelNum);
+				}
+				else
+				{
+					while(size--)
+					{
+						*ptr = Read();
+						ptr++;
+					}
+				}
+			}
+			
 			static void SetTxCompleteCallback(TransferCallback callback)
 			{
 				DmaTxChannel::SetTransferCallback(callback);
+			}
+			
+			static void SetRxCompleteCallback(TransferCallback callback)
+			{
+				DmaRxChannel::SetTransferCallback(callback);
 			}
 			
 			static void Break()
