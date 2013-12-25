@@ -76,11 +76,6 @@ namespace Mcucpp
 			}
 		};
 		
-		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllM, uint32_t, 0, 6);
-		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllN, uint32_t, 6, 9);
-		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllP, uint32_t, 16, 2);
-		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllQ, uint32_t, 24, 4);
-		
 		class PllClock :public ClockBase
 		{
 			static const uint32_t  VcoMaxFreq  = 432000000ul;
@@ -133,7 +128,7 @@ namespace Mcucpp
 			static inline uint32_t ClockFreq();
 			static inline uint32_t SrcClockFreq();
 		};
-		
+				
 		
 		template<class Reg, unsigned Mask, class ClockSrc>
 		class ClockControl :public ClockSrc
@@ -355,6 +350,12 @@ namespace Mcucpp
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_UART7EN     , Apb1Clock> Uart7Clock;
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_UART8EN     , Apb1Clock> Uart8Clock;
 		
+		
+		
+		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllM, uint32_t, 0, 6);
+		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllN, uint32_t, 6, 9);
+		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllP, uint32_t, 16, 2);
+		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllQ, uint32_t, 24, 4);
 		
 		bool ClockBase::EnableClockSource(unsigned turnOnMask,  unsigned waitReadyMask)
 		{

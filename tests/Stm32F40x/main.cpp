@@ -9,6 +9,7 @@
 #include <adc.h>
 #include <delay.h>
 #include <hw_random.h>
+#include <sys_tick.h>
 
 #include <tiny_ostream.h>
 #include <tiny_iomanip.h>
@@ -72,6 +73,7 @@ int main()
 	Usart1::EnableInterrupt(Usart1::RxNotEmptyInt);
 	cout << "Hello, World!!\nSys Freq = " << SysClock::ClockFreq() << "\n";
 	cout << "Usart1 Freq = " << Usart1Clock::ClockFreq() << "\n";
+	cout << "SysTick->CALIB = " << hex << SysTick->CALIB << "\n";
 	Adc1::Init();
 	
 	//Usart1::SetTxCompleteCallback(Hello);
@@ -84,20 +86,23 @@ int main()
 	uint16_t data[32] = {0};
 	uint8_t ch[16] = {6,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 	
+	SysTickTimer::Init(10);
+	SysTickTimer::EnableInterrupt();
+	
 	while(1)
 	{
-		Adc1::Start(ch, 1, data, 16, AdcFunc);
+		//Adc1::Start(ch, 1, data, 16, AdcFunc);
 		
 		//for(int i = 0; i<16; i++)
 		//	cout << setw(6) << data[i];
-		cout << "Temp = " << Adc1::Read(Adc1::TempSensorChannel) << "\n";
+		//cout << "Temp = " << Adc1::Read(Adc1::TempSensorChannel) << "\n";
 		//cout << "\n";
 	}
 }
 
 extern "C" void ADC_IRQHandler()
 {
-	Usart1::Write('.');
+	//Usart1::Write('.');
 	ADC1->SR &= ~ADC_SR_EOC;
 }
 
@@ -108,5 +113,10 @@ extern "C" void USART1_IRQHandler()
 		//Usart1::Write(Usart1::Read()+1);
 	}
 	Usart1::ClearInterruptFlag(Usart1::RxNotEmptyInt);
+}
+
+extern "C" void SysTick_Handler()
+{
+	Usart1::Write('.');
 }
 
