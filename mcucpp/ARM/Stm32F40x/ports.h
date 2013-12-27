@@ -85,7 +85,8 @@ namespace Mcucpp
 				}
 				static void ClearAndSet(DataT clearMask, DataT value)
 				{
-					*(uint32_t*)(&GpioRegs()->BSRRL) = (value | (uint32_t)clearMask << 16);
+					Clear(clearMask);
+					Set(value);
 				}
 				static void Set(DataT value)
 				{
@@ -97,7 +98,7 @@ namespace Mcucpp
 				}
 				static void Toggle(DataT value)
 				{
-					GpioRegs()->ODR ^= value;
+					ClearAndSet(value, (~GpioRegs()->ODR) & value);
 				}
 				static DataT PinRead()
 				{
@@ -109,13 +110,14 @@ namespace Mcucpp
 				template<DataT clearMask, DataT value>
 				static void ClearAndSet()
 				{
-					*(uint32_t*)(&GpioRegs()->BSRRL) = (value | (uint32_t)clearMask << 16);
+					Clear(clearMask);
+					Set(value);
 				}
 
 				template<DataT value>
 				static void Toggle()
 				{
-					GpioRegs()->ODR ^= value;
+					ClearAndSet(value, (~GpioRegs()->ODR) & value);
 				}
 
 				template<DataT value>

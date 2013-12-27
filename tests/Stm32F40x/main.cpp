@@ -86,8 +86,8 @@ int main()
 	uint16_t data[32] = {0};
 	uint8_t ch[16] = {6,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 	
-	SysTickTimer::Init(10);
-	SysTickTimer::EnableInterrupt();
+	//SysTickTimer::Init(10);
+	//SysTickTimer::EnableInterrupt();
 	
 	while(1)
 	{
@@ -97,6 +97,8 @@ int main()
 		//	cout << setw(6) << data[i];
 		//cout << "Temp = " << Adc1::Read(Adc1::TempSensorChannel) << "\n";
 		//cout << "\n";
+		Led1::Toggle();
+		delay_ms<1000, 168000000>();
 	}
 }
 
@@ -117,6 +119,6 @@ extern "C" void USART1_IRQHandler()
 
 extern "C" void SysTick_Handler()
 {
-	Usart1::Write('.');
+	//Usart1::Write('.');
 }
 
