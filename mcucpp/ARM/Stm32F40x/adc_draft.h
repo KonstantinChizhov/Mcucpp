@@ -9,17 +9,19 @@ public:
 	void Init(Divider divider, ClockSource clock, Reference reference);
 	void Disable();
 	
-	// async read
-	void StartAsync(uint8_t channel);
-	uint16_t Read();
-	uint16_t Read(uint8_t channel);
+	// immediate read
+	bool StartImmediate(uint8_t *channel, uint16_t *data, uint8_t count);
+	bool ReadImmediate(uint8_t *channel, uint16_t *data, uint8_t count);
+	bool ImmediateReady();
+	bool ReadImmediate(uint16_t *data);
 	
 	// continiuos mode
 	enum TriggerMode{RisingEdge, FallingEdge, BothEdges};
 	enum Trigger{Once, FreeRun, ...};
 	void SetTrigger(Trigger trigger, TriggerMode mode);
 	void SetSampleTime(uint8_t channel, unsigned adcCycles);
-	bool Start(uint8_t *channels, uint8_t channelsCount, uint16_t *dataBuffer, uint16_t scanCount, AdcCallback callback);
+	void SetSequenceCallback(AdcCallback callback);
+	bool StartSequence(uint8_t *channels, uint8_t channelsCount, uint16_t *dataBuffer, uint16_t scanCount);
 	bool DataReady();
 	void Stop();
 	
