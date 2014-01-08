@@ -28,6 +28,7 @@
 #ifndef USART_HPP
 #define USART_HPP
 #include <stdint.h>
+#include <stddef.h>
 #include <delegate.h>
 
 namespace Mcucpp

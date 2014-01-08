@@ -6,13 +6,14 @@
 #include <power.h>
 #include <dma.h>
 #include <usart.h>
-#include <adc.h>
+//#include <adc.h>
 #include <delay.h>
 #include <hw_random.h>
 #include <sys_tick.h>
 
 #include <tiny_ostream.h>
 #include <tiny_iomanip.h>
+
 
 using namespace Mcucpp;
 using namespace Mcucpp::IO;
@@ -34,7 +35,17 @@ struct UsartOut
 	}
 };
 
-typedef basic_ostream<UsartOut> ostream;
+struct SwoOut
+{
+	void put(char c)
+	{
+		if(c == '\n')
+			ITM_SendChar('\r');
+		ITM_SendChar(c);
+	}
+};
+
+typedef basic_ostream<SwoOut> ostream;
 
 ostream cout;
 
@@ -74,11 +85,10 @@ int main()
 	cout << "Hello, World!!\nSys Freq = " << SysClock::ClockFreq() << "\n";
 	cout << "Usart1 Freq = " << Usart1Clock::ClockFreq() << "\n";
 	cout << "SysTick->CALIB = " << hex << SysTick->CALIB << "\n";
-	Adc1::Init();
+	//Adc1::Init();
 	
 	//Usart1::SetTxCompleteCallback(Hello);
-	Usart1::Write("Hello world!!!\r\n", 16, true);
-	
+	//Usart1::Write("Hello world!!!\r\n", 16, true);
 	
 	Led1::Set();
 	//delay_ms<5000, 168000000>();
@@ -86,6 +96,13 @@ int main()
 	uint16_t data[32] = {0};
 	uint8_t ch[16] = {6,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 	
+	cout.fill('0');
+	cout << setw(8) << hex << ITM->TER << endl;
+	cout.fill('0');
+	cout << setw(8) << hex << ITM->TPR << endl;
+	cout.fill('0');
+	cout << setw(8) << hex << ITM->TCR << endl;
+cout.fill(' ');
 	//SysTickTimer::Init(10);
 	//SysTickTimer::EnableInterrupt();
 	
@@ -98,7 +115,7 @@ int main()
 		//cout << "Temp = " << Adc1::Read(Adc1::TempSensorChannel) << "\n";
 		//cout << "\n";
 		Led1::Toggle();
-		delay_ms<1000, 168000000>();
+		delay_ms<100, 168000000>();
 	}
 }
 

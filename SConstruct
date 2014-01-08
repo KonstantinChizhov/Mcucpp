@@ -7,7 +7,7 @@ def builder_unit_test(target, source, env):
 	else:
 		return 1
 	
-testEnv = DefaultEnvironment(
+testEnv = DefaultEnvironment(tools = ['mingw'],
 	ENV = {'PATH' : os.environ['PATH']}, 
 	CPPPATH=['#/mcucpp', '#/gtest', '#/mcucpp/Test', '#/./']
 	)

@@ -16,7 +16,8 @@ tests = [\
 	'istream_test.cpp',
 	'PinList.cpp',
 	'timers.cpp',
-	'UsartTests.cpp'
+	'UsartTests.cpp',
+	'saturated.cpp'
 	]
 
 tests_objects = testEnv.Object(tests + g_test_sources)
