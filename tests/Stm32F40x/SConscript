@@ -5,7 +5,8 @@ Device = \
 	'name' : 'STM32F407VG',
 	'cpu' : 'cortex-m4',
 	'defines' : ['STM32F40_41xxx', 'F_OSC=8000000u'],
-	'archOptions' : ['mthumb', 'mfloat-abi=softfp'],
+	#'archOptions' : ['mthumb', 'mfloat-abi=softfp'],
+	'archOptions' : ['mthumb', 'mhard-float'],
 	'linkerscript' : '#/linker_scripts/stm32_40x.ld',
 	'clock' : 168000000
 }

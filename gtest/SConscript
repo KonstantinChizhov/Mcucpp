@@ -1,9 +1,0 @@
-
-Import('testEnv')
-
-
-g_test_sources = [testEnv.File('gtest_main.cc'), testEnv.File('gtest-all.cc')]
-
-testEnv['g_test_sources'] = g_test_sources
-
-#Export(testEnv)

@@ -68,6 +68,26 @@ void AdcFunc(uint16_t *data, size_t size)
 uint8_t buffer[16];
 uint16_t adcbuffer[16];
 
+#define cycle 1000000L
+//#define TT double
+#define TT float
+
+	TT test(void)
+	{
+		TT a = (TT)1.0;
+		TT b = (TT)1234.567;
+
+		for (long i = 0; i < cycle; i++)
+		{
+			a = a + ( (TT)i / b );
+			b = b + (TT)0.000001;
+			if (a > (TT)100000000.0) 
+				a = (TT)1.0;
+		}
+		return(a);
+	}
+
+
 int main()
 {
 	SysClock::SetClockFreq(168000000);
@@ -96,15 +116,12 @@ int main()
 	uint16_t data[32] = {0};
 	uint8_t ch[16] = {6,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 	
-	cout.fill('0');
-	cout << setw(8) << hex << ITM->TER << endl;
-	cout.fill('0');
-	cout << setw(8) << hex << ITM->TPR << endl;
-	cout.fill('0');
-	cout << setw(8) << hex << ITM->TCR << endl;
-cout.fill(' ');
 	//SysTickTimer::Init(10);
 	//SysTickTimer::EnableInterrupt();
+	uint32_t start = DWT->CYCCNT;
+	TT v = test();
+	uint32_t time = DWT->CYCCNT - start;
+	cout << "V = " << (float)v << " time = " << dec << time;
 	
 	while(1)
 	{

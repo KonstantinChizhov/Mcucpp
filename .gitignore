@@ -13,3 +13,4 @@ obj
 *.layout
 build
 .sconsign.dblite
+*.pyc
