@@ -25,7 +25,7 @@
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
 
-/* Automatacaly generateg header. */
+/* Automatacaly generated header. */
 /* This file contains definitions to determinate IO ports avalability for */
 /* specified MSP430 device. */
 

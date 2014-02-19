@@ -6,3 +6,6 @@
 #SConscript('tests/Stm32F40x/SConscript')
 
 
+env = Environment(DEVICE_NAME = 'stm32f407', toolpath = ['#/scons'], tools=['mcucpp'])
+
+env.Program('Hello', 'main.cpp')
