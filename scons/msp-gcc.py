@@ -2,10 +2,10 @@ import os
 from SCons.Script import *
 	
 def generate(env, **kw):
-	if env.Detect('msp-gcc'): 
-		env['TOOL_PREFIX'] = 'msp-'
+	if env.Detect('msp430-gcc'): 
+		env['TOOL_PREFIX'] = 'msp430-'
 	else:
-		raise Exception('Unable to find build tools "msp-gcc" ')
+		raise Exception('Unable to find build tools "msp430-gcc" ')
 	
 	env.Tool('gnu-tools')
 	
@@ -24,5 +24,5 @@ def generate(env, **kw):
 	
 
 def exists(env):
-	return env.Detect('msp-gcc')
+	return env.Detect('msp430-gcc')
 	

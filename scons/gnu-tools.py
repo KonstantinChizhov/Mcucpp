@@ -1,9 +1,25 @@
 import os
 from SCons.Script import *
 
-def print_size(env, source, alias='size'):
+def printSize(env, source, alias='size'):
 	action = Action("$SIZE %s" % source[0].path, cmdstr="Used section sizes:")
 	return env.AlwaysBuild(env.Alias(alias, source, action))
+
+def GetEnvId(env):
+	allOptions = env['CFLAGS'] + env['CCFLAGS'] + env['ASFLAGS'] + env['CPPDEFINES'] + env['LINKFLAGS']
+	return abs(hash(str(allOptions)))
+
+
+def programWithStartupBuilder(env, target, source):
+	device = env['DEVICE']
+	id = GetEnvId(env)
+	startupObjects = []
+	for startupSrc in device['startup']:
+		objName = '%s_%s' % (os.path.splitext(os.path.basename(startupSrc))[0], id)
+		startupObjects += env.Object(objName, startupSrc)
+	
+	originalProgramBuilder = env['OriginalProgramBuilder']
+	originalProgramBuilder(env, target, source + startupObjects)
 
 def setup_gnu_tools(env, prefix):
 
@@ -43,8 +59,8 @@ def setup_gnu_tools(env, prefix):
 		"-fno-threadsafe-statics",
 		"-fno-rtti",
 		"-fuse-cxa-atexit",
-		"-Woverloaded-virtual",
-		"-std=c++03"
+		"-Woverloaded-virtual"
+		#"-std=c++03"
 	]
 	
 	env['ASFLAGS'] = [
@@ -53,16 +69,7 @@ def setup_gnu_tools(env, prefix):
 	]
 	
 	linkerscript = ""
-	
 	env.Append(CPPDEFINES = {})
-	
-	
-	env['LINKFLAGS'] = [
-		"-Wl,--gc-sections",
-		"-nostartfiles",
-		"-Wl,-Map=${TARGET.base}.map",
-		linkerscript
-	]
 	
 	if 'DEVICE' in env:
 		device = env['DEVICE']
@@ -72,18 +79,24 @@ def setup_gnu_tools(env, prefix):
 		
 		if 'clock' in device:
 			env.Append(CPPDEFINES = {'F_CPU' : device['clock'] })
-
-		if 'linkerscript' in device and device['linkerscript'] is not None:
-			linkerscript = env.File(device['linkerscript']).srcnode().abspath
+		if 'linkerScript' in device and device['linkerScript'] is not None:
+			linkerscript = env.File(device['linkerScript']).srcnode().abspath
 			linkerscript = '"-T%s"' % linkerscript
 		
 		if 'includes' in device and device['includes'] is not None:
 			env.Append(CPPPATH = device['includes'])
 		
 		if 'startup' in device and device['startup'] is not None:
-			startup = env.Object(device['startup'])
-			env.AlwaysBuild(startup)
-			env.Append(_LIBFLAGS = startup[0].srcnode().abspath)
+			originalProgramBuilder = env['BUILDERS']['Program']
+			env['BUILDERS']['Program'] = programWithStartupBuilder
+			env['OriginalProgramBuilder'] = originalProgramBuilder
+	
+	env['LINKFLAGS'] = [
+		"-Wl,--gc-sections",
+		"-nostartfiles",
+		"-Wl,-Map=${TARGET.base}.map",
+		linkerscript
+	]
 	
 	binBuilder = Builder(
 		action = '$OBJCOPY -O binary --only-section $SECTION_NAME $SOURCE $TARGET', 
@@ -99,7 +112,7 @@ def setup_gnu_tools(env, prefix):
 		'Disassembly': disasmBuilder,
 		'DumpSection': binBuilder})
 	
-	env.AddMethod(print_size, 'Size')
+	env.AddMethod(printSize, 'Size')
 	
 	prettyPrefix = prefix
 	if prettyPrefix.endswith('-'):

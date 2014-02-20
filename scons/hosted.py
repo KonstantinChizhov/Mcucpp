@@ -19,10 +19,12 @@ def builder_unit_test(target, source, env):
 
 	
 def generate(env, **kw):
-	# TODO autodetect
-	env.Tool('mingw')
-	#env.Tool('default')
 	env['ENV'] = os.environ 
+	#if env.Detect('mingw32-gcc'):
+	#	env.Tool('mingw')
+	#else:
+	env.Tool('default')
+	
 	env.Append(CPPPATH = ['#/mcucpp', '#/gtest', '#/mcucpp/Test', '#/./'])
 	
 	if env['CC'] == 'cl':

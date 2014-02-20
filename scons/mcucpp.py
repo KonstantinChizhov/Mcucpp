@@ -107,7 +107,7 @@ devices = {
 		'cpu' : 'attiny26'
 	},
 	
-	'MSP430G2231': 
+	'msp430g2231': 
 	{
 		'arch' : msp430, 
 		'flash' : 2*1024, 'ram' : 128, 'eeprom' : 0,
@@ -115,7 +115,7 @@ devices = {
 		'linkerScript' : None,
 		'clock' : 16000000,
 		'defines' : ['__MSP430_2011__'],
-		'cpu' : 'msp430g2231'
+		'cpu' : 'msp430x2231'
 	},
 	
 	'stm32f100': 

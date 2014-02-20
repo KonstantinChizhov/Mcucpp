@@ -30,7 +30,12 @@
 #ifndef IOPORTS_HPP
 #error "Do not include this file directly. Use ioports.h instead."
 #endif
+
+#include <io.h>
+
+#include <stdint.h>
 #include <ioreg.h>
+#include <static_assert.h>
 
 #ifndef MSP430_PORTS_H
 #define MSP430_PORTS_H
@@ -488,11 +493,41 @@ namespace Mcucpp
 				NullReg<uint8_t>, \
 				NullReg<uint8_t>, \
 				ID> className;
+		
 #if defined(__ICCMSP__) || defined(__ICC430__)
 	#include "port_def_mspiar.h"
 #else
 	#include "port_def_mspgcc.h"
 #endif
+
+#if defined( USE_PORT0)
+	typedef Port0 Porta;
+#endif
+
+#if defined( USE_PORT1)
+	typedef Port1 Portb;
+#endif
+
+#if defined( USE_PORT2)
+	typedef Port2 Portc;
+#endif
+
+#if defined( USE_PORT3)
+	typedef Port3 Portd;
+#endif
+
+#if defined( USE_PORT4)
+	typedef Port4 Porte;
+#endif
+
+#if defined( USE_PORT5)
+	typedef Port5 Portf;
+#endif
+
+#if defined( USE_PORT6)
+	typedef Port6 Portg;
+#endif
+
 	}
 }
 #endif
