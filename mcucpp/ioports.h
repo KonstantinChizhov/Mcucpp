@@ -83,7 +83,7 @@ namespace IO
 		static void SetPinConfiguration(Config)
 		{}
 		template<class Config>
-		static void SetConfiguration(DataT mask, Config)
+		static void SetConfiguration(DataT, Config)
 		{}
 
 		template<DataT mask, Configuration>

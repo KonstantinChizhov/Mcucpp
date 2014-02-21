@@ -250,6 +250,9 @@ namespace Mcucpp
 						Dir::And(DataT(~mask));
 				}
 			}
+			
+			static void Enable() {}
+			static void Disable() {}
 
 			enum{Id = ID};
 		};

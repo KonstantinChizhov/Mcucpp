@@ -28,6 +28,7 @@
 
 #pragma once
 #include <atomic.h>
+#include <__compatibility.h>
 
 namespace Mcucpp
 {

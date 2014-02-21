@@ -1,25 +1,30 @@
 import os
 from SCons.Script import *
 
-def printSize(env, source, alias='size'):
-	action = Action("$SIZE %s" % source[0].path, cmdstr="Used section sizes:")
-	return env.AlwaysBuild(env.Alias(alias, source, action))
 
 def GetEnvId(env):
 	allOptions = env['CFLAGS'] + env['CCFLAGS'] + env['ASFLAGS'] + env['CPPDEFINES'] + env['LINKFLAGS']
 	return abs(hash(str(allOptions)))
 
 
-def programWithStartupBuilder(env, target, source):
-	device = env['DEVICE']
-	id = GetEnvId(env)
+def overrideProgramBuilder(env, target, source):
 	startupObjects = []
-	for startupSrc in device['startup']:
-		objName = '%s_%s' % (os.path.splitext(os.path.basename(startupSrc))[0], id)
-		startupObjects += env.Object(objName, startupSrc)
+	if 'DEVICE' in env:
+		device = env['DEVICE']
+		if 'startup' in device and device['startup'] is not None:
+			id = GetEnvId(env)
+			for startupSrc in device['startup']:
+				objName = '%s_%s' % (os.path.splitext(os.path.basename(startupSrc))[0], id)
+				startupObjects += env.Object(objName, startupSrc)
 	
 	originalProgramBuilder = env['OriginalProgramBuilder']
-	originalProgramBuilder(env, target, source + startupObjects)
+	res = originalProgramBuilder(env, target, source + startupObjects)
+	env.Command(None, res, "$SIZE $SOURCE")
+	if 'Hex' in env['BUILDERS']:
+		env.Hex(res)
+	env.Disassembly(res)
+	return res
+	
 
 def setup_gnu_tools(env, prefix):
 
@@ -69,6 +74,7 @@ def setup_gnu_tools(env, prefix):
 	]
 	
 	linkerscript = ""
+	startFiles = ""
 	env.Append(CPPDEFINES = {})
 	
 	if 'DEVICE' in env:
@@ -87,15 +93,17 @@ def setup_gnu_tools(env, prefix):
 			env.Append(CPPPATH = device['includes'])
 		
 		if 'startup' in device and device['startup'] is not None:
-			originalProgramBuilder = env['BUILDERS']['Program']
-			env['BUILDERS']['Program'] = programWithStartupBuilder
-			env['OriginalProgramBuilder'] = originalProgramBuilder
+			startFiles = '-nostartfiles'
+		
+	originalProgramBuilder = env['BUILDERS']['Program']
+	env['BUILDERS']['Program'] = overrideProgramBuilder
+	env['OriginalProgramBuilder'] = originalProgramBuilder
 	
 	env['LINKFLAGS'] = [
 		"-Wl,--gc-sections",
-		"-nostartfiles",
 		"-Wl,-Map=${TARGET.base}.map",
-		linkerscript
+		linkerscript,
+		startFiles
 	]
 	
 	binBuilder = Builder(
@@ -111,8 +119,6 @@ def setup_gnu_tools(env, prefix):
 	env.Append(BUILDERS = {
 		'Disassembly': disasmBuilder,
 		'DumpSection': binBuilder})
-	
-	env.AddMethod(printSize, 'Size')
 	
 	prettyPrefix = prefix
 	if prettyPrefix.endswith('-'):

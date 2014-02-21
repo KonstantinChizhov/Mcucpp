@@ -41,47 +41,47 @@
 #define MSP430_PORTS_H
 
 #if defined(__MSP430_HAS_PORT0__) ||  defined(__MSP430_HAS_PORT0_R__)
-#define USE_PORT0
+#define MCUCPP_HAS_PORTA
 #endif
 
 #if defined(__MSP430_HAS_PORT1__)  ||  defined(__MSP430_HAS_PORT1_R__)
-#define USE_PORT1
+#define MCUCPP_HAS_PORTB
 #endif
 
 #if defined(__MSP430_HAS_PORT2__)  ||  defined(__MSP430_HAS_PORT2_R__)
-#define USE_PORT2
+#define MCUCPP_HAS_PORTC
 #endif
 
 #if defined(__MSP430_HAS_PORT3__)  ||  defined(__MSP430_HAS_PORT3_R__)
-#define USE_PORT3
+#define MCUCPP_HAS_PORTD
 #endif
 
 #if defined(__MSP430_HAS_PORT4__)  ||  defined(__MSP430_HAS_PORT4_R__)
-#define USE_PORT4
+#define MCUCPP_HAS_PORTE
 #endif
 
 #if defined(__MSP430_HAS_PORT5__)  ||  defined(__MSP430_HAS_PORT5_R__)
-#define USE_PORT5
+#define MCUCPP_HAS_PORTF
 #endif
 
 #if defined(__MSP430_HAS_PORT6__)  ||  defined(__MSP430_HAS_PORT6_R__)
-#define USE_PORT6
+#define MCUCPP_HAS_PORTG
 #endif
 
 #if defined(__MSP430_HAS_PORT7__)  ||  defined(__MSP430_HAS_PORT7_R__)
-#define USE_PORT7
+#define MCUCPP_HAS_PORTH
 #endif
 
 #if defined(__MSP430_HAS_PORT8__)  ||  defined(__MSP430_HAS_PORT8_R__)
-#define USE_PORT8
+#define MCUCPP_HAS_PORTI
 #endif
 
 #if defined(__MSP430_HAS_PORT9__)  ||  defined(__MSP430_HAS_PORT9_R__)
-#define USE_PORT9
+#define MCUCPP_HAS_PORTJ
 #endif
 
 #if defined(__MSP430_HAS_PORT10__)  ||  defined(__MSP430_HAS_PORT10_R__)
-#define USE_PORT10
+#define MCUCPP_HAS_PORTK
 #endif
 
 
@@ -275,6 +275,9 @@ namespace Mcucpp
 				else
 					Ren::And(DataT(~mask));
 			}
+			
+			static void Enable() {}
+			static void Disable() {}
 
 			enum{Id = ID};
 		};
@@ -500,32 +503,48 @@ namespace Mcucpp
 	#include "port_def_mspgcc.h"
 #endif
 
-#if defined( USE_PORT0)
+#if defined( MCUCPP_HAS_PORTA)
 	typedef Port0 Porta;
 #endif
 
-#if defined( USE_PORT1)
+#if defined( MCUCPP_HAS_PORTB)
 	typedef Port1 Portb;
 #endif
 
-#if defined( USE_PORT2)
+#if defined( MCUCPP_HAS_PORTC)
 	typedef Port2 Portc;
 #endif
 
-#if defined( USE_PORT3)
+#if defined( MCUCPP_HAS_PORTD)
 	typedef Port3 Portd;
 #endif
 
-#if defined( USE_PORT4)
+#if defined( MCUCPP_HAS_PORTE)
 	typedef Port4 Porte;
 #endif
 
-#if defined( USE_PORT5)
+#if defined( MCUCPP_HAS_PORTF)
 	typedef Port5 Portf;
 #endif
 
-#if defined( USE_PORT6)
+#if defined( MCUCPP_HAS_PORTG)
 	typedef Port6 Portg;
+#endif
+
+#if defined( MCUCPP_HAS_PORTH)
+	typedef Port7 Porth;
+#endif
+
+#if defined( MCUCPP_HAS_PORTI)
+	typedef Port8 Porti;
+#endif
+
+#if defined( MCUCPP_HAS_PORTJ)
+	typedef Port9 Portj;
+#endif
+
+#if defined( MCUCPP_HAS_PORTK)
+	typedef Port9 Portk;
 #endif
 
 	}
