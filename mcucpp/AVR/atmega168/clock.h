@@ -27,25 +27,47 @@
 
 #pragma once
 
-#ifndef F_CPU
-#error F_CPU must be defined to proper cpu frequency
+#if !defined(F_OSC) && !defined(F_CPU)
+#warning F_OSC is not defined. Assuming default value 16000000
+#define F_OSC  16000000
 #endif
-namespace Clock
+
+#include <__compatibility.h>
+
+namespace Mcucpp
 {
 	class SysClock
 	{
 	public:
-		static unsigned long FCore()
-		{
-			return F_CPU;
-		}
 		
-		static unsigned long FPeriph()
+		static uint32_t ClockFreq()
 		{
+		#if defined F_CPU
 			return F_CPU;
+		#else
+			uint8_t lowFuse = ReadLowFuse();
+			uint8_t ckSel = 0x0f;
+			uint32_t clock = F_OSC; 
+			
+			switch(ckSel)
+			{
+				case 0x01:
+					clock = 1000000;
+				break;
+				case 0x02:
+					clock =  2000000;
+				break;
+				case 0x03:
+					clock =  4000000;
+				break;
+				case 0x04:
+					clock = 8000000;
+				break;
+			}
+			uint8_t div = CLKPR & 0x0f;
+			return clock >> div;
+		#endif
 		}
-		
-		static const unsigned long CpuFreq = F_CPU;
 	};
 	
 }

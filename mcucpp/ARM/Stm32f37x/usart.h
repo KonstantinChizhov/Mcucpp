@@ -316,4 +316,8 @@ namespace Mcucpp
 		DECLARE_USART(USART1, USART1_IRQn, Clock::Usart1Clock, Usart1, Dma1Channel4);
 		DECLARE_USART(USART2, USART2_IRQn, Clock::Usart2Clock, Usart2, Dma1Channel7);
 		DECLARE_USART(USART3, USART3_IRQn, Clock::Usart3Clock, Usart3, Dma1Channel2);
+		
+		#define MCUCPP_HAS_USART1 1
+		#define MCUCPP_HAS_USART2 1
+		#define MCUCPP_HAS_USART3 1
 }

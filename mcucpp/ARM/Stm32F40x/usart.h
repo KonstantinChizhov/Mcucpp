@@ -369,4 +369,11 @@ namespace Mcucpp
 	typedef Private::Usart<Private::Uart4Regs,  UART4_IRQn,  Clock::Uart4Clock,  Private::Uart4TxPins,  Private::Uart4RxPins,  Dma1Channel4, Dma1Channel2, 4, 4, 8> Uart4;
 	typedef Private::Usart<Private::Uart5Regs,  UART5_IRQn,  Clock::Uart5Clock,  Private::Uart5TxPins,  Private::Uart5RxPins,  Dma2Channel7, Dma2Channel0, 4, 4, 8> Uart5;
 	typedef Private::Usart<Private::Usart6Regs, USART6_IRQn, Clock::Usart6Clock, Private::Usart6TxPins, Private::Usart6RxPins, Dma2Channel7, Dma2Channel2, 5, 5, 8> Usart6;
+	
+	#define MCUCPP_HAS_USART1 1
+	#define MCUCPP_HAS_USART2 1
+	#define MCUCPP_HAS_USART3 1
+	#define MCUCPP_HAS_USART4 1
+	#define MCUCPP_HAS_USART5 1
+	#define MCUCPP_HAS_USART6 1
 }

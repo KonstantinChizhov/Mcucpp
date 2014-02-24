@@ -3,7 +3,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2013
+// Date			: 2014
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification, 
@@ -28,7 +28,6 @@
 //*****************************************************************************
 namespace Mcucpp
 {
-	typedef void (*TransferCallback)(void *data, size_t size);
-	typedef void (*TransferErrorCallback)(void *data, size_t size);
-	
+	typedef bool (*TransferCallback)(void *data, size_t size);
+
 }

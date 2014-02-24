@@ -27,50 +27,44 @@
 
 #pragma once
 
-#include <basic_usart.h>
+#if !defined(F_OSC) && !defined(F_CPU)
+#warning F_OSC is not defined. Assuming default value 16000000
+#define F_OSC  16000000
+#endif
+
+#include <__compatibility.h>
 
 namespace Mcucpp
 {
-	struct Usart0Regs
+	class SysClock
 	{
-		IO_REG_WRAPPER(UDR, Udr, uint8_t);
-		IO_REG_WRAPPER(UCSRA, Ucsra, uint8_t);
-		IO_REG_WRAPPER(UCSRB, Ucsrb, uint8_t);
-		IO_REG_WRAPPER(UCSRC, Ucsrc, uint8_t);
-		IO_REG_WRAPPER(UBRRL, Ubrrl, uint8_t);
-		IO_REG_WRAPPER(UBRRH, Ubrrh, uint8_t);
+	public:
 		
-		enum
+		static uint32_t ClockFreq()
 		{
-			Rxc  = 1 << RXC ,
-			Txc  = 1 << TXC ,
-			Udre = 1 << UDRE,
-			Fe   = 1 << FE  ,
-			Dor  = 1 << DOR ,
-			Upe  = 1 << UPE ,
-			U2x  = 1 << U2X ,
-			Mpcm = 1 << MPCM,
-
-			Rxcie = 1 << RXCIE,
-			Txcie = 1 << TXCIE,
-			Udrie = 1 << UDRIE,
-			Rxen  = 1 << RXEN ,
-			Txen  = 1 << TXEN ,
-			Ucsz2 = 1 << UCSZ2,
-			Rxb8  = 1 << RXB8 ,
-			Txb8  = 1 << TXB8 ,
-
-			Umsel1 = 0,
-			Umsel0 = 1 << UMSEL,
-			Upm1   = 1 << UPM1  ,
-			Upm0   = 1 << UPM0  ,
-			Usbs   = 1 << USBS  ,
-			Ucsz1  = 1 << UCSZ1 ,
-			Ucsz0  = 1 << UCSZ0 ,
-			Ucpol  = 1 << UCPOL
-		};
+		#if defined F_CPU
+			return F_CPU;
+		#else
+			uint8_t lowFuse = ReadLowFuse();
+			uint8_t ckSel = 0x0f;
+			switch(ckSel)
+			{
+				case 0x01:
+					return 1000000;
+				break;
+				case 0x02:
+					return 2000000;
+				break;
+				case 0x03:
+					return 4000000;
+				break;
+				case 0x04:
+					return 8000000;
+				break;
+			}
+			return F_OSC;
+		#endif
+		}
 	};
-
-	typedef BasicUsart<Usart0Regs> Usart1;
-	#define MCUCPP_HAS_USART1 1
+	
 }

@@ -98,7 +98,7 @@ SupportedDevices = {
 	{
 		'arch' : attiny, 
 		'flash' : 2*1024, 'ram' : 128, 'eeprom' : 128,
-		'includes' : avrInc + ['#/mcucpp/AVR/atmega16'],
+		'includes' : avrInc + ['#/mcucpp/AVR/attiny26'],
 		'linkerScript' : None,
 		'clock' : 8000000,
 		'defines' : [],
