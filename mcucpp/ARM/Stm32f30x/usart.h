@@ -115,24 +115,24 @@ namespace Mcucpp
 
 			static void Write(uint8_t c)
 			{
-				while(!TxReady())
+				while(!WriteReady())
 					;
 				Regs()->TDR = c;
 			}
 			
 			static uint8_t Read()
 			{
-				while(!RxReady())
+				while(!ReadReady())
 					;
 				return Regs()->RDR;
 			}
 
-			static bool TxReady()
+			static bool WriteReady()
 			{
 				return (Regs()->ISR & USART_ISR_TXE) != 0;
 			}
 
-			static bool RxReady()
+			static bool ReadReady()
 			{
 				return (Regs()->ISR & USART_ISR_RXNE) != 0;
 			}

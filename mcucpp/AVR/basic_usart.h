@@ -36,7 +36,7 @@
 #include <enum.h>
 #include <clock.h>
 #include <data_transfer.h>
-
+#include <atomic.h>
 
 namespace Mcucpp
 {
@@ -145,45 +145,56 @@ namespace Mcucpp
 
 		static inline void Init(unsigned long baud, UsartMode usartMode = Default)
 		{
+			usartData.txBuffer = 0;
+			usartData.rxBuffer = 0;
+			usartData.txSize = 0;
+			usartData.rxSize = 0;
+			usartData.txCount = 0;
+			usartData.rxCount = 0;
+			usartData.writeCallback = 0;
+			usartData.readCallback = 0;
+		
 			Regs::Ucsrb::Set(0x00); 
 			Regs::Ucsrc::Set((uint8_t)(usartMode >> 8));
 			Regs::Ucsrb::Set((uint8_t)(usartMode));
 			SetBaudRate(baud);
+
 		}
 
-		void EnableInterrupt(InterruptFlags interruptSources = AllInterrupts)
+		static void EnableInterrupt(InterruptFlags interruptSources = AllInterrupts)
 		{
 			Regs::Ucsrb::Or((uint8_t)interruptSources);
 		}
 
-		void DisableInterrupt(InterruptFlags interruptSources = AllInterrupts)
+		static void DisableInterrupt(InterruptFlags interruptSources = AllInterrupts)
 		{
 			Regs::Ucsrb::And((uint8_t)~interruptSources);
 		}
 
 		static void Write(uint8_t c)
 		{
-			while(!TxReady())
+			while(!WriteReady())
 				;
 			Regs::Udr::Set(c);
 		}
 
 		static uint8_t Read()
 		{
-			while(! RxReady())
+			while(! ReadReady())
 				;
 			return Regs::Udr::Get();
 		}
 
-		static bool TxReady()
+		static bool WriteReady()
 		{
 			return (Regs::Ucsra::Get() & Regs::Udre) && 
-				usartData.txBuffer == 0;
+				Atomic::Fetch(&usartData.txSize) == 0;
 		}
 
-		static bool RxReady()
+		static bool ReadReady()
 		{
-			return Regs::Ucsra::Get() & Regs::Rxc;
+			return (Regs::Ucsra::Get() & Regs::Rxc) &&
+				Atomic::Fetch(&usartData.rxSize) == 0;
 		}
 			
 		static InterruptFlags InterruptSource()
@@ -219,18 +230,20 @@ namespace Mcucpp
 			
 		}
 		
-		static void Write(uint8_t *buffer, size_t size, bool async=true)
+		static void Write(void *data, size_t size, bool async=true)
 		{
+			uint8_t *ptr = (uint8_t*)data;
 			if(!async)
 			{
 				while(size--) 
-					Write(*buffer++);
+					Write(*ptr++);
 			}
 			else
 			{
-				Write(*buffer++);
-				usartData.txBuffer = buffer;
+				Write(*ptr++);
+				usartData.txBuffer = ptr;
 				usartData.txSize = size - 1;
+				usartData.rxCount = 0;
 				EnableInterrupt(TxEmptyInt);
 			}
 		}
@@ -238,9 +251,18 @@ namespace Mcucpp
 		static void Read(void *data, size_t size, bool async = false)
 		{
 			uint8_t *ptr = (uint8_t*)data;
-			if(async && size > 1 && false)
+			if(async && size > 1)
 			{
-				// TODO
+				if(ReadReady())
+				{
+					*ptr = Read();
+					ptr++;
+					size--;
+				}
+				usartData.rxBuffer = ptr;
+				usartData.rxSize = size;
+				usartData.rxCount = 0;
+				EnableInterrupt(RxNotEmptyInt);
 			}
 			else
 			{
@@ -251,15 +273,33 @@ namespace Mcucpp
 				}
 			}
 		}
-			
+		
+		static void RxIntHandler()
+		{
+			if(usartData.rxBuffer)
+			{
+				*usartData.txBuffer = Regs::Udr::Get();
+				if(usartData.rxCount >= usartData.rxSize)
+				{
+					usartData.readCallback(usartData.rxBuffer, usartData.rxSize, true);
+					usartData.rxBuffer = 0;
+					usartData.rxSize = 0;
+					DisableInterrupt(RxNotEmptyInt);
+				}
+			}
+		}
+		
 		static void TxIntHandler()
 		{
-			if(*usartData.txBuffer)
+			if(usartData.txBuffer)
 			{
-				Regs::Udr::Set(*usartData.txBuffer++);
-				if(--usartData.txSize == 0)
+				Regs::Udr::Set(usartData.txBuffer[usartData.txCount++]);
+				if(usartData.txCount >= usartData.txSize)
 				{
+					usartData.writeCallback(usartData.txBuffer, usartData.txSize, true);
 					usartData.txBuffer = 0;
+					usartData.txSize = 0;
+					DisableInterrupt(TxEmptyInt);
 				}
 			}
 		}
@@ -270,6 +310,8 @@ namespace Mcucpp
 			uint8_t *rxBuffer;
 			size_t txSize;
 			size_t rxSize;
+			size_t txCount;
+			size_t rxCount;
 			TransferCallback writeCallback;
 			TransferCallback readCallback;
 		};

@@ -120,25 +120,25 @@ namespace Mcucpp
 
 			static void Write(uint8_t c)
 			{
-				while(!TxReady())
+				while(!WriteReady())
 					;
 				Regs()->DR = c;
 			}
 			
 			static uint8_t Read()
 			{
-				while(!RxReady())
+				while(!ReadReady())
 					;
 				return Regs()->DR;
 			}
 
-			static bool TxReady()
+			static bool WriteReady()
 			{
 				bool dmaActive = (Regs()->CR3 & USART_CR3_DMAT) && DmaChannel::Enabled();
 				return (!dmaActive || DmaChannel::TrasferComplete()) && (Regs()->SR & USART_SR_TXE);
 			}
 
-			static bool RxReady()
+			static bool ReadReady()
 			{
 				return Regs()->SR & USART_SR_RXNE;
 			}
@@ -271,7 +271,7 @@ namespace Mcucpp
 			{
 				if(async && size > 1)
 				{
-					while(!TxReady())
+					while(!WriteReady())
 						;
 					DmaChannel::ClearTrasferComplete();
 					Regs()->CR3 |= USART_CR3_DMAT;

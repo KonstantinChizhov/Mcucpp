@@ -28,6 +28,5 @@
 //*****************************************************************************
 namespace Mcucpp
 {
-	typedef bool (*TransferCallback)(void *data, size_t size);
-
+	typedef void (*TransferCallback)(void *data, size_t size, bool success);
 }

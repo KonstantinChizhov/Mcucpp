@@ -100,8 +100,8 @@ namespace Mcucpp
 	public:
 		struct UsartData
 		{
-			bool txReady;
-			bool rxReady;
+			bool WriteReady;
+			bool ReadReady;
 			InterruptFlags interruptFlags;
 			Error error;
 			uint8_t data;
@@ -137,8 +137,8 @@ namespace Mcucpp
 		{
 			usartData.error = NoError;
 			usartData.interruptFlags = NoInterrupt;
-			usartData.txReady = true;
-			usartData.rxReady = true;
+			usartData.WriteReady = true;
+			usartData.ReadReady = true;
 		}
 
 		static void EnableInterrupt(InterruptFlags interruptSources = AllInterrupts)
@@ -162,14 +162,14 @@ namespace Mcucpp
 			return usartData.InFunc();
 		}
 
-		static bool TxReady()
+		static bool WriteReady()
 		{
-			return usartData.txReady;
+			return usartData.WriteReady;
 		}
 
-		static bool RxReady()
+		static bool ReadReady()
 		{
-			return usartData.rxReady;
+			return usartData.ReadReady;
 		}
 			
 		static InterruptFlags InterruptSource()

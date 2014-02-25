@@ -53,7 +53,7 @@ namespace Mcucpp
 		void Write(uint8_t c)
 		{
 			Source::EnableInterrupt(Source::TxEmptyInt);
-			if(Source::TxReady())
+			if(Source::WriteReady())
 			{
 				Source::Write(c);
 			}
@@ -67,7 +67,7 @@ namespace Mcucpp
 		
 		void TxInterruptHandler()
 		{
-			if(!Source::TxReady())
+			if(!Source::WriteReady())
 				return;
 			if(_buffer.empty())
 			{

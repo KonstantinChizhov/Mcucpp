@@ -73,7 +73,7 @@ namespace Mcucpp
 			static uint8_t Read()
 			{
 				uint32_t c = 0;
-				if(!RxReady())
+				if(!ReadReady())
 					return 0;
 				c = Regs()->DR;
 				Regs()->RSR_ECR = 0;
@@ -82,18 +82,18 @@ namespace Mcucpp
 			
 			static bool Write(uint8_t c)
 			{
-				if(!TxReady())
+				if(!WriteReady())
 					return false;
 				Regs()->DR = c;
 				return true;
 			}
 
-			static bool TxReady()
+			static bool WriteReady()
 			{
 				return (Regs()->FR & UART_FR_TXFF) == 0;
 			}
 
-			static bool RxReady()
+			static bool ReadReady()
 			{
 				return (Regs()->FR & UART_FR_RXFE) == 0;
 			}

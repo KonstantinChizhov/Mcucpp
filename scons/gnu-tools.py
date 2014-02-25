@@ -11,11 +11,16 @@ def overrideProgramBuilder(env, target, source):
 	startupObjects = []
 	if 'DEVICE' in env:
 		device = env['DEVICE']
+		id = GetEnvId(env)
 		if 'startup' in device and device['startup'] is not None:
-			id = GetEnvId(env)
 			for startupSrc in device['startup']:
 				objName = '%s_%s' % (os.path.splitext(os.path.basename(startupSrc))[0], id)
 				startupObjects += env.Object(objName, startupSrc)
+		
+		if 'libSources' in device and device['libSources'] is not None:
+			for libSrc in device['libSources']:
+				objName = '%s_%s' % (os.path.splitext(os.path.basename(libSrc))[0], id)
+				startupObjects += env.Object(objName, libSrc)
 	
 	originalProgramBuilder = env['OriginalProgramBuilder']
 	res = originalProgramBuilder(env, target, source + startupObjects)

@@ -144,7 +144,7 @@ extern "C" void ADC_IRQHandler()
 
 extern "C" void USART1_IRQHandler()
 {
-	if(Usart1::RxReady())
+	if(Usart1::ReadReady())
 	{
 		//Usart1::Write(Usart1::Read()+1);
 	}

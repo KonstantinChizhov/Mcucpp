@@ -55,6 +55,7 @@ void Ports()
 	// set all pins in Portb to input
 	Portb::SetConfiguration(0xff, Portb::In);
 	uint8_t value = Portb::Read(); // -> 	uint8_t value = Portb
+	(void)value;
 	// read input register
 	value = Portb::PinRead(); // -> value = PINA;
 
@@ -147,7 +148,7 @@ void PinLists()
 	Group1::SetConfiguration(Group1::In);
 	// read input register
 	uint8_t value = Group1::PinRead(); 
-
+	(void)value;
 	// If you have a constant value to write to group,
 	// use template varsions of writing functions.
 	// They are much faster and smaller, since most of things are evaluated
