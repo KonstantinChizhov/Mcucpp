@@ -15,12 +15,14 @@ def overrideProgramBuilder(env, target, source):
 		if 'startup' in device and device['startup'] is not None:
 			for startupSrc in device['startup']:
 				objName = '%s_%s' % (os.path.splitext(os.path.basename(startupSrc))[0], id)
-				startupObjects += env.Object(objName, startupSrc)
+				formattedStartupSrc = startupSrc % env
+				startupObjects += env.Object(objName, formattedStartupSrc)
 		
 		if 'libSources' in device and device['libSources'] is not None:
 			for libSrc in device['libSources']:
 				objName = '%s_%s' % (os.path.splitext(os.path.basename(libSrc))[0], id)
-				startupObjects += env.Object(objName, libSrc)
+				formattedLibSrc = libSrc % env
+				startupObjects += env.Object(objName, formattedLibSrc)
 	
 	originalProgramBuilder = env['OriginalProgramBuilder']
 	res = originalProgramBuilder(env, target, source + startupObjects)
@@ -91,15 +93,18 @@ def setup_gnu_tools(env, prefix):
 		if 'clock' in device:
 			env.Append(CPPDEFINES = {'F_CPU' : device['clock'] })
 		if 'linkerScript' in device and device['linkerScript'] is not None:
-			linkerscript = env.File(device['linkerScript']).srcnode().abspath
+			formattedLinkerScript = device['linkerScript'] % env
+			linkerscript = env.File(formattedLinkerScript).srcnode().abspath
 			linkerscript = '"-T%s"' % linkerscript
 		
 		if 'includes' in device and device['includes'] is not None:
-			env.Append(CPPPATH = device['includes'])
+			formattedIncludes = [os.path.abspath( include % env) for include in device['includes']]
+			env.Append(CPPPATH = formattedIncludes)
 		
 		if 'startup' in device and device['startup'] is not None:
 			startFiles = '-nostartfiles'
-		
+	
+	
 	originalProgramBuilder = env['BUILDERS']['Program']
 	env['BUILDERS']['Program'] = overrideProgramBuilder
 	env['OriginalProgramBuilder'] = originalProgramBuilder

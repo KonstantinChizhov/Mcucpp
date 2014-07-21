@@ -125,7 +125,7 @@ namespace Mcucpp
 			void KS0108<Cs1, Cs2, Reset, Rw, Di, E, DataBus>::PulseE()
 	{
 		E::Set();
-		Util::delay_us<PulseDelay, SysClock::CpuFreq>();
+		delay_us<PulseDelay, SysClock::CpuFreq>();
 		E::Clear();
 	}
 
@@ -157,7 +157,7 @@ namespace Mcucpp
 		PulseE();
 		Color mask = 1 << (y & 0x07);
 		E::Set();
-		Util::delay_us<PulseDelay, SysClock::CpuFreq>();
+		delay_us<PulseDelay, SysClock::CpuFreq>();
 		Color data = DataBus::PinRead();
 		E::Clear();
 		Rw::Clear();
@@ -189,9 +189,9 @@ namespace Mcucpp
 		ControlBus::template SetConfiguration<0xff, ControlBus::Out>();
 		DataBus::template SetConfiguration<0xff, DataBus::Out>();
 		Reset::Clear();
-		Util::delay_ms<10, SysClock::CpuFreq>();
+		delay_ms<10, SysClock::CpuFreq>();
 		Reset::Set();
-		Util::delay_ms<10, SysClock::CpuFreq>();
+		delay_ms<10, SysClock::CpuFreq>();
 		Controls::template Write<Cs1Bit | Cs2Bit>();
 		Write(DisplayOnCmd);
 		Write(SetAddressCmd);
@@ -272,7 +272,7 @@ namespace Mcucpp
 				data ^= ~mask;
 
 			E::Set();
-			Util::delay_us<PulseDelay, SysClock::CpuFreq>();
+			delay_us<PulseDelay, SysClock::CpuFreq>();
 			uint8_t dest = DataBus::PinRead();
 			if(_mode & OpCopy)
 				data = (dest & mask) | data;
