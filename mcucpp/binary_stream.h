@@ -37,7 +37,6 @@ namespace Mcucpp
 		MixedEndian = 2
 	};
 
-
 	template<class Source>
 	class BinaryStream :public Source
 	{
@@ -110,6 +109,69 @@ namespace Mcucpp
 		}
 	};
 
+	
+	template<class Source>
+	class BinaryStreamAdapter
+	{
+		Source &_source;
+	public:
+		BinaryStreamAdapter(Source &source)
+			:_source(source)
+		{}
+		
+		inline uint8_t Read(){ return _source.Read(); }
+		inline void Write(uint8_t value){ _source.Write(value); }
+		
+		inline uint32_t ReadU32Be();
+		inline uint32_t ReadU32Le();
+		inline uint16_t ReadU16Be();
+		inline uint16_t ReadU16Le();
+		inline uint8_t ReadU8(){ return _source.Read(); }
+
+		inline void WriteU32Be(uint32_t value);
+		inline void WriteU32Le(uint32_t value);
+		inline void WriteU16Be(uint16_t value);
+		inline void WriteU16Le(uint16_t value);
+		inline void WriteU8(uint8_t value){ _source.Write(value); }
+
+		/// Reads and discards specified number of bytes
+		/// Returns last byte read
+		inline uint8_t Ignore(size_t bytes);
+
+		/// Reads and discards specified number of bytes or until 'delim' byte is found
+		/// Returns last byte read
+		inline uint8_t Ignore(size_t bytes, uint8_t delim);
+
+		/// Reads and discards specified number of bytes while read byte is eq to 'value'
+		/// Returns last byte read
+		inline uint8_t IgnoreWhile(size_t bytes, uint8_t value);
+
+		template<class PtrType>
+		inline void Read(PtrType buffer, size_t size)
+		{
+			for(size_t i = 0; i < size; ++i)
+			{
+				*buffer = _source.Read();
+				++buffer;
+			}
+		}
+
+		template<class PtrType>
+		inline void Write(PtrType buffer, size_t size)
+		{
+			for(size_t i = 0; i < size; ++i)
+			{
+				_source.Write(*buffer);
+				++buffer;
+			}
+		}
+		
+		Source *operator->(){return &_source;}
+	};
+	
+	//==========================================================================================
+	// BinaryStream members
+	//==========================================================================================
 	template<class Source>
 	uint32_t BinaryStream<Source>::ReadU32Be()
 	{
@@ -209,6 +271,115 @@ namespace Mcucpp
 		for(size_t i = 0; i < bytes; ++i)
 		{
 			value = Source::Read();
+			if(value != expected)
+				break;
+		}
+		return value;
+	}
+	
+	//==========================================================================================
+	// BinaryStreamAdapter members
+	//==========================================================================================
+	
+	template<class Source>
+	uint32_t BinaryStreamAdapter<Source>::ReadU32Be()
+	{
+		uint32_t result = uint32_t(_source.Read()) << 24;
+		result |= uint32_t(_source.Read()) << 16;
+		result |= uint32_t(_source.Read()) << 8;
+		result |= uint32_t(_source.Read()) ;
+		return result;
+	}
+
+	template<class Source>
+	uint32_t BinaryStreamAdapter<Source>::ReadU32Le()
+	{
+		uint32_t result = uint32_t(_source.Read());
+		result |= uint32_t(_source.Read()) << 8;
+		result |= uint32_t(_source.Read()) << 16;
+		result |= uint32_t(_source.Read()) << 24;
+		return result;
+	}
+
+	template<class Source>
+	uint16_t BinaryStreamAdapter<Source>::ReadU16Be()
+	{
+		uint16_t result = uint16_t(_source.Read()) << 8;
+		result |= uint16_t(_source.Read());
+		return result;
+	}
+
+	template<class Source>
+	uint16_t BinaryStreamAdapter<Source>::ReadU16Le()
+	{
+		uint16_t result = uint16_t(_source.Read());
+		result |= uint16_t(_source.Read()) << 8;
+		return result;
+	}
+
+	template<class Source>
+	void BinaryStreamAdapter<Source>::WriteU32Be(uint32_t value)
+	{
+		_source.Write(uint8_t(value >> 24));
+		_source.Write(uint8_t(value >> 16));
+		_source.Write(uint8_t(value >> 8));
+		_source.Write(uint8_t(value));
+	}
+
+	template<class Source>
+	void BinaryStreamAdapter<Source>::WriteU32Le(uint32_t value)
+	{
+		_source.Write(uint8_t(value));
+		_source.Write(uint8_t(value >> 8));
+		_source.Write(uint8_t(value >> 16));
+		_source.Write(uint8_t(value >> 24));
+	}
+
+	template<class Source>
+	void BinaryStreamAdapter<Source>::WriteU16Be(uint16_t value)
+	{
+		_source.Write(uint8_t(value >> 8));
+		_source.Write(uint8_t(value));
+	}
+
+	template<class Source>
+	void BinaryStreamAdapter<Source>::WriteU16Le(uint16_t value)
+	{
+		_source.Write(uint8_t(value));
+		_source.Write(uint8_t(value >> 8));
+	}
+
+	template<class Source>
+	uint8_t BinaryStreamAdapter<Source>::Ignore(size_t bytes)
+	{
+		uint8_t value = 0;
+		for(size_t i = 0; i < bytes; ++i)
+		{
+			value = _source.Read();
+		}
+		return value;
+	}
+
+	template<class Source>
+	uint8_t BinaryStreamAdapter<Source>::Ignore(size_t bytes, uint8_t delim)
+	{
+		uint8_t value = 0;
+		for(size_t i = 0; i < bytes; ++i)
+		{
+			value = _source.Read();
+			if(value == delim)
+				break;
+		}
+		return value;
+	}
+
+	template<class Source>
+	uint8_t BinaryStreamAdapter<Source>::IgnoreWhile(size_t bytes, uint8_t expected)
+	{
+		uint8_t value = expected;
+		for(size_t i = 0; i < bytes; ++i)
+		{
+			value = _source.Read();
 			if(value != expected)
 				break;
 		}

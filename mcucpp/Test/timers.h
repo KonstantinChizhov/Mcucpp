@@ -24,6 +24,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
+#pragma once
 
 #include <stdint.h>
 #include <template_utils.h>
@@ -50,12 +51,18 @@ namespace Mcucpp
 				ExtRising
 			};
 
+			enum InterruptFlags
+			{
+				OverflowInt = 0,
+				UpdateInt = 0
+			};
+
 			template<unsigned Number> struct Divider
 			{ 
 				static const ClockDivider value = (ClockDivider)Number;
 				enum {Div = Util::Pow<4, Number>::value }; 
 			};
-			enum {MaxDivider = 4};
+			enum {MaxDivider = 5};
 			
 			static void Enable(){  }
 			static void Disable(){  }
@@ -85,19 +92,24 @@ namespace Mcucpp
 				timerData.CurrentDivider = divider;
 			}
 
-			static void EnableInterrupt()
+			static void EnableInterrupt(InterruptFlags interrupt = UpdateInt)
 			{
-
+				
+			}
+			
+			static void DisableInterrupt(InterruptFlags interrupt = UpdateInt)
+			{
+				
 			}
 
-			static bool IsInterrupt()
+			static InterruptFlags IsInterrupt()
 			{
-				return false;
+				return 0;
 			}
-
-			static void ClearInterruptFlag()
+			
+			static void ClearInterruptFlag(InterruptFlags interrupt = UpdateInt)
 			{
-
+				
 			}
 			
 			static void SetAutoReload(DataT value)
@@ -143,5 +155,12 @@ namespace Mcucpp
 		typedef BaseTimer<4> Timer4;
 		typedef BaseTimer<5> Timer5;
 		typedef BaseTimer<6> Timer6;
+		typedef BaseTimer<7> Timer7;
+		typedef BaseTimer<8> Timer8;
+		typedef BaseTimer<9> Timer9;
+		typedef BaseTimer<10> Timer10;
+		typedef BaseTimer<11> Timer11;
+		typedef BaseTimer<12> Timer12;
+		typedef BaseTimer<13> Timer13;
 	} // namespace Timers
 }

@@ -1,7 +1,8 @@
+
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2013
+// Date			: 2014
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification, 
@@ -27,38 +28,29 @@
 
 #pragma once
 
-#ifndef MCUCPP_STATIC_ASSERT
-#define MCUCPP_STATIC_ASSERT
-
-#ifndef CONCAT 
-	#define CONCAT2(First, Second) (First ## Second)
-	#define CONCAT(First, Second) CONCAT2(First, Second)
-#endif 
-
-#if !defined(MCUCPP_UNUSED)
-	#if defined(__GNUC__)
-		#define MCUCPP_UNUSED __attribute__((unused))
-	#else
-		#define MCUCPP_UNUSED 
-	#endif
-#endif 
-
-#ifdef __cplusplus
-
-	#if __cplusplus > 199711L // check for c++11
-		#define STATIC_ASSERT(expr) static_assert((expr), #expr)
-	#else
-	namespace Mcucpp
+namespace Mcucpp
+{
+	// The watchdod stub
+	class Watchdog
 	{
-		template<bool> struct StaticAssertionFailed;
-		template<> struct StaticAssertionFailed<true> {};
-		template<int> struct StaticAssertionTest{};
-	}
-		#define STATIC_ASSERT(expr) typedef ::Mcucpp::StaticAssertionTest<sizeof(::Mcucpp::StaticAssertionFailed<(expr)>)> (CONCAT(static_assert_failed_at_line_, __LINE__)) MCUCPP_UNUSED
-	#endif
-
-#else
-	#define STATIC_ASSERT(expr) typedef char CONCAT(static_assert_failed_at_line_, __LINE__) [(expr) ? 1 : -1] MCUCPP_UNUSED
-#endif
-
-#endif
+	public:
+		
+		static void Start(unsigned)
+		{
+		}
+		
+		static void Disable()
+		{
+			
+		}
+		
+		static void Reset()
+		{
+		}
+		
+		static bool ResetBy()
+		{
+			return false;
+		}
+	};
+}

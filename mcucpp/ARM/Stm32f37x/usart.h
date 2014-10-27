@@ -103,6 +103,8 @@ namespace Mcucpp
 		class Usart :public UsartBase
 		{
 		public:
+			typedef DmaChannel Dma;
+			
 			template<unsigned long baud>
 			static inline void Init(UsartMode usartMode = Default)
 			{
@@ -138,8 +140,12 @@ namespace Mcucpp
 
 			static bool WriteReady()
 			{
-				bool dmaActive = (Regs()->CR3 & USART_CR3_DMAT) && DmaChannel::Enabled();
-				return (!dmaActive || DmaChannel::TrasferComplete()) && ((Regs()->ISR & USART_ISR_TXE) != 0);
+				bool dmaActive = (Regs()->CR3 & USART_CR3_DMAT) && !DmaChannel::Ready();
+				
+				if(dmaActive)
+					return false;
+				
+				return ((Regs()->ISR & USART_ISR_TXE) != 0);
 			}
 
 			static bool ReadReady()
@@ -270,7 +276,7 @@ namespace Mcucpp
 				{
 					while(!WriteReady())
 						;
-					DmaChannel::ClearTrasferComplete();
+					DmaChannel::ClearFlags();
 					Regs()->CR3 |= USART_CR3_DMAT;
 					Regs()->ISR &= ~USART_ISR_TC;
 					DmaChannel::Init(DmaChannel::Mem2Periph | DmaChannel::MemIncriment, data, &Regs()->TDR, size);

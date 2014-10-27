@@ -69,7 +69,7 @@ namespace Mcucpp
 		{
 			if(Util::IsSigned<T>::value)
 			{
-				if(value < 0)
+				if(Util::IsNegative(value))
 				{
 					value = Util::abs(value);
 					*--prefixPtr = trates::Minus();

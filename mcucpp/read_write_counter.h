@@ -31,10 +31,81 @@
 namespace Mcucpp
 {
 
+	class RxTxCount
+	{
+		size_t _readCount;
+		size_t _writeCount;
+	public:
+		RxTxCount()
+		{
+			 Reset();
+		}
+		void IncRx() {_readCount++; }
+
+		void IncTx() {_writeCount++; }
+
+		size_t Read() { return _readCount; }
+		
+		size_t Written() { return _writeCount;}
+		
+		void ResetRead() { _readCount = 0; }
+		
+		void ResetWritten()	{ _writeCount = 0; }
+		
+		void Reset()
+		{
+			_readCount = 0;
+			_writeCount = 0;
+		}
+	} Count;
+	
 	template<class Source>
-	class ReadWriteCounter :public Source
+	class ReadWriteCounterAdapter :public Source
+	{
+		Source &_source;
+	public:
+		ReadWriteCounterAdapter(Source &source)
+			:_source(source)
+		{}
+		
+		uint8_t Read()
+		{
+			uint8_t c = _source.Read();
+			Count.IncRx();
+			return c;
+		}
+		
+		void Write(uint8_t c)
+		{
+			_source.Write(c);
+			Count.IncTx();
+		}
+		
+		RxTxCount Count;
+	};
+	
+	template<class Source>
+	class ReadWriteCounterMixin :public Source
 	{
 	public:
+		template<class T1>
+		ReadWriteCounterMixin(T1 arg1)
+			:Source(arg1)
+		{
+		}
+
+		template<class T1, class T2>
+		ReadWriteCounterMixin(T1 arg1, T2 arg2)
+			:Source(arg1, arg2)
+		{
+		}
+
+		template<class T1, class T2, class T3>
+		ReadWriteCounterMixin(T1 arg1, T2 arg2, T3 arg3)
+			:Source(arg1, arg2, arg3)
+		{
+		}
+		
 		uint8_t Read()
 		{
 			uint8_t c = Source::Read();
@@ -48,32 +119,6 @@ namespace Mcucpp
 			Count.IncTx();
 		}
 		
-		class RxTxCount
-		{
-			size_t _readCount;
-			size_t _writeCount;
-		public:
-			RxTxCount()
-			{
-				 Reset();
-			}
-			void IncRx() {_readCount++; }
-
-			void IncTx() {_writeCount++; }
-
-			size_t Read() { return _readCount; }
-			
-			size_t Written() { return _writeCount;	}
-			
-			void ResetRead() { _readCount = 0; }
-			
-			void ResetWritten()	{ _writeCount = 0; }
-			
-			void Reset()
-			{
-				_readCount = 0;
-				_writeCount = 0;
-			}
-		} Count;
+		RxTxCount Count;
 	};
 }

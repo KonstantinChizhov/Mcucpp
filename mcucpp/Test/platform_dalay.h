@@ -34,10 +34,8 @@ enum
 	PlatformCyslesPerDelayLoop16 = 1,
 	PlatformCyslesPerDelayLoop8 = 1
 };
-extern "C"
-{
-	__declspec(dllimport)  void __stdcall Sleep(unsigned long dwMilliseconds);
-}
+
+extern "C" void __stdcall Sleep(unsigned long dwMilliseconds);
 
 inline void PlatformDelayCycle32(uint32_t delayLoops)
 {

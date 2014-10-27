@@ -71,6 +71,11 @@ namespace Mcucpp
 			ChannelRegs()->CCR &= DMA_CCR_EN;
 		}
 		
+		static bool Ready()
+		{
+			return ChannelRegs()->CNDTR == 0 || !Enabled() || TrasferComplete();
+		}
+		
 		static uint32_t RemainingTransfers()
 		{
 			return ChannelRegs()->CNDTR;
@@ -190,7 +195,7 @@ namespace Mcucpp
 		static void ClearChannelFlags()
 		{
 			STATIC_ASSERT(ChannelNum > 0 && ChannelNum < Channels);
-			DmaRegs()->IFCR | (0x0f << (ChannelNum - 1) * 4);
+			DmaRegs()->IFCR |= (0x0f << (ChannelNum - 1) * 4);
 		}
 		
 		template<int ChannelNum>

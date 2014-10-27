@@ -41,22 +41,22 @@ namespace Mcucpp
 			};
 		};
 		
-			template<> struct BaseTimer::Divider <0>  { static const ClockDivider Value = Div1;     enum {Div = 1}; };
-			template<> struct BaseTimer::Divider <1>  { static const ClockDivider Value = Div2;     enum {Div = 2}; };
-			template<> struct BaseTimer::Divider <2>  { static const ClockDivider Value = Div4;     enum {Div = 4}; };
-			template<> struct BaseTimer::Divider <3>  { static const ClockDivider Value = Div8;     enum {Div = 8}; };
-			template<> struct BaseTimer::Divider <4>  { static const ClockDivider Value = Div16;    enum {Div = 16}; };
-			template<> struct BaseTimer::Divider <5>  { static const ClockDivider Value = Div32;    enum {Div = 32}; };
-			template<> struct BaseTimer::Divider <6>  { static const ClockDivider Value = Div64;    enum {Div = 64}; };
-			template<> struct BaseTimer::Divider <7>  { static const ClockDivider Value = Div128;   enum {Div = 128}; };
-			template<> struct BaseTimer::Divider <8>  { static const ClockDivider Value = Div256;   enum {Div = 256}; };
-			template<> struct BaseTimer::Divider <9>  { static const ClockDivider Value = Div512;   enum {Div = 512}; };
-			template<> struct BaseTimer::Divider <10> { static const ClockDivider Value = Div1024;  enum {Div = 1024}; };
-			template<> struct BaseTimer::Divider <11> { static const ClockDivider Value = Div2048;  enum {Div = 2048}; };
-			template<> struct BaseTimer::Divider <12> { static const ClockDivider Value = Div4096;  enum {Div = 40961}; };
-			template<> struct BaseTimer::Divider <13> { static const ClockDivider Value = Div8192;  enum {Div = 8192}; };
-			template<> struct BaseTimer::Divider <14> { static const ClockDivider Value = Div16384; enum {Div = 16384}; };
-			template<> struct BaseTimer::Divider <15> { static const ClockDivider Value = Div32768; enum {Div = 32768}; };
+			template<> struct BaseTimer::Divider <0>  { static const ClockDivider value = Div1;     enum {Div = 1}; };
+			template<> struct BaseTimer::Divider <1>  { static const ClockDivider value = Div2;     enum {Div = 2}; };
+			template<> struct BaseTimer::Divider <2>  { static const ClockDivider value = Div4;     enum {Div = 4}; };
+			template<> struct BaseTimer::Divider <3>  { static const ClockDivider value = Div8;     enum {Div = 8}; };
+			template<> struct BaseTimer::Divider <4>  { static const ClockDivider value = Div16;    enum {Div = 16}; };
+			template<> struct BaseTimer::Divider <5>  { static const ClockDivider value = Div32;    enum {Div = 32}; };
+			template<> struct BaseTimer::Divider <6>  { static const ClockDivider value = Div64;    enum {Div = 64}; };
+			template<> struct BaseTimer::Divider <7>  { static const ClockDivider value = Div128;   enum {Div = 128}; };
+			template<> struct BaseTimer::Divider <8>  { static const ClockDivider value = Div256;   enum {Div = 256}; };
+			template<> struct BaseTimer::Divider <9>  { static const ClockDivider value = Div512;   enum {Div = 512}; };
+			template<> struct BaseTimer::Divider <10> { static const ClockDivider value = Div1024;  enum {Div = 1024}; };
+			template<> struct BaseTimer::Divider <11> { static const ClockDivider value = Div2048;  enum {Div = 2048}; };
+			template<> struct BaseTimer::Divider <12> { static const ClockDivider value = Div4096;  enum {Div = 40961}; };
+			template<> struct BaseTimer::Divider <13> { static const ClockDivider value = Div8192;  enum {Div = 8192}; };
+			template<> struct BaseTimer::Divider <14> { static const ClockDivider value = Div16384; enum {Div = 16384}; };
+			template<> struct BaseTimer::Divider <15> { static const ClockDivider value = Div32768; enum {Div = 32768}; };
 		
 		namespace Private
 		{

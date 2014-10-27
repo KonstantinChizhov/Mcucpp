@@ -23,6 +23,18 @@ namespace Mcucpp
 		static const AdcDivider Div6   = 6;
 		static const AdcDivider Div8   = 8;
 		
+		enum SampleTime
+		{
+			SampleTime_1_5 = 0,
+			SampleTime_7_5 = 1,
+			SampleTime_13_5 = 2,
+			SampleTime_28_5 = 3,
+			SampleTime_41_5 = 4,
+			SampleTime_55_5 = 5,
+			SampleTime_71_5 = 6,
+			SampleTime_239_5 = 7,
+		};
+		
 		static DataT ResolutionBits()
 		{
 			return 12;
@@ -47,7 +59,6 @@ namespace Mcucpp
 			SetVref(ref);
 			SetClockDivider(divider);
 		}
-		
 		
 		static void StartContinuousConversions()
 		{
@@ -99,6 +110,10 @@ namespace Mcucpp
 		static bool SequenceCompleted()
 		{
 			return false;
+		}
+		
+		static void SetSampleTime(SampleTime sampleTime, uint8_t channel = 1)
+		{
 		}
 		
 		static Delegate<uint16_t> DataSource;

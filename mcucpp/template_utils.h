@@ -123,6 +123,21 @@ namespace Mcucpp
 		template<class T> T (min)(T a, T b) {return a > b ? b : a;}
 		template<class T> T (sqr)(T a) {return a*a;}
 
+		template<bool isSigned> struct NegativeHelper
+		{
+			template<class T> static bool IsNegative(T v) {return v < 0;}
+		};
+		
+		template<> struct NegativeHelper<false>
+		{
+			 template<class T> static bool IsNegative(T) {return false;}
+		};
+		
+		template<class T> static inline bool (IsNegative)(T v)
+		{
+			return NegativeHelper<IsSigned<T>::value>::IsNegative(v);
+		}
+
 		template<bool Signed> struct AbsHelper
 		{
 			template<class T> static T Abs(T value){return value >= T(0) ? value : -value;}
@@ -180,7 +195,7 @@ namespace Mcucpp
 			static const uint16_t t2 = ((t1 >> 2) & 0x3333) | ((t1 & 0x3333) << 2);
 			static const uint16_t t3 = ((t2 >> 4) & 0x0F0F) | ((t2 & 0x0F0F) << 4);
 		public:
-			static const uint16_t value = (uint16_t)(t3 >> 8) | (uint16_t)(t3 << 8);
+			static const uint16_t value = uint16_t(t3 >> 8) | uint16_t((t3 << 8) & 0xff00);
 		};
 
 		template<uint8_t arg>
