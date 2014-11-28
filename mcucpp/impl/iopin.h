@@ -39,9 +39,9 @@ namespace Mcucpp
 		void TPin<PORT, PIN, CONFIG_PORT>::Set(bool val)
 		{
 			if(val)
-				PORT::template Set<1 << PIN>();
+				PORT::template Set<1u << PIN>();
 			else
-				PORT::template Clear<1 << PIN>();
+				PORT::template Clear<1u << PIN>();
 		}
 
 		template<class PORT, uint8_t PIN, class CONFIG_PORT>
@@ -61,7 +61,7 @@ namespace Mcucpp
 		template<class PORT, uint8_t PIN, class CONFIG_PORT>
 		void TPin<PORT, PIN, CONFIG_PORT>::Toggle()
 		{
-			PORT::Toggle(1 << PIN);
+			PORT::Toggle(1u << PIN);
 		}
 
 		template<class PORT, uint8_t PIN, class CONFIG_PORT>
@@ -85,31 +85,31 @@ namespace Mcucpp
 		template<class PORT, uint8_t PIN, class CONFIG_PORT>
 		void TPin<PORT, PIN, CONFIG_PORT>::SetDriverType(DriverType driverType)
 		{
-			ConfigPort::SetDriverType(1 << PIN, driverType);
+			ConfigPort::SetDriverType(1u << PIN, driverType);
 		}
 		
 		template<class PORT, uint8_t PIN, class CONFIG_PORT>
 		void TPin<PORT, PIN, CONFIG_PORT>::SetPullUp(PullMode pullMode)
 		{
-			ConfigPort::SetPullUp(1 << PIN, pullMode);
+			ConfigPort::SetPullUp(1u << PIN, pullMode);
 		}
 		
 		template<class PORT, uint8_t PIN, class CONFIG_PORT>
 		void TPin<PORT, PIN, CONFIG_PORT>::SetSpeed(Speed speed)
 		{
-			ConfigPort::SetSpeed(1 << PIN, speed);
+			ConfigPort::SetSpeed(1u << PIN, speed);
 		}
 
 		template<class PORT, uint8_t PIN, class CONFIG_PORT>
 		void TPin<PORT, PIN, CONFIG_PORT>::AltFuncNumber(uint8_t funcNumber)
 		{
-			ConfigPort::AltFuncNumber(1 << PIN, funcNumber);
+			ConfigPort::AltFuncNumber(1u << PIN, funcNumber);
 		}
 
 		template<class PORT, uint8_t PIN, class CONFIG_PORT>
 		bool TPin<PORT, PIN, CONFIG_PORT>::IsSet()
 		{
-			return (PORT::PinRead() & (typename PORT::DataT)(1 << PIN)) != 0;
+			return (PORT::PinRead() & (typename PORT::DataT)(1u << PIN)) != 0;
 		}
 
 		template<class PORT, uint8_t PIN, class CONFIG_PORT>
@@ -128,9 +128,9 @@ namespace Mcucpp
 		void InvertedPin<PORT, PIN, CONFIG_PORT>::Set(bool val)
 		{
 			if(val)
-				PORT::template Clear<1 << PIN>();
+				PORT::template Clear<1u << PIN>();
 			else
-				PORT::template Set<1 << PIN>();
+				PORT::template Set<1u << PIN>();
 		}
 
 		template<class PORT, uint8_t PIN, class CONFIG_PORT>
