@@ -61,6 +61,19 @@ namespace Mcucpp
 			public:
 			typedef uint8_t DataT;
 			enum {MaxValue = 255};
+#if defined(__ATmega64__) || defined(__AVR_ATmega64__)
+			enum ClockDivider
+			{
+				DivStop		= (0<<CS22) | (0<<CS21) | (0<<CS20), 
+				Div1 		= (0<<CS22) | (0<<CS21) | (1<<CS20),
+				Div8 		= (0<<CS22) | (1<<CS21) | (0<<CS20),
+				Div32 		= (0<<CS22) | (1<<CS21) | (1<<CS20),
+				Div64 		= (1<<CS22) | (0<<CS21) | (0<<CS20),
+				Div128 		= (1<<CS22) | (0<<CS21) | (1<<CS20),
+				Div256 		= (1<<CS22) | (1<<CS21) | (0<<CS20),
+				Div1024 	= (1<<CS22) | (1<<CS21) | (1<<CS20)
+			};
+#else
 			enum ClockDivider
 			{
 				DivStop=0, 
@@ -72,6 +85,7 @@ namespace Mcucpp
 				ExtFalling	= (1<<CS02) | (1<<CS01), 
 				ExtRising	= (1<<CS02) | (1<<CS01) | (1<<CS00)
 			};
+#endif
 
 			enum {ClockDividerMask = ~((1<<CS02) | (1<<CS01) | (1<<CS00))};
 

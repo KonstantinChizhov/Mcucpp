@@ -234,12 +234,12 @@ public:
 		Regs::Ucsrb::Set((uint8_t)(usartMode));
 	}
 
-	void EnableInterrupt(InterruptFlags interruptSources = AllInterrupts)
+	static inline void EnableInterrupt(InterruptFlags interruptSources = AllInterrupts)
 	{
 		Regs::Ucsrb::Or((uint8_t)interruptSources);
 	}
 
-	void DisableInterrupt(InterruptFlags interruptSources = AllInterrupts)
+	static inline void DisableInterrupt(InterruptFlags interruptSources = AllInterrupts)
 	{
 		Regs::Ucsrb::And((uint8_t)~interruptSources);
 	}
