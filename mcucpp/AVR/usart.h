@@ -115,7 +115,8 @@ public:
 		OverrunError = 1 << DOR,
 		NoiseError = 0,
 		FramingError = 1 << FE,
-#if defined(__ATmega128__) || defined(__AVR_ATmega128__)
+#if defined(__ATmega128__) || defined(__AVR_ATmega128__) \
+	|| defined(__ATmega64__) || defined(__AVR_ATmega64__)
 		ParityError = 1 << UPE,
 #else
 		ParityError = 1 << PE,
@@ -233,12 +234,12 @@ public:
 		Regs::Ucsrb::Set((uint8_t)(usartMode));
 	}
 
-	void EnableInterrupt(InterruptFlags interruptSources = AllInterrupts)
+	static inline void EnableInterrupt(InterruptFlags interruptSources = AllInterrupts)
 	{
 		Regs::Ucsrb::Or((uint8_t)interruptSources);
 	}
 
-	void DisableInterrupt(InterruptFlags interruptSources = AllInterrupts)
+	static inline void DisableInterrupt(InterruptFlags interruptSources = AllInterrupts)
 	{
 		Regs::Ucsrb::And((uint8_t)~interruptSources);
 	}
@@ -261,6 +262,15 @@ public:
 	{
 		return Regs::Ucsra::template BitIsSet<(UDRE)>() && 
 			usartData.txBuffer == 0;
+	}
+
+	static bool TxDone()
+	{
+		bool isDone = Regs::Ucsra::template BitIsSet<(TXC)>();
+		if(isDone){
+			Regs::Ucsra::Set( 1 << TXC ); // clear TXC flag
+		}
+		return isDone;
 	}
 
 	static bool RxReady()
