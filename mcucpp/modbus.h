@@ -8,9 +8,13 @@
 // Implement this class to work as slave
 class ModbusHandler : public Mcucpp::ModbusHandlerSuperclass
 {
-public:
-	// Define slaveAddr and implemented functions
+	// Define HandleAddr, ReplyAddr and implemented functions
 	static const uint8_t slaveAddr = 42;
+public:
+	// HandleAddr should return true if slave wants to handle request
+	static bool HandleAddr( uint8_t adr ) { return adr == slaveAddr || adr == MB_ADDRESS_BROADCAST; }
+	// ReplyAddr should return true if slave wants to send reply to master. Slave shouldn't answer to broadcast requests.
+	static bool ReplyAddr ( uint8_t adr ) { return adr == slaveAddr; }
 	//static MBExceptionEnum RegInputRead( uint8_t* buf, uint16_t addr, uint8_t nregs );
 	//static MBExceptionEnum RegHoldingRead( uint8_t* buf, uint16_t addr, uint8_t nregs );
 	//static MBExceptionEnum RegHoldingWrite( uint8_t* buf, uint16_t addr, uint8_t nregs );
@@ -79,6 +83,7 @@ namespace Mcucpp
 			MB_SER_PDU_SIZE_MIN  = 4,      // Minimum size of a Modbus RTU frame.
 			MB_SER_PDU_SIZE_MAX  = 256,    // Maximum size of a Modbus RTU frame.
 		};
+		
 		enum{
 			MB_FUNC_NONE                          =  0 ,
 			MB_FUNC_READ_COILS                    =  1 ,
@@ -97,11 +102,13 @@ namespace Mcucpp
 			MB_FUNC_OTHER_REPORT_SLAVEID          = 17 ,
 			MB_FUNC_ERROR                         = 128 ,
 		};
+		
 		enum{ // request/response offsets
 			MB_SER_PDU_ADDR_OFF =  0,      // Offset of slave address in Ser-PDU.
 			MB_PDU_FUNC_OFF     =  1,      // Offset of Modbus-PDU in Ser-PDU.
 			MB_PDU_DATA_OFF     =  2,
 		};
+		
 		enum{
 			MB_PDU_FUNC_RESPONSE_LEN				= MB_PDU_DATA_OFF + 0,
 			MB_PDU_FUNC_RESPONSE_DATA				= MB_PDU_DATA_OFF + 1,
@@ -149,6 +156,15 @@ namespace Mcucpp
 	class ModbusBase : public ModbusConsts
 	{
 	public:
+		enum FsmEnumDecl{
+			FSM_UNINIT,
+			FSM_RECV_WAIT,
+			FSM_RECV_WORK,
+			FSM_RECV_DONE,
+			FSM_SEND,
+		};
+		typedef enum FsmEnumDecl FsmEnum;
+	public:
 		static inline void Init()
 		{
 			Uart::EnableRx();
@@ -157,7 +173,7 @@ namespace Mcucpp
 
 		static void TxHandler()
 		{
-			if( ST_SEND==state ){
+			if( FSM_SEND==state ){
 				if(bufPos<bufLen){
 					Uart::Write(buf[bufPos++]);
 				}else{
@@ -176,14 +192,14 @@ namespace Mcucpp
 		{
 			uint8_t b = Uart::Read();
 			switch(state){
-			case ST_RECV_WAIT:
-				state = ST_RECV_WORK;
+			case FSM_RECV_WAIT:
+				state = FSM_RECV_WORK;
 				// break; not need
-			case ST_RECV_WORK:
+			case FSM_RECV_WORK:
 				Uart::Timer35Restart();
 				if(bufPos < MB_SER_PDU_SIZE_MAX){
 					buf[bufPos++] = b;
-				}
+				}// else error
 				break;
 			default:
 				// error
@@ -193,42 +209,41 @@ namespace Mcucpp
 		
 		static inline void Timer35Fired()
 		{
-			if(ST_RECV_WORK==state){
-				state = ST_RECV_DONE;
+			if(FSM_RECV_WORK==state){
+				state = FSM_RECV_DONE;
 			}// else error
+		}
+		
+		static inline FsmEnum GetState()
+		{
+			return state;
 		}
 		
 	protected:
 		static void StateStartRecv()
 		{
 			bufPos = 0;
-			state = ST_RECV_WAIT;
+			state = FSM_RECV_WAIT;
 		}
 
 		static void StateStartSend()
 		{
-			ModbusBase<Uart>::bufPos = 0;
-			ModbusBase<Uart>::state = ModbusBase<Uart>::ST_SEND;
+			bufPos = 0;
+			state = FSM_SEND;
 			Uart::EnableTx();
 			//Uart::EnableInterrupt(Uart::TxEmptyInt);
 		}
 
 	protected:
-		enum StateEnum{
-			ST_UNINIT,
-			ST_RECV_WAIT,
-			ST_RECV_WORK,
-			ST_RECV_DONE,
-			ST_SEND,
-		};
-		static volatile enum StateEnum state;
+		static volatile FsmEnum state;
 		static volatile unsigned bufPos;
 		static volatile unsigned bufLen;
 		static uint8_t buf[MB_SER_PDU_SIZE_MAX];
 	};
-	template<class Uart>
-	volatile enum ModbusBase<Uart>::StateEnum ModbusBase<Uart>::state = ST_UNINIT;
 
+	template<class Uart>
+	volatile enum ModbusBase<Uart>::FsmEnumDecl ModbusBase<Uart>::state = FSM_UNINIT;
+ 
 	template<class Uart>
 	uint8_t ModbusBase<Uart>::buf[MB_SER_PDU_SIZE_MAX];
 
@@ -245,156 +260,160 @@ namespace Mcucpp
 	template<class Uart, class Handler>
 	class ModbusSlave : public ModbusBase<Uart>
 	{
+		typedef ModbusBase<Uart> Base;
 	public:
 	
 		static inline void Init(){
-			ModbusBase<Uart>::StateStartRecv();
-			ModbusBase<Uart>::Init();
+			Base::StateStartRecv();
+			Base::Init();
 		}
 
 		static inline bool Poll()
 		{
 			// return true if received correct packet for current slave address
-			if( ModbusBase<Uart>::ST_RECV_DONE == ModbusBase<Uart>::state ){
+			if( Base::FSM_RECV_DONE == Base::state ){
 				return ParseAnswer();
 			}else{
 				return false;
 			}
 		}
+		
+		static inline uint8_t Addr()
+		{
+			// return slave address from the request packet
+			return Base::buf[Base::MB_SER_PDU_ADDR_OFF];
+		}
 
 	protected:
 		static bool ParseAnswer()
 		{
-			if	(	ModbusBase<Uart>::bufPos < ModbusConsts::MB_SER_PDU_SIZE_MIN ||
-					( Handler::slaveAddr                 != ModbusBase<Uart>::buf[ModbusConsts::MB_SER_PDU_ADDR_OFF] &&
-					  ModbusConsts::MB_ADDRESS_BROADCAST != ModbusBase<Uart>::buf[ModbusConsts::MB_SER_PDU_ADDR_OFF]
-					) ||
-					ComputeCrc<Crc16ModbusTable>(ModbusBase<Uart>::buf, ModbusBase<Uart>::bufPos) != 0
+			if	(	Base::bufPos < Base::MB_SER_PDU_SIZE_MIN ||
+					!Handler::HandleAddr( Base::buf[Base::MB_SER_PDU_ADDR_OFF] ) ||
+					ComputeCrc<Crc16ModbusTable>(Base::buf, Base::bufPos) != 0
 				)
 			{
 				// wrong gata/address received
-				ModbusBase<Uart>::StateStartRecv();
+				Base::StateStartRecv();
 				return false;
 			}
 			
-			ModbusConsts::MBExceptionEnum ex = ModbusConsts::MB_EX_ILLEGAL_FUNCTION;
+			ModbusConsts::MBExceptionEnum ex = Base::MB_EX_ILLEGAL_FUNCTION;
 			uint16_t regAddr, regCnt;
 			uint8_t anslen=0, func;
-			func = ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_OFF];
-			regAddr =  ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_READ_ADDR_OFF] << 8;
-			regAddr |= ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_READ_ADDR_OFF+1];
-			regCnt =  ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_READ_REGCNT_OFF] << 8;
-			regCnt |= ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_READ_REGCNT_OFF+1];
+			func = Base::buf[Base::MB_PDU_FUNC_OFF];
+			regAddr =  Base::buf[Base::MB_PDU_FUNC_READ_ADDR_OFF] << 8;
+			regAddr |= Base::buf[Base::MB_PDU_FUNC_READ_ADDR_OFF+1];
+			regCnt =  Base::buf[Base::MB_PDU_FUNC_READ_REGCNT_OFF] << 8;
+			regCnt |= Base::buf[Base::MB_PDU_FUNC_READ_REGCNT_OFF+1];
 			switch(func){
-			case ModbusConsts::MB_FUNC_READ_COILS:					// 01 (0x01) Read Coils
-				if( regCnt < 1 || ModbusConsts::MB_PDU_FUNC_READ_COIL_CNT_MAX < regCnt ){
-					ex = ModbusConsts::MB_EX_ILLEGAL_DATA_VALUE;
+			case Base::MB_FUNC_READ_COILS:					// 01 (0x01) Read Coils
+				if( regCnt < 1 || Base::MB_PDU_FUNC_READ_COIL_CNT_MAX < regCnt ){
+					ex = Base::MB_EX_ILLEGAL_DATA_VALUE;
 				}else{
-					ex = Handler::RegCoilsRead( &ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_RESPONSE_DATA], regAddr, regCnt );
+					ex = Handler::RegCoilsRead( &Base::buf[Base::MB_PDU_FUNC_RESPONSE_DATA], regAddr, regCnt );
 					anslen = regCnt>>3;	// regCnt>>3 == regCnt/8
 					if(regCnt & 0x07){
 						anslen++;
 					}
 				}
 				break;
-			case ModbusConsts::MB_FUNC_READ_DISCRETE_INPUTS:		// 02 (0x02) Read Discrete Inputs
-				if( regCnt < 1 || ModbusConsts::MB_PDU_FUNC_READ_COIL_CNT_MAX < regCnt ){
-					ex = ModbusConsts::MB_EX_ILLEGAL_DATA_VALUE;
+			case Base::MB_FUNC_READ_DISCRETE_INPUTS:		// 02 (0x02) Read Discrete Inputs
+				if( regCnt < 1 || Base::MB_PDU_FUNC_READ_COIL_CNT_MAX < regCnt ){
+					ex = Base::MB_EX_ILLEGAL_DATA_VALUE;
 				}else{
-					ex = Handler::RegDiscreteRead( &ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_RESPONSE_DATA], regAddr, regCnt );
+					ex = Handler::RegDiscreteRead( &Base::buf[Base::MB_PDU_FUNC_RESPONSE_DATA], regAddr, regCnt );
 					anslen = regCnt>>3;	// regCnt>>3 == regCnt/8
 					if(regCnt & 0x07){
 						anslen++;
 					}
 				}
 				break;
-			case ModbusConsts::MB_FUNC_READ_HOLDING_REGISTER:		// 03 (0x03) Read Holding Registers
-				if( regCnt < 1 || ModbusConsts::MB_PDU_FUNC_READ_REG_CNT_MAX < regCnt ){
-					ex = ModbusConsts::MB_EX_ILLEGAL_DATA_VALUE;
+			case Base::MB_FUNC_READ_HOLDING_REGISTER:		// 03 (0x03) Read Holding Registers
+				if( regCnt < 1 || Base::MB_PDU_FUNC_READ_REG_CNT_MAX < regCnt ){
+					ex = Base::MB_EX_ILLEGAL_DATA_VALUE;
 				}else{
-					ex = Handler::RegHoldingRead( &ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_RESPONSE_DATA], regAddr, regCnt );
+					ex = Handler::RegHoldingRead( &Base::buf[Base::MB_PDU_FUNC_RESPONSE_DATA], regAddr, regCnt );
 					anslen = regCnt<<1;	// regCnt<<1 == regCnt*2
 				}
 				break;
-			case ModbusConsts::MB_FUNC_READ_INPUT_REGISTER:			// 04 (0x04) Read Input Registers
-				if( regCnt < 1 || ModbusConsts::MB_PDU_FUNC_READ_REG_CNT_MAX < regCnt ){
-					ex = ModbusConsts::MB_EX_ILLEGAL_DATA_VALUE;
+			case Base::MB_FUNC_READ_INPUT_REGISTER:			// 04 (0x04) Read Input Registers
+				if( regCnt < 1 || Base::MB_PDU_FUNC_READ_REG_CNT_MAX < regCnt ){
+					ex = Base::MB_EX_ILLEGAL_DATA_VALUE;
 				}else{
-					ex = Handler::RegInputRead( &ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_RESPONSE_DATA], regAddr, regCnt );
+					ex = Handler::RegInputRead( &Base::buf[Base::MB_PDU_FUNC_RESPONSE_DATA], regAddr, regCnt );
 					anslen = regCnt<<1;	// regCnt<<1 == regCnt*2
 				}
 				break;
-			case ModbusConsts::MB_FUNC_WRITE_SINGLE_COIL:			// 05 (0x05) Write Single Coil
-				ex = Handler::RegCoilsWrite( &ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_WRITE_VALUE_OFF], regAddr, 1 );
+			case Base::MB_FUNC_WRITE_SINGLE_COIL:			// 05 (0x05) Write Single Coil
+				ex = Handler::RegCoilsWrite( &Base::buf[Base::MB_PDU_FUNC_WRITE_VALUE_OFF], regAddr, 1 );
 				break;
-			case ModbusConsts::MB_FUNC_WRITE_REGISTER:				// 06 (0x06) Write Single Register
-				ex = Handler::RegHoldingWrite( &ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_WRITE_VALUE_OFF], regAddr, 1 );
+			case Base::MB_FUNC_WRITE_REGISTER:				// 06 (0x06) Write Single Register
+				ex = Handler::RegHoldingWrite( &Base::buf[Base::MB_PDU_FUNC_WRITE_VALUE_OFF], regAddr, 1 );
 				break;
-			case ModbusConsts::MB_FUNC_WRITE_MULTIPLE_COILS:		// 15 (0x0F) Write Multiple Coils
-				if( regCnt < 1 || ModbusConsts::MB_PDU_FUNC_WRITE_MUL_COIL_CNT_MAX < regCnt ){
-					ex = ModbusConsts::MB_EX_ILLEGAL_DATA_VALUE;
+			case Base::MB_FUNC_WRITE_MULTIPLE_COILS:		// 15 (0x0F) Write Multiple Coils
+				if( regCnt < 1 || Base::MB_PDU_FUNC_WRITE_MUL_COIL_CNT_MAX < regCnt ){
+					ex = Base::MB_EX_ILLEGAL_DATA_VALUE;
 				}else{
-					ex = Handler::RegCoilsWrite( &ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_WRITE_MUL_VALUES_OFF], regAddr, regCnt );
+					ex = Handler::RegCoilsWrite( &Base::buf[Base::MB_PDU_FUNC_WRITE_MUL_VALUES_OFF], regAddr, regCnt );
 				}
 				break;
-			case ModbusConsts::MB_FUNC_WRITE_MULTIPLE_REGISTERS:	// 16 (0x10) Write Multiple registers
-				if( regCnt < 1 || ModbusConsts::MB_PDU_FUNC_WRITE_MUL_REG_CNT_MAX < regCnt ){
-					ex = ModbusConsts::MB_EX_ILLEGAL_DATA_VALUE;
+			case Base::MB_FUNC_WRITE_MULTIPLE_REGISTERS:	// 16 (0x10) Write Multiple registers
+				if( regCnt < 1 || Base::MB_PDU_FUNC_WRITE_MUL_REG_CNT_MAX < regCnt ){
+					ex = Base::MB_EX_ILLEGAL_DATA_VALUE;
 				}else{
-					ex = Handler::RegHoldingWrite( &ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_WRITE_MUL_VALUES_OFF], regAddr, regCnt );
+					ex = Handler::RegHoldingWrite( &Base::buf[Base::MB_PDU_FUNC_WRITE_MUL_VALUES_OFF], regAddr, regCnt );
 				}
 				break;
-			//case ModbusConsts::MB_FUNC_READWRITE_MULTIPLE_REGISTERS:
+			//case Base::MB_FUNC_READWRITE_MULTIPLE_REGISTERS:
 			//default:
-			//	ex=ModbusConsts::MB_EX_ILLEGAL_FUNCTION;
+			//	ex=Base::MB_EX_ILLEGAL_FUNCTION;
 			//	break;
 			}
 			
-			if(ModbusConsts::MB_ADDRESS_BROADCAST == ModbusBase<Uart>::buf[ModbusConsts::MB_SER_PDU_ADDR_OFF]){
-				// No response is returned to broadcast requests
-				ModbusBase<Uart>::StateStartRecv();
+			if( !Handler::ReplyAddr( Base::buf[Base::MB_SER_PDU_ADDR_OFF] ) ){
+				Base::StateStartRecv();
 				return true;
 			}
 			
 			uint16_t crc, len;
-			if(ex!=ModbusConsts::MB_EX_NONE){
-				ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_OFF] = func | ModbusConsts::MB_FUNC_ERROR;
-				ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_DATA_OFF] = ex;
+			if(ex!=Base::MB_EX_NONE){
+				Base::buf[Base::MB_PDU_FUNC_OFF] = func | Base::MB_FUNC_ERROR;
+				Base::buf[Base::MB_PDU_DATA_OFF] = ex;
 				len = 3;
-				crc = ComputeCrc<Crc16ModbusTable>(ModbusBase<Uart>::buf, len);
-				ModbusBase<Uart>::buf[len++] = crc&0xff;
-				ModbusBase<Uart>::buf[len++] = crc>>8;
-				ModbusBase<Uart>::bufLen = len;
+				crc = ComputeCrc<Crc16ModbusTable>(Base::buf, len);
+				Base::buf[len++] = crc&0xff;
+				Base::buf[len++] = crc>>8;
+				Base::bufLen = len;
 			}else{
 				switch(func){
-				case ModbusConsts::MB_FUNC_READ_COILS:						// 01 (0x01) Read Coils
-				case ModbusConsts::MB_FUNC_READ_DISCRETE_INPUTS:			// 02 (0x02) Read Discrete Inputs
-				case ModbusConsts::MB_FUNC_READ_HOLDING_REGISTER:			// 03 (0x03) Read Holding Registers
-				case ModbusConsts::MB_FUNC_READ_INPUT_REGISTER:				// 04 (0x04) Read Input Registers
-				//case ModbusConsts::MB_FUNC_READWRITE_MULTIPLE_REGISTERS:
-					ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_RESPONSE_LEN] = anslen;
-					len = static_cast<uint16_t>(anslen) + ModbusConsts::MB_PDU_FUNC_RESPONSE_DATA;
-					crc = ComputeCrc<Crc16ModbusTable>(ModbusBase<Uart>::buf, len);
-					ModbusBase<Uart>::buf[len++] = crc&0xff;
-					ModbusBase<Uart>::buf[len++] = crc>>8;
-					ModbusBase<Uart>::bufLen = len;
+				case Base::MB_FUNC_READ_COILS:						// 01 (0x01) Read Coils
+				case Base::MB_FUNC_READ_DISCRETE_INPUTS:			// 02 (0x02) Read Discrete Inputs
+				case Base::MB_FUNC_READ_HOLDING_REGISTER:			// 03 (0x03) Read Holding Registers
+				case Base::MB_FUNC_READ_INPUT_REGISTER:				// 04 (0x04) Read Input Registers
+				//case Base::MB_FUNC_READWRITE_MULTIPLE_REGISTERS:
+					Base::buf[Base::MB_PDU_FUNC_RESPONSE_LEN] = anslen;
+					len = static_cast<uint16_t>(anslen) + Base::MB_PDU_FUNC_RESPONSE_DATA;
+					crc = ComputeCrc<Crc16ModbusTable>(Base::buf, len);
+					Base::buf[len++] = crc&0xff;
+					Base::buf[len++] = crc>>8;
+					Base::bufLen = len;
 					break;
-				case ModbusConsts::MB_FUNC_WRITE_SINGLE_COIL:				// 05 (0x05) Write Single Coil
-				case ModbusConsts::MB_FUNC_WRITE_REGISTER:					// 06 (0x06) Write Single Register
-					ModbusBase<Uart>::bufLen = ModbusBase<Uart>::bufPos;
+				case Base::MB_FUNC_WRITE_SINGLE_COIL:				// 05 (0x05) Write Single Coil
+				case Base::MB_FUNC_WRITE_REGISTER:					// 06 (0x06) Write Single Register
+					Base::bufLen = Base::bufPos;
 					break;
-				case ModbusConsts::MB_FUNC_WRITE_MULTIPLE_COILS:			// 15 (0x0F) Write Multiple Coils
-				case ModbusConsts::MB_FUNC_WRITE_MULTIPLE_REGISTERS:		// 16 (0x10) Write Multiple registers
+				case Base::MB_FUNC_WRITE_MULTIPLE_COILS:			// 15 (0x0F) Write Multiple Coils
+				case Base::MB_FUNC_WRITE_MULTIPLE_REGISTERS:		// 16 (0x10) Write Multiple registers
 					len = 6;
-					crc = ComputeCrc<Crc16ModbusTable>(ModbusBase<Uart>::buf, len);
-					ModbusBase<Uart>::buf[len++] = crc&0xff;
-					ModbusBase<Uart>::buf[len++] = crc>>8;
-					ModbusBase<Uart>::bufLen = len;
+					crc = ComputeCrc<Crc16ModbusTable>(Base::buf, len);
+					Base::buf[len++] = crc&0xff;
+					Base::buf[len++] = crc>>8;
+					Base::bufLen = len;
 					break;
 				}
 			}
 
-			ModbusBase<Uart>::StateStartSend();
+			Base::StateStartSend();
 			return true;
 		}
 	};
@@ -405,83 +424,100 @@ namespace Mcucpp
 	template<class Uart>
 	class ModbusMaster : public ModbusBase<Uart>
 	{
+		typedef ModbusBase<Uart> Base;
 	public:
 		typedef enum {
-			ERR_NONE,	// correct data received
-			ERR_MODBUS, // modbus error (MBExceptionEnum) received
-			ERR_DATA,	// invalid data received
-		} ErrTypeEnum;
+			RecvSucc   ,	// Received correct answer
+			Sending    ,	// Request sending
+			RecvWait   ,	// Waiting for answer
+			Recving    ,	// At least 1 byte received
+			ErrUninit  ,	// Modbus class not initialized
+			ErrData    ,	// Invalid data received
+			ErrModbus  ,	// Received correct answer with modbus error (MBExceptionEnum)
+			ErrTimeout ,	// Not used here, just for complete enum
+		} StateEnum;
 		
 	public:
 		static inline void Init(){
-			ModbusBase<Uart>::bufPos = 0;
-			ModbusBase<Uart>::state = ModbusBase<Uart>::ST_RECV_DONE;
-			ModbusBase<Uart>::Init();
+			Base::bufPos = 0;
+			Base::state = Base::FSM_RECV_DONE;
+			Base::Init();
 		}
 		
 		static inline void RegInputRead( uint8_t deviceAddr, uint16_t regAddr, uint8_t regCnt ){
-			SomeSingleRW( deviceAddr, regAddr, regCnt, ModbusConsts::MB_FUNC_READ_INPUT_REGISTER );
+			SomeSingleRW( deviceAddr, regAddr, regCnt, Base::MB_FUNC_READ_INPUT_REGISTER );
 		}
 
 		static inline void RegHoldingRead( uint8_t deviceAddr, uint16_t regAddr, uint16_t regCnt ){
-			SomeSingleRW( deviceAddr, regAddr, regCnt, ModbusConsts::MB_FUNC_READ_HOLDING_REGISTER );
+			SomeSingleRW( deviceAddr, regAddr, regCnt, Base::MB_FUNC_READ_HOLDING_REGISTER );
 		}
 		
 		static inline void RegHoldingWrite( uint8_t deviceAddr, uint16_t regAddr, uint16_t regVal ){
-			SomeSingleRW( deviceAddr, regAddr, regVal, ModbusConsts::MB_FUNC_WRITE_REGISTER );
+			SomeSingleRW( deviceAddr, regAddr, regVal, Base::MB_FUNC_WRITE_REGISTER );
 		}
 		
 		static inline void RegDiscreteRead( uint8_t deviceAddr, uint16_t regAddr, uint16_t regCnt ){
-			SomeSingleRW( deviceAddr, regAddr, regCnt, ModbusConsts::MB_FUNC_READ_DISCRETE_INPUTS );
+			SomeSingleRW( deviceAddr, regAddr, regCnt, Base::MB_FUNC_READ_DISCRETE_INPUTS );
 		}
 		
 		static inline void RegCoilsRead( uint8_t deviceAddr, uint16_t regAddr, uint16_t regCnt ){
-			SomeSingleRW( deviceAddr, regAddr, regCnt, ModbusConsts::MB_FUNC_READ_COILS );
+			SomeSingleRW( deviceAddr, regAddr, regCnt, Base::MB_FUNC_READ_COILS );
 		}
 		
 		static inline void RegCoilsWrite( uint8_t deviceAddr, uint16_t regAddr, uint16_t regVal ){
-			SomeSingleRW( deviceAddr, regAddr, regVal, ModbusConsts::MB_FUNC_WRITE_SINGLE_COIL );
+			SomeSingleRW( deviceAddr, regAddr, regVal, Base::MB_FUNC_WRITE_SINGLE_COIL );
 		}
 		
 		
 		// Use this function to put data into buffer, before RegHoldingWriteMultiple or RegCoilsWriteMultiple call
 		static inline uint8_t* RegWriteMultiplePrepare(){
-			return &ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_WRITE_MUL_VALUES_OFF];
+			return &Base::buf[Base::MB_PDU_FUNC_WRITE_MUL_VALUES_OFF];
 		}
 
 		static inline void RegHoldingWriteMultiple( uint8_t deviceAddr, uint16_t regAddr, uint16_t regCnt ){
-			SomeMultipleRW( deviceAddr, regAddr, regCnt, regCnt<<1, ModbusConsts::MB_FUNC_WRITE_MULTIPLE_REGISTERS );
+			SomeMultipleRW( deviceAddr, regAddr, regCnt, regCnt<<1, Base::MB_FUNC_WRITE_MULTIPLE_REGISTERS );
 		}
 
 		static inline void RegCoilsWriteMultiple( uint8_t deviceAddr, uint16_t regAddr, uint16_t regCnt ){
-			SomeMultipleRW( deviceAddr, regAddr, regCnt, regCnt>>3, ModbusConsts::MB_FUNC_WRITE_MULTIPLE_COILS );
+			SomeMultipleRW( deviceAddr, regAddr, regCnt, regCnt>>3, Base::MB_FUNC_WRITE_MULTIPLE_COILS );
 		}
 
-		// return true if some data received from slave
-		static inline bool DataReceived(){
-			return ModbusBase<Uart>::ST_RECV_DONE == ModbusBase<Uart>::state;
-		}
-		
-		static ErrTypeEnum CheckErrors(){
-			if( 	ModbusBase<Uart>::bufPos < ModbusConsts::MB_SER_PDU_SIZE_MIN 
-					|| reqAddr != ModbusBase<Uart>::buf[ModbusConsts::MB_SER_PDU_ADDR_OFF]
-					|| reqFunc != ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_OFF]
-					|| ComputeCrc<Crc16ModbusTable>(ModbusBase<Uart>::buf, ModbusBase<Uart>::bufPos) != 0 )
-			{
-				return ERR_DATA;
-			}else if( ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_OFF] >= ModbusConsts::MB_FUNC_ERROR ){
-				return ERR_MODBUS;
-			}else{
-				return ERR_NONE;
+		static StateEnum CheckState(){
+			switch( Base::state ){
+			case Base::FSM_UNINIT:
+				return ErrUninit;
+			case Base::FSM_SEND:
+				return Sending;
+			case Base::FSM_RECV_WAIT:
+				return RecvWait;
+			case Base::FSM_RECV_WORK:
+				if(Base::bufPos < Base::MB_SER_PDU_SIZE_MAX){
+					return Recving;
+				}else{
+					return ErrData;
+				}
+			case Base::FSM_RECV_DONE:
+				if( 	Base::bufPos < Base::MB_SER_PDU_SIZE_MIN 
+						|| reqAddr != Base::buf[Base::MB_SER_PDU_ADDR_OFF]
+						|| reqFunc != (Base::buf[Base::MB_PDU_FUNC_OFF] & ~Base::MB_FUNC_ERROR)
+						|| ComputeCrc<Crc16ModbusTable>(Base::buf, Base::bufPos) != 0 )
+				{
+					return ErrData;
+				}else if( Base::buf[Base::MB_PDU_FUNC_OFF] >= Base::MB_FUNC_ERROR ){
+					return ErrModbus;
+				}else{
+					return RecvSucc;
+				}
 			}
+			return ErrUninit;
 		}
 		
 		static ModbusConsts::MBExceptionEnum GetModbusErr(){
-			return static_cast<ModbusConsts::MBExceptionEnum>(ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_DATA_OFF]);
+			return static_cast<ModbusConsts::MBExceptionEnum>(Base::buf[Base::MB_PDU_DATA_OFF]);
 		}
 
 		static uint8_t* ReceivedDataGet(){
-			return &ModbusBase<Uart>::buf[ModbusConsts::MB_PDU_FUNC_RESPONSE_DATA];
+			return &Base::buf[Base::MB_PDU_FUNC_RESPONSE_DATA];
 		}
 		
 
@@ -498,17 +534,17 @@ namespace Mcucpp
 			reqAddr = deviceAddr;
 			reqFunc = func;
 			unsigned len = 0;
-			ModbusBase<Uart>::buf[len++] = deviceAddr;
-			ModbusBase<Uart>::buf[len++] = func;
-			ModbusBase<Uart>::buf[len++] = regAddr>>8;
-			ModbusBase<Uart>::buf[len++] = regAddr&0xff;
-			ModbusBase<Uart>::buf[len++] = regCntOrVal>>8;
-			ModbusBase<Uart>::buf[len++] = regCntOrVal&0xff;
-			uint16_t crc = ComputeCrc<Crc16ModbusTable>(ModbusBase<Uart>::buf, len);
-			ModbusBase<Uart>::buf[len++] = crc&0xff;
-			ModbusBase<Uart>::buf[len++] = crc>>8;
-			ModbusBase<Uart>::bufLen = len;
-			ModbusBase<Uart>::StateStartSend();
+			Base::buf[len++] = deviceAddr;
+			Base::buf[len++] = func;
+			Base::buf[len++] = regAddr>>8;
+			Base::buf[len++] = regAddr&0xff;
+			Base::buf[len++] = regCntOrVal>>8;
+			Base::buf[len++] = regCntOrVal&0xff;
+			uint16_t crc = ComputeCrc<Crc16ModbusTable>(Base::buf, len);
+			Base::buf[len++] = crc&0xff;
+			Base::buf[len++] = crc>>8;
+			Base::bufLen = len;
+			Base::StateStartSend();
 		}
 		// similar functions batch:
 		// 15 (0x0F) Write Multiple Coils
@@ -517,19 +553,19 @@ namespace Mcucpp
 			reqAddr = deviceAddr;
 			reqFunc = func;
 			unsigned len = 0;
-			ModbusBase<Uart>::buf[len++] = deviceAddr;
-			ModbusBase<Uart>::buf[len++] = func;
-			ModbusBase<Uart>::buf[len++] = regAddr>>8;
-			ModbusBase<Uart>::buf[len++] = regAddr&0xff;
-			ModbusBase<Uart>::buf[len++] = regCnt>>8;
-			ModbusBase<Uart>::buf[len++] = regCnt&0xff;
-			ModbusBase<Uart>::buf[len++] = byteCnt;
+			Base::buf[len++] = deviceAddr;
+			Base::buf[len++] = func;
+			Base::buf[len++] = regAddr>>8;
+			Base::buf[len++] = regAddr&0xff;
+			Base::buf[len++] = regCnt>>8;
+			Base::buf[len++] = regCnt&0xff;
+			Base::buf[len++] = byteCnt;
 			len += byteCnt;
-			uint16_t crc = ComputeCrc<Crc16ModbusTable>(ModbusBase<Uart>::buf, len);
-			ModbusBase<Uart>::buf[len++] = crc&0xff;
-			ModbusBase<Uart>::buf[len++] = crc>>8;
-			ModbusBase<Uart>::bufLen = len;
-			ModbusBase<Uart>::StateStartSend();
+			uint16_t crc = ComputeCrc<Crc16ModbusTable>(Base::buf, len);
+			Base::buf[len++] = crc&0xff;
+			Base::buf[len++] = crc>>8;
+			Base::bufLen = len;
+			Base::StateStartSend();
 		}
 		
 	protected:
