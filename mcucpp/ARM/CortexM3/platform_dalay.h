@@ -1,8 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-#if defined(__arm__)
-
+#if defined(__GNUC__)	// gcc compiler
 inline void DelayLoop(uint32_t delayLoops)
 {
 	__asm__ __volatile__
@@ -18,12 +17,12 @@ inline void DelayLoop(uint32_t delayLoops)
 
 enum
 {	
-	PlatformCyslesPerDelayLoop32 = 3,
-	PlatformCyslesPerDelayLoop16 = 3,
-	PlatformCyslesPerDelayLoop8 = 3
+	PlatformCyslesPerDelayLoop32 = 4,
+	PlatformCyslesPerDelayLoop16 = 4,
+	PlatformCyslesPerDelayLoop8 = 4
 };
 
-#elif defined(__ICCARM__)
+#elif defined(__ICCARM__)	// IAR compiler
 #include <intrinsics.h>
 
 inline void DelayLoop(uint32_t delayLoops)
@@ -34,6 +33,22 @@ inline void DelayLoop(uint32_t delayLoops)
 	 // __no_operation();
 	}while(delayLoops--);
 }	
+enum
+{	
+	PlatformCyslesPerDelayLoop32 = 4,
+	PlatformCyslesPerDelayLoop16 = 4,
+	PlatformCyslesPerDelayLoop8 = 4
+};
+
+#elif defined ( __CC_ARM   ) // ARM (RealView) compiler
+inline void DelayLoop(uint32_t delayLoops)
+{
+	__asm{
+		start:
+		SUBS     delayLoops,delayLoops,#1	// 1
+		BCS      start						// 1+2
+	}
+}
 enum
 {	
 	PlatformCyslesPerDelayLoop32 = 4,

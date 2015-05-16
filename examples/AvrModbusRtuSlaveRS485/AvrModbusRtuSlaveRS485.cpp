@@ -15,9 +15,14 @@ typedef PinList<Pe1,UartTxEn> UartOutPins;
 
 class ModbusHandler : public Mcucpp::ModbusHandlerSuperclass
 {
-public:
 	// Define slaveAddr and implemented functions
 	static uint8_t slaveAddr;
+public:
+	// HandleAddr should return true if slave wants to handle request
+	static bool HandleAddr( uint8_t adr ) { return adr == slaveAddr || adr == MB_ADDRESS_BROADCAST; }
+	// ReplyAddr should return true if slave wants to send reply to master. Slave shouldn't answer to broadcast requests.
+	static bool ReplyAddr ( uint8_t adr ) { return adr == slaveAddr; }
+
 	//static MBExceptionEnum RegInputRead( uint8_t* buf, uint16_t addr, uint8_t nregs );
 	static MBExceptionEnum RegHoldingRead( uint8_t* buf, uint16_t addr, uint8_t nregs );
 	static MBExceptionEnum RegHoldingWrite( uint8_t* buf, uint16_t addr, uint8_t nregs );

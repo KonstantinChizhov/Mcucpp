@@ -29,7 +29,6 @@
 
 // platform specific delay loop implementation
 #include <platform_dalay.h>
-#include <clock.h>
 
 namespace Mcucpp
 {
