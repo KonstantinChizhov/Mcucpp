@@ -324,7 +324,7 @@ namespace IO
 		template <class Head, class Tail>
 		struct GetInversionMask< Typelist<Head, Tail> >
 		{
-			enum{value = (Head::Pin::Inverted ? (1u << Head::Pin::Number) : 0) | GetInversionMask<Tail>::value};
+			enum{value = (Head::Pin::Inverted ? (1ul << Head::Pin::Number) : 0) | GetInversionMask<Tail>::value};
 		};
 ////////////////////////////////////////////////////////////////////////////////
 // class template GetPortMask
@@ -342,7 +342,7 @@ namespace IO
 		template <class Head, class Tail>
 		struct GetPortMask< Typelist<Head, Tail> >
 		{
-			enum{value = (1u << Head::Pin::Number) | GetPortMask<Tail>::value};
+			enum{value = (1ul << Head::Pin::Number) | GetPortMask<Tail>::value};
 		};
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -361,7 +361,7 @@ namespace IO
 		template <class Head, class Tail>
 		struct GetValueMask< Typelist<Head, Tail> >
 		{
-			enum{value = (1u << Head::Position) | GetValueMask<Tail>::value};
+			enum{value = (1ul << Head::Position) | GetValueMask<Tail>::value};
 		};
 ////////////////////////////////////////////////////////////////////////////////
 // class template GetSerialCount
@@ -498,13 +498,13 @@ namespace IO
 
 				if(Head::Pin::Inverted == false)
 				{
-					if(value & (1u << Head::Position))
-						result |= (1u << Head::Pin::Number);
+					if(value & (1ul << Head::Position))
+						result |= (1ul << Head::Pin::Number);
 				}
 				else
 				{
-					if(!(value & (1u << Head::Position)))
-						result |= (1u << Head::Pin::Number);
+					if(!(value & (1ul << Head::Position)))
+						result |= (1ul << Head::Pin::Number);
 				}
 
 				return PinWriteIterator<Tail>::AppendValue(value, result);
@@ -546,13 +546,13 @@ namespace IO
 
 				if(Head::Pin::Inverted)
 				{
-					if(!(portValue & (1u << Head::Pin::Number)))
-						result |= (1u << Head::Position);
+					if(!(portValue & (1ul << Head::Pin::Number)))
+						result |= (1ul << Head::Position);
 
 				}else
 				{
-					if(portValue & (1u << Head::Pin::Number))
-						result |= (1u << Head::Position);
+					if(portValue & (1ul << Head::Pin::Number))
+						result |= (1ul << Head::Position);
 				}
 
 
@@ -573,8 +573,8 @@ namespace IO
 		template <class Head, class Tail, class DataType, DataType value>
 		struct PinConstWriteIterator< Typelist<Head, Tail>, DataType, value>
 		{
-			static const DataType PortValue = (value & (1u << Head::Position) ?
-					(1u << Head::Pin::Number) : 0) |
+			static const DataType PortValue = (value & (1ul << Head::Position) ?
+					(1ul << Head::Pin::Number) : 0) |
 					PinConstWriteIterator<Tail, DataType, value>::PortValue;
 		};
 ////////////////////////////////////////////////////////////////////////////////
