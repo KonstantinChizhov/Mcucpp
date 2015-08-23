@@ -4,8 +4,10 @@ from SCons.Script import *
 def generate(env, **kw):
 	if env.Detect('msp430-gcc'): 
 		env['TOOL_PREFIX'] = 'msp430-'
+	elif env.Detect('msp430-elf-gcc'):
+		env['TOOL_PREFIX'] = 'msp430-elf-'
 	else:
-		raise Exception('Unable to find build tools "msp430-gcc" ')
+		raise Exception('Unable to find build tools neither "msp430-gcc" nor "msp430-elf-gcc"')
 	
 	env.Tool('gnu-tools')
 	

@@ -23,3 +23,4 @@ tests = [\
 tests_objects = testEnv.Object(tests + g_test_sources)
 mcucpp_tests = testEnv.Program('mcucpp_tests', tests_objects)
 test_result = testEnv.Test('mcucpp_test_result', mcucpp_tests)
+testEnv.Alias("UnitTests", test_result)
