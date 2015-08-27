@@ -1,8 +1,7 @@
 
 
-SConscript('gtest/SConscript')
 SConscript('tests/UnitTests/SConscript')
-SConscript('examples/SConscript')
-SConscript('tests/Stm32F40x/SConscript')
+#SConscript('examples/SConscript')
+#SConscript('tests/Stm32F40x/SConscript')
 
-SConscript('tests/PeriphTests/SConscript')
+#SConscript('tests/PeriphTests/SConscript')

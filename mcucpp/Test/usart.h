@@ -167,7 +167,7 @@ namespace Mcucpp
 			return usartData.txReady;
 		}
 
-		static bool ReasReady()
+		static bool ReadReady()
 		{
 			return usartData.rxReady;
 		}

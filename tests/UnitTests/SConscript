@@ -1,7 +1,6 @@
 
-Import('testEnv')
+testEnv = Environment(toolpath = ['#/scons'], tools=['mcucpp'])
 
-g_test_sources = testEnv['g_test_sources']
 tests = [\
 	'7Segments.cpp', 
 	'BinaryStream.cpp',
@@ -20,7 +19,5 @@ tests = [\
 	'saturated.cpp'
 	]
 
-tests_objects = testEnv.Object(tests + g_test_sources)
-mcucpp_tests = testEnv.Program('mcucpp_tests', tests_objects)
-test_result = testEnv.Test('mcucpp_test_result', mcucpp_tests)
+test_result = testEnv.Test('mcucpp_test_result', tests)
 testEnv.Alias("UnitTests", test_result)
