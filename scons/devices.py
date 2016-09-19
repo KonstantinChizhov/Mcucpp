@@ -29,18 +29,18 @@ msp430 = {
 	'HAS_FPU'    : 0
 }
 
-cotrexm3 = {
+stm32 = {
 	'name' : 'Arm-CortexM3',
-	'tools' : ['arm-eabi-gcc'],
+	'tools' : ['stm32'],
 	'REG_WIDTH'  : 32,
 	'HAS_HW_MUL' : 32,
 	'HAS_HW_DIV' : 32,
 	'HAS_FPU'    : 0
 }
 
-cotrexm4 = {
+stm32 = {
 	'name' : 'Arm-CortexM4',
-	'tools' : ['arm-eabi-gcc'],
+	'tools' : ['stm32'],
 	'REG_WIDTH'  : 32,
 	'HAS_HW_MUL' : 32,
 	'HAS_HW_DIV' : 32,
@@ -137,7 +137,7 @@ SupportedDevices = {
 	'stm32f100': 
 	{
 		'manufacturer' : 'ST',
-		'arch' : cotrexm3,
+		'arch' : stm32,
 		'flash' : 128*1024, 'ram' : 8*1024, 'eeprom' : 0,
 		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/CortexM3', '%(MCUCPP_HOME)s/mcucpp/ARM/Stm32f100' ],
 		'linkerScript' : '%(MCUCPP_HOME)s/linker_scripts/stm32_100xB.ld',
@@ -150,7 +150,7 @@ SupportedDevices = {
 	'stm32f407': 
 	{
 		'manufacturer' : 'ST',
-		'arch' : cotrexm4,
+		'arch' : stm32,
 		'flash' : 1024*1024, 'ram' : 112*1024, 'eeprom' : 0,
 		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/CortexM4', '%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x' ],
 		'libSources' : ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x/src/dma.cpp'],
