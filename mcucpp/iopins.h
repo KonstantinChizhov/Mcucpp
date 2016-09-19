@@ -177,7 +177,11 @@ namespace IO
 	#ifdef MCUCPP_HAS_PORTH
 	DECLARE_PORT_PINS(Porth, Ph)
 	#endif
-
+	
+	#ifdef MCUCPP_HAS_PORTI
+	DECLARE_PORT_PINS(Porti, Pi)
+	#endif
+	
 	#ifdef MCUCPP_HAS_PORTJ
 	DECLARE_PORT_PINS(Portj, Pj)
 	#endif
