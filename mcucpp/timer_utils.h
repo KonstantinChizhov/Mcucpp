@@ -85,10 +85,11 @@ namespace Mcucpp
 			static const typename Timer::ClockDivider divider = DivSelector::Result::value;
 			static const unsigned dividerValue = DivSelector::Result::Div;
 			static const typename Timer::DataT reloadValue = ReloadValueHolder::value;
+			static const typename Timer::DataT ticks = ReloadValueHolder::ticks;
+			
 			static const unsigned long realFreq = ReloadValueHolder::realFreq;
 			static const unsigned long tickFreq = Fcpu / dividerValue;
 			static const unsigned long error = ReloadValueHolder::error;
 		};
-
 	}
 }

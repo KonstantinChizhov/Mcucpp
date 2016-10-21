@@ -91,7 +91,7 @@ namespace Mcucpp
 
 		static inline void SetBaudRate(unsigned long baund)
 		{
-			uint32_t clock = SysClock::ClockFreq();
+			uint32_t clock = Clock::SysClock::ClockFreq();
 			unsigned int ubrr = (clock/16/baund-1);
 			unsigned int ubrr2x =	(clock/8/baund-1);
 			unsigned long rbaund = (clock/16/(ubrr+1));	
@@ -227,7 +227,8 @@ namespace Mcucpp
 		
 		static void SelectTxRxPins(uint8_t TxPinNumber, uint8_t RxPinNumber)
 		{
-			
+			(void)TxPinNumber;
+			(void)RxPinNumber;
 		}
 		
 		static void Write(void *data, size_t size, bool async=true)

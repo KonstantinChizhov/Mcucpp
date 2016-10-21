@@ -26,6 +26,7 @@
 //*****************************************************************************
 
 #pragma once
+#include <stdint.h>
 
 namespace Mcucpp
 {
@@ -34,18 +35,28 @@ namespace Mcucpp
 		class SysClock
 		{
 		public:
-			static unsigned long FCore()
+			enum ClockSource
 			{
-				return CpuFreq;
-			}
+				Internal = 0,
+				External = 1
+			};
 			
-			static unsigned long FPeriph()
+			enum ErrorCode
 			{
-				return CpuFreq;
-			}
+				Success = 0,
+				ClockSourceFailed = 1,
+				InvalidClockSource = 2,
+				ClockSelectFailed = 3
+			};
 			
-			static const unsigned long CpuFreq = 10000000;
+		public:
+			static uint32_t MaxFreq() {return 2000000000u;}
+			static inline ErrorCode SelectClockSource(ClockSource /*clockSource*/){return Success;}
+			static inline uint32_t SetClockFreq(uint32_t freq){CpuFreq = freq; return CpuFreq;}
+			static inline uint32_t ClockFreq(){return CpuFreq;}
+			static inline uint32_t SrcClockFreq(){return CpuFreq;}
+			
+			static uint32_t CpuFreq;
 		};
-		
 	}
 }

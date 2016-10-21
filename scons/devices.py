@@ -38,7 +38,7 @@ stm32 = {
 	'HAS_FPU'    : 0
 }
 
-stm32 = {
+stm32m4 = {
 	'name' : 'Arm-CortexM4',
 	'tools' : ['stm32'],
 	'REG_WIDTH'  : 32,
@@ -57,7 +57,7 @@ SupportedDevices = {
 		'includes' : avrInc + ['%(MCUCPP_HOME)s/mcucpp/AVR/atmega8'],
 		'libSources' : ['%(MCUCPP_HOME)s/mcucpp/AVR/src/usart.cpp'],
 		'linkerScript' : None,
-		'clock' : 16000000,
+		'clock' : 8000000,
 		'defines' : [],
 		'cpu' : 'atmega8'
 	},
@@ -139,7 +139,7 @@ SupportedDevices = {
 		'manufacturer' : 'ST',
 		'arch' : stm32,
 		'flash' : 128*1024, 'ram' : 8*1024, 'eeprom' : 0,
-		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/CortexM3', '%(MCUCPP_HOME)s/mcucpp/ARM/Stm32f100' ],
+		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/CortexM3', '%(MCUCPP_HOME)s/mcucpp/ARM/Stm32f100', '%(MCUCPP_HOME)s/startup' ],
 		'linkerScript' : '%(MCUCPP_HOME)s/linker_scripts/stm32_100xB.ld',
 		'clock' : 24000000,
 		'defines' : ['STM32F10X_MD_VL', 'F_OSC=8000000u'],
@@ -150,9 +150,9 @@ SupportedDevices = {
 	'stm32f407': 
 	{
 		'manufacturer' : 'ST',
-		'arch' : stm32,
+		'arch' : stm32m4,
 		'flash' : 1024*1024, 'ram' : 112*1024, 'eeprom' : 0,
-		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/CortexM4', '%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x' ],
+		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/CortexM4', '%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x', '%(MCUCPP_HOME)s/startup' ],
 		'libSources' : ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x/src/dma.cpp'],
 		'linkerScript' : '%(MCUCPP_HOME)s/linker_scripts/stm32_40x.ld',
 		'clock' : 168000000,

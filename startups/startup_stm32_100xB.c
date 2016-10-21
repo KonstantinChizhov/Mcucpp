@@ -55,6 +55,7 @@ void (* const g_pfnVectors[])(void) =
 	DMAChannel5_IRQHandler,
 	DMAChannel6_IRQHandler,
 	DMAChannel7_IRQHandler,
+#ifdef STM32F10X_LD
 	ADC_IRQHandler,
 	USB_HP_CAN_TX_IRQHandler,
 	USB_LP_CAN_RX0_IRQHandler,
@@ -80,6 +81,33 @@ void (* const g_pfnVectors[])(void) =
 	EXTI15_10_IRQHandler,
 	RTCAlarm_IRQHandler,
 	USBWakeUp_IRQHandler
+#endif
+#if  defined(STM32F10X_LD_VL) || defined(STM32F10X_MD_VL)
+	ADC1_IRQHandler,                // irq 18, 
+	0, 0, 0, 0,
+	EXTI9_5_IRQHandler,             // irq 23
+	TIM1_BRK_TIM15_IRQHandler,      // irq 24
+	TIM1_UP_TIM16_IRQHandler,       // irq 25
+	TIM1_TRG_COM_TIM17_IRQHandler,  // irq 26
+	TIM1_CC_IRQHandler,             // irq 27
+	TIM2_IRQHandler,                // irq 28
+	TIM3_IRQHandler,                // irq 29
+	0,
+	I2C1_EV_IRQHandler,             // irq 31
+	I2C1_ER_IRQHandler,             // irq 32
+	0, 0,
+	SPI1_IRQHandler,                // irq 35
+	0,
+	USART1_IRQHandler,              // irq 37
+	USART2_IRQHandler,              // irq 38
+	0,
+	EXTI15_10_IRQHandler,           // irq 40
+	RTCAlarm_IRQHandler,            // irq 41
+	CEC_IRQHandler,                 // irq 42
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	TIM6_DAC_IRQHandler,            // irq 54
+	TIM7_IRQHandler                 // irq 55
+#endif /* STM32F10X_LD_VL || STM32F10X_MD_VL */
 };
 
 /* stm32 reset code */
@@ -87,7 +115,8 @@ void (* const g_pfnVectors[])(void) =
 
 __attribute__((noreturn, __interrupt__)) void ResetISR(void)
 {
-	unsigned long *pSrc, *pDest;
+	unsigned long volatile * pSrc;
+	unsigned long volatile * pDest;
 
 	// copy the data segment initializers from flash to SRAM
 	pSrc = &_etext;

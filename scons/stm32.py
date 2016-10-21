@@ -3,12 +3,12 @@ from SCons.Script import *
 
 
 def stLinkRun(target, source, env):
-	command = '$FLASH_TOOL -c SWD UR LPM -Run'
+	command = '$FLASH_TOOL -c SWD Srst -Run'
 	res = env.Execute(command)
 	return res
 	
 def stLinkFlashImage(target, source, env):
-	command = '$FLASH_TOOL -c SWD UR LPM -P %s -V' % (source[0].abspath)
+	command = '$FLASH_TOOL -c SWD Srst -P %s -V' % (source[0].abspath)
 	res = env.Execute(command)
 	return res
 	
