@@ -36,7 +36,7 @@ def generate(env, **kw):
 	
 	if env['CC'] == 'cl':
 		env.Append(CXXFLAGS = ['/wd4503', '/wd4530'])
-		env.Append(CPPDEFINES=['_VARIADIC_MAX=10'])
+		env.Append(CPPDEFINES=['_VARIADIC_MAX=15'])
 		env.Append(CPPPATH=['%s/tests/include' % env['MCUCPP_HOME']])
 		
 	testBuilder = Builder(action = builder_unit_test)
