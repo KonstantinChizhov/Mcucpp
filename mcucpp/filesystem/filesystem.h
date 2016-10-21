@@ -6,10 +6,11 @@ namespace Mcucpp
 {
 namespace Fs
 {
-	typedef uint32_t FsNode;
+	typedef uintptr_t FsNode;
 	
 	const FsNode EndOfFileNode = 0xffffffff;
 	const uint8_t PathDelim = '/';
+	const size_t MaxPath = 255;
 	
 	enum FileAttributes
 	{
@@ -29,6 +30,14 @@ namespace Fs
 		UsedBlocks
 	};
 	
+	enum ErrorCode
+	{
+		ErrOK,
+		ErrInvalidNode = 1,
+		ErrInvalidDirectory =2,
+		ErrInvalidFile = 4
+	};
+	
 	class DirectoryLister
 	{
 	public:
@@ -39,6 +48,7 @@ namespace Fs
 	class IFsDriver
 	{
 	public:
+		ErrorCode GetError();
 		virtual FsNode RootDirectory()=0;
 		virtual bool ListDirectory(FsNode dir, DirectoryLister &directoryLister)=0;
 		virtual uint32_t GetParameter(FsParams param)=0;

@@ -32,22 +32,17 @@
 #endif
 namespace Mcucpp
 {
+	typedef uint32_t clock_freq_t;
 	namespace Clock
 	{
 		class SysClock
 		{
 		public:
-			static unsigned long FCore()
+			static uint32_t ClockFreq()
 			{
 				return F_CPU;
 			}
 			
-			static unsigned long FPeriph()
-			{
-				return F_CPU;
-			}
-			
-			static const unsigned long CpuFreq = F_CPU;
 		};
 		
 	}

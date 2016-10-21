@@ -45,7 +45,7 @@ static inline uint8_t ReadLowFuse()
 	#include <avr/builtins.h>
 	#include <avr/eeprom.h>
 
-	#if defined(SPMCSR) || defined(SPMCR)
+	#if defined(SPMCSR) //|| defined(SPMCR)
 		#include <avr/boot.h>
 		static inline uint8_t ReadLowFuse()
 		{

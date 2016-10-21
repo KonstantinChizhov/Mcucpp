@@ -121,18 +121,18 @@ SupportedDevices = {
 		'cpu' : 'attiny26'
 	},
 	
-	'msp430g2231': 
-	{
-		'manufacturer' : 'TI',
-		'arch' : msp430, 
-		'flash' : 2*1024, 'ram' : 128, 'eeprom' : 0,
-		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/MSP430'],
-		'libSources' : ['%(MCUCPP_HOME)s/mcucpp/AVR/src/usart.cpp'],
-		'linkerScript' : None,
-		'clock' : 16000000,
-		'defines' : ['__MSP430_2011__'],
-		'cpu' : 'msp430x2231'
-	},
+	# 'msp430g2231': 
+	# {
+		# 'manufacturer' : 'TI',
+		# 'arch' : msp430, 
+		# 'flash' : 2*1024, 'ram' : 128, 'eeprom' : 0,
+		# 'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/MSP430'],
+		# 'libSources' : [],
+		# 'linkerScript' : None,
+		# 'clock' : 16000000,
+		# 'defines' : ['__MSP430_2011__'],
+		# 'cpu' : 'msp430x2231'
+	# },
 	
 	'stm32f100': 
 	{

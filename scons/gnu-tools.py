@@ -2,8 +2,10 @@ import os
 from SCons.Script import *
 
 
-def GetEnvId(env):
-	allOptions = env['CFLAGS'] + env['CCFLAGS'] + env['ASFLAGS'] + env['CPPDEFINES'] + env['LINKFLAGS']
+def GetEnvId(env, target):
+	allOptions = env['CFLAGS'] + env['CCFLAGS'] + env['ASFLAGS'] + env['CPPDEFINES'] + env['LINKFLAGS'] + target
+	if 'DEVICE' in env:
+		allOptions = allOptions + [env['DEVICE']['cpu']]
 	return abs(hash(str(allOptions)))
 
 
@@ -11,7 +13,7 @@ def overrideProgramBuilder(env, target, source):
 	startupObjects = []
 	if 'DEVICE' in env:
 		device = env['DEVICE']
-		id = GetEnvId(env)
+		id = GetEnvId(env, target)
 		if 'startup' in device and device['startup'] is not None:
 			for startupSrc in device['startup']:
 				objName = '%s_%s' % (os.path.splitext(os.path.basename(startupSrc))[0], id)

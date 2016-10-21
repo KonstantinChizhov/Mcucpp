@@ -6,7 +6,7 @@ def generate(env, **kw):
 	env['ENV'] = os.environ
 	env['SUPPORTED_DEVICES'] = devices.SupportedDevices
 	env['MCUCPP_HOME'] = os.path.abspath(os.path.join( os.path.dirname( os.path.realpath( __file__ ) ), '../'))
-	print "MCUCPP_HOME = %s" % env['MCUCPP_HOME']
+	#print "MCUCPP_HOME = %s" % env['MCUCPP_HOME']
 	if 'DEVICE_NAME' in env:
 		deviceName = env['DEVICE_NAME']
 		if deviceName in devices.SupportedDevices:

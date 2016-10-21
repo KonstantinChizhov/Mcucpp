@@ -1,22 +1,13 @@
 import os
 
 avrGccDiviceList = ['atmega8', 'atmega16', 'atmega128']#, 'atmega168']
-avrGccExamplesList = ['AvrGccSpi', 'AvrGcc7Segments', 'delagate', 'GPIO_GCC_AVR', 'LcdTest', 'matrix_keyb', 'FormatWriter']
+avrGccExamplesList = ['AvrGccSpi', 'AvrGcc7Segments', 'delagate', 'GPIO_GCC_AVR', 'LcdTest', 'matrix_keyb']
 
 def BuildAvrGccSample(deviceName, exampleName):
-	Device = \
-	{
-		'name' : deviceName,
-		'cpu' : deviceName,
-		'defines' : [],
-		'archOptions' : [],
-		'clock' : '8000000'
-	}
-	avrEnv = Environment(DEVICE = Device, 
+
+	avrEnv = Environment(DEVICE_NAME = deviceName, 
 		toolpath = ['#/scons'], 
-		tools=['avr'], 
-		ENV = os.environ,
-		CPPPATH=['#/include', '#/mcucpp', '#/mcucpp/AVR', '#/./'])
+		tools=['mcucpp'])
 	avrEnv.Append(CCFLAGS = '-O3' )
 	avrEnv.Append(CCFLAGS = '-finline-limit=35')
 	sources = avrEnv.Glob(exampleName + '/*.cpp')
@@ -28,7 +19,6 @@ def BuildAvrGccSample(deviceName, exampleName):
 	elf = avrEnv.Program(deviceName + '-' + exampleName, objects)
 	lss = avrEnv.Disassembly(elf)
 	hex = avrEnv.Hex(elf)
-	avrEnv.Size(elf, exampleName + '-size')
 
 
 for dev in avrGccDiviceList:

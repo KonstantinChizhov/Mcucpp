@@ -31,7 +31,7 @@
 #error "Do not include this file directly. Use ioports.h instead."
 #endif
 
-#include <io.h>
+#include <msp430.h>
 
 #include <stdint.h>
 #include <ioreg.h>

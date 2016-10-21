@@ -36,6 +36,10 @@
 
 namespace Mcucpp
 {
+	typedef uint32_t clock_freq_t;
+
+namespace Clock
+{
 	class SysClock
 	{
 	public:
@@ -66,5 +70,5 @@ namespace Mcucpp
 		#endif
 		}
 	};
-	
+}
 }
