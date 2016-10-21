@@ -10,29 +10,40 @@ namespace Mcucpp
 	{
 		namespace Private
 		{
-			template<class Regs, class ClockEnReg>
+			template<class Regs, class ClockEnReg, IRQn_Type IQRNumber>
 			class BaseTimer
 			{
 			public:
 				typedef uint16_t DataT;
 				static const uint16_t MaxValue = 0xffff;
+				static const uint16_t MaxDivider = 0xffff;
 				
-				typedef uint16_t ClockDivider;
-				static const ClockDivider Div1     = 1;
-				static const ClockDivider Div2     = 2;
-				static const ClockDivider Div4     = 4;
-				static const ClockDivider Div8     = 8;
-				static const ClockDivider Div16    = 16;
-				static const ClockDivider Div32    = 32;
-				static const ClockDivider Div64    = 64;
-				static const ClockDivider Div128   = 128;
-				static const ClockDivider Div256   = 256;
-				static const ClockDivider Div1024  = 1024;
-				static const ClockDivider Div2048  = 2048;
-				static const ClockDivider Div4096  = 4096;
-				static const ClockDivider Div8192  = 8192;
-				static const ClockDivider Div16384 = 16384;
-				static const ClockDivider Div32768 = 32768;
+				typedef uint32_t ClockDivider;
+				static const ClockDivider Div1     = 0;
+				static const ClockDivider Div2     = 1;
+				static const ClockDivider Div4     = 3;
+				static const ClockDivider Div8     = 7;
+				static const ClockDivider Div16    = 15;
+				static const ClockDivider Div32    = 31;
+				static const ClockDivider Div64    = 63;
+				static const ClockDivider Div128   = 127;
+				static const ClockDivider Div256   = 255;
+				static const ClockDivider Div1024  = 1023;
+				static const ClockDivider Div2048  = 2047;
+				static const ClockDivider Div4096  = 4095;
+				static const ClockDivider Div8192  = 8191;
+				static const ClockDivider Div16384 = 16383;
+				static const ClockDivider Div32768 = 32767;
+				
+				static ClockDivider DividerValue(unsigned number)
+				{
+					return (ClockDivider)number;
+				}
+	
+				static uint32_t DividerCoeff(unsigned number)
+				{
+					return number + 1;
+				}
 				
 				enum InterruptFlags
 				{
@@ -40,11 +51,12 @@ namespace Mcucpp
 					UpdateInt = TIM_SR_UIF,
 				};
 				
+				static clock_freq_t ClockFreq()      { return ClockEnReg::ClockFreq(); }
 				static void Enable()                 { ClockEnReg::Enable(); }
 				static void Disable()                { ClockEnReg::Disable(); }
 				static void Set(DataT val)           { Regs()->CNT = val; }
 				static void Clear()                  { Regs()->CNT = 0; }
-				static void SetDivider(ClockDivider divider) { Regs()->PSC = divider - 1; }
+				static void SetDivider(ClockDivider divider) { Regs()->PSC = divider; }
 				static DataT Get()                   { return Regs()->CNT; }
 				
 				static void Stop()
@@ -53,20 +65,24 @@ namespace Mcucpp
 					Regs()->CR2 = 0;
 				}
 
-				static void Start(ClockDivider divider = Div1)
+				static void Start(ClockDivider divider = Div1, DataT reloadValue = BaseTimer::MaxValue)
 				{
 					Enable();
+					Regs()->CR1 = 0;
 					Regs()->CR2 = 0;
 					Regs()->DIER = 0;
-					Regs()->PSC = divider - 1;
-					Regs()->ARR = MaxValue;
-					Regs()->CR1 = (TIM_CR1_CEN);
+					Regs()->PSC = divider;
+					Regs()->ARR = reloadValue;
+					Regs()->EGR |= TIM_EGR_UG;
+					Regs()->CR1 = (TIM_CR1_CEN | TIM_CR1_URS);
 				}
 
 				static void EnableInterrupt(InterruptFlags interrupt = UpdateInt)
 				{
 					if(interrupt & UpdateInt)
 						Regs()->DIER |= TIM_DIER_UIE;
+					if(interrupt)
+						NVIC_EnableIRQ(IQRNumber);
 				}
 				
 				static void DisableInterrupt(InterruptFlags interrupt = UpdateInt)
@@ -82,7 +98,9 @@ namespace Mcucpp
 				
 				static void ClearInterruptFlag(InterruptFlags interrupt = UpdateInt)
 				{
-					Regs()->SR &= ~(uint32_t)interrupt;
+					(void)interrupt;
+					Regs()->SR = 0;
+					NVIC_ClearPendingIRQ(IQRNumber);
 				}
 				
 				static void SetAutoReload(DataT value)
@@ -90,7 +108,6 @@ namespace Mcucpp
 					Regs()->ARR = value;
 					Regs()->EGR |= TIM_EGR_UG;
 				}
-				
 				
 			};
 			
@@ -112,8 +129,8 @@ namespace Mcucpp
 			IO_STRUCT_WRAPPER(TIM17, Tim17Regs, TIM_TypeDef);
 		}
 		
-		class Timer7 :public Private::BaseTimer<Private::Tim6Regs, Clock::Tim6Clock> {};
-		class Timer6 :public Private::BaseTimer<Private::Tim6Regs, Clock::Tim6Clock> {};
+		class Timer6 :public Private::BaseTimer<Private::Tim6Regs, Clock::Tim6Clock, TIM6_DAC_IRQn> {};
+		class Timer7 :public Private::BaseTimer<Private::Tim7Regs, Clock::Tim7Clock, TIM7_IRQn> {};
 	}
 }
 #undef DECLARE_STM32_BASIC_TIMER

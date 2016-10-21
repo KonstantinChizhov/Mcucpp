@@ -4,14 +4,16 @@
 #include "stm32f10x.h"
 
 #ifndef F_OSC
-#warning F_OSC is not defined. F_OSC is in its default value 8 MHZ. Verify that external cristal freq is correct.  
-#define F_OSC 8000000u
+#warning F_OSC is not defined. F_OSC is defaulted to HSE_VALUE. Verify that external cristal freq is correct.  
+#define F_OSC HSE_VALUE
 #endif
 
 namespace Mcucpp
 {
+	typedef uint32_t clock_freq_t;
 	namespace Clock
 	{
+		
 		class ClockBase
 		{
 		protected:
@@ -43,16 +45,16 @@ namespace Mcucpp
 		class HseClock :public ClockBase
 		{
 		public:
-			static uint32_t SrcClockFreq()
+			static clock_freq_t SrcClockFreq()
 			{
 				return F_OSC;
 			}
 			
-			static uint32_t GetDivider() { return 1; }
+			static clock_freq_t GetDivider() { return 1; }
 			
-			static uint32_t GetMultipler() { return 1; }
+			static clock_freq_t GetMultipler() { return 1; }
 			
-			static uint32_t ClockFreq()
+			static clock_freq_t ClockFreq()
 			{
 				return SrcClockFreq();
 			}
@@ -71,16 +73,16 @@ namespace Mcucpp
 		class HsiClock :public ClockBase
 		{
 		public:
-			static uint32_t SrcClockFreq()
+			static clock_freq_t SrcClockFreq()
 			{
 				return 8000000u;
 			}
 			
-			static uint32_t GetDivider() { return 1; }
+			static clock_freq_t GetDivider() { return 1; }
 			
-			static uint32_t GetMultipler() { return 1; }
+			static clock_freq_t GetMultipler() { return 1; }
 			
-			static uint32_t ClockFreq()
+			static clock_freq_t ClockFreq()
 			{
 				return SrcClockFreq();
 			}
@@ -105,7 +107,9 @@ namespace Mcucpp
 				External = RCC_CFGR_PLLSRC_PREDIV1,
 			};
 			
-			static uint32_t SrcClockFreq()
+			static inline uint32_t SetClockFreq(uint32_t freq);
+			
+			static clock_freq_t SrcClockFreq()
 			{
 				if ((RCC->CFGR & RCC_CFGR_PLLSRC) == 0)
 					return HsiClock::ClockFreq();
@@ -113,7 +117,7 @@ namespace Mcucpp
 					return HseClock::ClockFreq();
 			}
 			
-			static uint32_t GetDivider()
+			static clock_freq_t GetDivider()
 			{
 				if ((RCC->CFGR & RCC_CFGR_PLLSRC) == 0)
 					return 2;
@@ -125,10 +129,10 @@ namespace Mcucpp
 				#endif
 			}
 			
-			static uint32_t GetMultipler()
+			static clock_freq_t GetMultipler()
 			{
 			#if defined(STM32F10X_CL)
-				uint32_t mul = ((RCC->CFGR & RCC_CFGR_PLLMULL) >> 18);
+				clock_freq_t mul = ((RCC->CFGR & RCC_CFGR_PLLMULL) >> 18);
 				if(mul == 13) return 6;
 				return mul + 2;
 			#else
@@ -172,7 +176,7 @@ namespace Mcucpp
 				RCC->CFGR = (RCC->CFGR & ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE) ) | clockSource;
 			}
 			
-			static uint32_t ClockFreq()
+			static clock_freq_t ClockFreq()
 			{
 				return SrcClockFreq() / GetDivider() * GetMultipler();
 			}
@@ -206,57 +210,25 @@ namespace Mcucpp
 				Pll = 2
 			};
 			
+			enum ErrorCode
+			{
+				Success = 0,
+				ClockSourceFailed = 1,
+				InvalidClockSource = 2,
+				ClockSelectFailed = 3
+			};
+			
 		public:
-			static bool SelectClockSource(ClockSource clockSource)
-			{
-				uint32_t clockStatusValue;
-				uint32_t clockSelectMask;
-				
-				if(clockSource == Internal)
-				{
-					clockStatusValue = RCC_CFGR_SWS_HSI;
-					clockSelectMask = RCC_CFGR_SW_HSI;
-					if (!HsiClock::Enable())
-						return false;
-				}else if(clockSource == External)
-				{
-					clockStatusValue = RCC_CFGR_SWS_HSE;
-					clockSelectMask = RCC_CFGR_SW_HSE;
-					if (!HseClock::Enable())
-						return false;
-				}if(clockSource == Pll)
-				{
-					clockStatusValue = RCC_CFGR_SWS_PLL;
-					clockSelectMask = RCC_CFGR_SW_PLL;
-					if (!PllClock::Enable())
-						return false;
-				}else
-					return false;
-	
-				RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | clockSelectMask;
-				
-				while ((RCC->CFGR & RCC_CFGR_SWS) != clockStatusValue)
-				{
-				}
-				return true;
-			}
+			static clock_freq_t MaxFreq();
+			static ErrorCode SelectClockSource(ClockSource clockSource);
+			static clock_freq_t ClockFreq();
 			
-			static uint32_t ClockFreq()
-			{
-				uint32_t clockSrc = RCC->CFGR & RCC_CFGR_SWS;
-				switch (clockSrc)
-				{
-					case 0:              return HsiClock::ClockFreq();
-					case RCC_CFGR_SWS_0: return HseClock::ClockFreq();
-					case RCC_CFGR_SWS_1: return PllClock::ClockFreq();
-				}
-				return 0;
-			}
-			
-			static uint32_t SrcClockFreq()
+			static clock_freq_t SrcClockFreq()
 			{
 				return ClockFreq();
 			}
+			
+			static clock_freq_t SetClockFreq(clock_freq_t freq);
 		};
 		
 		IO_REG_WRAPPER(RCC->APB2ENR, PeriphClockEnable2, uint32_t);
@@ -286,14 +258,14 @@ namespace Mcucpp
 				Div512 = 0x0F
 			};
 			
-			static uint32_t SrcClockFreq()
+			static clock_freq_t SrcClockFreq()
 			{
 				return SysClock::ClockFreq();
 			}
 			
-			static uint32_t ClockFreq()
+			static clock_freq_t ClockFreq()
 			{
-				uint32_t clock = SysClock::ClockFreq();
+				clock_freq_t clock = SysClock::ClockFreq();
 				uint8_t clockPrescShift[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
 				uint8_t shiftBits = clockPrescShift[AhbPrescalerBitField::Get()];
 				clock >>= shiftBits;
@@ -302,7 +274,7 @@ namespace Mcucpp
 			
 			static void SetPrescaller(Prescaller prescaller)
 			{
-				AhbPrescalerBitField::Set((uint32_t)prescaller);
+				AhbPrescalerBitField::Set((clock_freq_t)prescaller);
 			}
 		};
 		
@@ -318,14 +290,14 @@ namespace Mcucpp
 				Div16 = 0x07,
 			};
 			
-			static uint32_t SrcClockFreq()
+			static clock_freq_t SrcClockFreq()
 			{
 				return AhbClock::ClockFreq();
 			}
 			
-			static uint32_t ClockFreq()
+			static clock_freq_t ClockFreq()
 			{
-				uint32_t clock = AhbClock::ClockFreq();
+				clock_freq_t clock = AhbClock::ClockFreq();
 				uint8_t clockPrescShift[] = {0, 0, 0, 0, 1, 2, 3, 4};
 				uint8_t shiftBits = clockPrescShift[Apb1PrescalerBitField::Get()];
 				clock >>= shiftBits;
@@ -350,14 +322,14 @@ namespace Mcucpp
 				Div16 = 0x07,
 			};
 			
-			static uint32_t SrcClockFreq()
+			static clock_freq_t SrcClockFreq()
 			{
 				return AhbClock::ClockFreq();
 			}
 			
-			static uint32_t ClockFreq()
+			static clock_freq_t ClockFreq()
 			{
-				uint32_t clock = AhbClock::ClockFreq();
+				clock_freq_t clock = AhbClock::ClockFreq();
 				const uint8_t clockPrescShift[] = {0, 0, 0, 0, 1, 2, 3, 4};
 				uint8_t shiftBits = clockPrescShift[Apb2PrescalerBitField::Get()];
 				clock >>= shiftBits;
@@ -397,12 +369,12 @@ namespace Mcucpp
 				AdcPrescaller::Set((uint32_t)prescaller);
 			}
 			
-			static uint32_t SrcClockFreq()
+			static clock_freq_t SrcClockFreq()
 			{
 				return Apb2Clock::ClockFreq();
 			}
 			
-			static uint32_t ClockFreq()
+			static clock_freq_t ClockFreq()
 			{
 				return SrcClockFreq() / ((AdcPrescaller::Get() + 1) * 2);
 			}
@@ -552,5 +524,121 @@ namespace Mcucpp
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_TIM14EN, Apb1Clock> Tim14Clock;
 	#endif /* STM32F10X_XL */
 
+	//=======================================================================================
+	
+	clock_freq_t PllClock::SetClockFreq(clock_freq_t freq)
+	{
+		if(freq > SysClock::MaxFreq())
+			freq = SysClock::MaxFreq();
+						
+		uint32_t	resPllDiv = 0, 
+					resPllMul = 0;
+		
+		uint32_t srcFreq = SrcClockFreq();
+		
+		#if defined(STM32F10X_CL)
+		resPllDiv = 16;
+		#else
+		resPllDiv = 2;
+		#endif
+		
+		while(resPllDiv > 1)
+		{
+			uint32_t pllMul = resPllDiv * freq / srcFreq;
+			
+			#if defined(STM32F10X_CL)
+			if(pllMul <= 9 && pllMul >= 4)
+			{
+				resPllMul = pllMul;
+				break;
+			}
+			#else
+			if(pllMul <= 16)
+			{
+				resPllMul = pllMul;
+				break;
+			}
+			#endif
+			resPllDiv--;
+		}
+		
+		SetDivider(resPllDiv);
+		SetMultipler(resPllMul);
+		
+		return ClockFreq();
 	}
+	
+	clock_freq_t SysClock::MaxFreq()
+	{
+		#if defined(STM32F10X_CL)
+			return 72000000;
+		#else
+			return 24000000;
+		#endif
+	}
+
+	SysClock::ErrorCode SysClock::SelectClockSource(ClockSource clockSource)
+	{
+		uint32_t clockStatusValue;
+		uint32_t clockSelectMask;
+		
+		if(clockSource == Internal)
+		{
+			clockStatusValue = RCC_CFGR_SWS_HSI;
+			clockSelectMask = RCC_CFGR_SW_HSI;
+			if (!HsiClock::Enable())
+				return ClockSourceFailed;
+		}else if(clockSource == External)
+		{
+			clockStatusValue = RCC_CFGR_SWS_HSE;
+			clockSelectMask = RCC_CFGR_SW_HSE;
+			if (!HseClock::Enable())
+				return ClockSourceFailed;
+		}if(clockSource == Pll)
+		{
+			clockStatusValue = RCC_CFGR_SWS_PLL;
+			clockSelectMask = RCC_CFGR_SW_PLL;
+			if (!PllClock::Enable())
+				return ClockSourceFailed;
+		}else
+			return InvalidClockSource;
+
+		RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | clockSelectMask;
+		
+		uint32_t timeout = 10000;
+		while ((RCC->CFGR & RCC_CFGR_SWS) != clockStatusValue  && --timeout)
+		{
+			;
+		}
+		if(timeout == 0)
+		{
+			return ClockSelectFailed;
+		}
+		return Success;
+	}
+	
+	clock_freq_t SysClock::ClockFreq()
+	{
+		uint32_t clockSrc = RCC->CFGR & RCC_CFGR_SWS;
+		switch (clockSrc)
+		{
+			case 0:              return HsiClock::ClockFreq();
+			case RCC_CFGR_SWS_0: return HseClock::ClockFreq();
+			case RCC_CFGR_SWS_1: return PllClock::ClockFreq();
+		}
+		return 0;
+	}
+	
+	
+	clock_freq_t SysClock::SetClockFreq(clock_freq_t freq)
+	{
+		SelectClockSource(Internal);
+		PllClock::Disable();
+		PllClock::SelectClockSource(PllClock::External);
+		PllClock::SetClockFreq(freq);
+		SelectClockSource(Pll);
+		return ClockFreq();
+	}
+	
+}
 }

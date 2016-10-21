@@ -26,6 +26,7 @@
 //*****************************************************************************
 
 #pragma once
+#include <clock.h>
 
 namespace Mcucpp
 {
@@ -57,6 +58,8 @@ namespace Mcucpp
 			public:
 			typedef uint16_t DataT;
 			enum {MaxValue = 0xffff};
+			static const unsigned MaxDivider = 4;
+			
 			enum ClockDivider
 			{
 				DivStop=0, 
@@ -68,8 +71,41 @@ namespace Mcucpp
 				ExtFalling	= (1<<CS12) | (1<<CS11), 
 				ExtRising	= (1<<CS12) | (1<<CS11) | (1<<CS10)
 			};
+			
+			
+			static ClockDivider DividerValue(unsigned number)
+			{
+				switch(number)
+				{
+					case 0: return Div1;
+					case 1: return Div8;
+					case 2: return Div64;
+					case 3: return Div256;
+				}
+				return Div1024;
+			}
+
+			static unsigned DividerCoeff(unsigned number)
+			{
+				switch(number)
+				{
+					case 0: return 1;
+					case 1: return 8;
+					case 2: return 64;
+					case 3: return 256;
+				}
+				return 1024;
+			}
+			
+			static clock_freq_t ClockFreq()      { return Clock::SysClock::ClockFreq(); }
 
 			enum {ClockDividerMask = ~((1<<CS12) | (1<<CS11) | (1<<CS10))};
+			
+			enum InterruptFlags
+			{
+				OverflowInt = 0,
+				UpdateInt = 0
+			};
 
 			template<unsigned Number> struct Divider;
 
@@ -93,12 +129,13 @@ namespace Mcucpp
 				TCNT1 = 0;
 			}
 
-			static void Start(ClockDivider divider)
+			static void Start(ClockDivider divider, DataT reloadValue = BaseTimer1::MaxValue)
 			{
+				TCNT1 = BaseTimer1::MaxValue - reloadValue;
 				TCCR1B = (TCCR1B & ClockDividerMask) | divider;
 			}
 
-			static void EnableInterrupt()
+			static void EnableInterrupt(InterruptFlags = OverflowInt)
 			{
 				InterruptMaskReg |= (1 << TOIE1);
 			}
@@ -108,7 +145,7 @@ namespace Mcucpp
 				return InterruptFlagsReg & (1<<TOV1);
 			}
 			
-			static void ClearInterruptFlag()
+			static void ClearInterruptFlag(InterruptFlags = UpdateInt)
 			{
 				InterruptFlagsReg |= (1<<TOV1);
 			}

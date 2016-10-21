@@ -38,60 +38,80 @@ namespace Mcucpp
 		{
 		public:
 			typedef uint16_t DataT;
-			enum {MaxValue = 0xff};
-			enum ClockDivider
-			{
-				DivStop=0,
-				Div1,
-				Div16,
-				Div64,
-				Div256,
-				Div1024,
-				ExtFalling,
-				ExtRising
-			};
-
+			static const uint16_t MaxValue = 0xffff;
+					
+			typedef uint16_t ClockDivider;
+			static const ClockDivider DivStop     = 0;
+			static const ClockDivider Div1     = 1;
+			static const ClockDivider Div2     = 2;
+			static const ClockDivider Div4     = 4;
+			static const ClockDivider Div8     = 8;
+			static const ClockDivider Div16    = 16;
+			static const ClockDivider Div32    = 32;
+			static const ClockDivider Div64    = 64;
+			static const ClockDivider Div128   = 128;
+			static const ClockDivider Div256   = 256;
+			static const ClockDivider Div512   = 512;
+			static const ClockDivider Div1024  = 1024;
+			static const ClockDivider Div2048  = 2048;
+			static const ClockDivider Div4096  = 4096;
+			static const ClockDivider Div8192  = 8192;
+			static const ClockDivider Div16384 = 16384;
+			static const ClockDivider Div32768 = 32768;
+		
 			enum InterruptFlags
 			{
 				OverflowInt = 0,
 				UpdateInt = 0
 			};
-
+		
 			template<unsigned Number> struct Divider
 			{ 
 				static const ClockDivider value = (ClockDivider)Number;
-				enum {Div = Util::Pow<4, Number>::value }; 
+				enum {Div = Number }; 
 			};
-			enum {MaxDivider = 5};
+			
+			enum {MaxDivider = 0xffff};
+			
+			static ClockDivider DividerValue(unsigned number)
+			{
+				return (ClockDivider)number;
+			}
+			
+			static uint32_t DividerCoeff(unsigned number)
+			{
+				return number;
+			}
 			
 			static void Enable(){  }
 			static void Disable(){  }
-
+		
 			static void Set(DataT val)
 			{
 				timerData.Counter = val;
 			}
-
+		
 			static DataT Get()
 			{
 				return timerData.Counter;
 			}
-
+		
 			static void Stop()
 			{
 				timerData.CurrentDivider = DivStop;
 			}
-
+		
 			static void Clear()
 			{
 				timerData.Counter = 0;
 			}
-
-			static void Start(ClockDivider divider)
+		
+			static void Start(ClockDivider divider, DataT reloadValue = 0)
 			{
 				timerData.CurrentDivider = divider;
+				timerData.Counter = reloadValue;
 			}
-
+		
 			static void EnableInterrupt(InterruptFlags interrupt = UpdateInt)
 			{
 				
@@ -101,10 +121,10 @@ namespace Mcucpp
 			{
 				
 			}
-
+		
 			static InterruptFlags IsInterrupt()
 			{
-				return 0;
+				return (InterruptFlags)0;
 			}
 			
 			static void ClearInterruptFlag(InterruptFlags interrupt = UpdateInt)
@@ -116,6 +136,13 @@ namespace Mcucpp
 			{
 				
 			}
+		
+			struct TimerData
+			{
+				volatile DataT Counter;
+				ClockDivider CurrentDivider;
+			};
+			static TimerData timerData;
 
 			enum TimerMode
 			{

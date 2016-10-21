@@ -26,6 +26,7 @@
 //*****************************************************************************
 
 #pragma once
+#include <clock.h>
 
 namespace Mcucpp
 {
@@ -60,7 +61,9 @@ namespace Mcucpp
 			public:
 			typedef uint8_t DataT;
 			enum {MaxValue = 255};
-#if defined(__ATmega64__) || defined(__AVR_ATmega64__)
+		#if defined(__ATmega64__) || defined(__AVR_ATmega64__)
+			static const unsigned MaxDivider = 6;
+
 			enum ClockDivider
 			{
 				DivStop		= (0<<CS22) | (0<<CS21) | (0<<CS20), 
@@ -72,7 +75,37 @@ namespace Mcucpp
 				Div256 		= (1<<CS22) | (1<<CS21) | (0<<CS20),
 				Div1024 	= (1<<CS22) | (1<<CS21) | (1<<CS20)
 			};
+			
+			static ClockDivider DividerValue(unsigned number)
+			{
+				switch(number)
+				{
+					case 0: return Div1;
+					case 1: return Div8;
+					case 2: return Div32;
+					case 3: return Div64;
+					case 4: return Div128;
+					case 5: return Div256;
+				}
+				return Div1024;
+			}
+
+			static unsigned DividerCoeff(unsigned number)
+			{
+				switch(number)
+				{
+					case 0: return 1;
+					case 1: return 8;
+					case 2: return 32;
+					case 3: return 64;
+					case 4: return 128;
+					case 5: return 256;
+				}
+				return 1024;
+			}
 #else
+			static const unsigned MaxDivider = 4;
+		
 			enum ClockDivider
 			{
 				DivStop=0, 
@@ -84,7 +117,33 @@ namespace Mcucpp
 				ExtFalling	= (1<<CS02) | (1<<CS01), 
 				ExtRising	= (1<<CS02) | (1<<CS01) | (1<<CS00)
 			};
+			
+			static ClockDivider DividerValue(unsigned number)
+			{
+				switch(number)
+				{
+					case 0: return Div1;
+					case 1: return Div8;
+					case 2: return Div64;
+					case 3: return Div256;
+				}
+				return Div1024;
+			}
+
+			static unsigned DividerCoeff(unsigned number)
+			{
+				switch(number)
+				{
+					case 0: return 1;
+					case 1: return 8;
+					case 2: return 64;
+					case 3: return 256;
+				}
+				return 1024;
+			}
 #endif
+
+			static clock_freq_t ClockFreq()      { return Clock::SysClock::ClockFreq(); }
 
 			enum {ClockDividerMask = ~((1<<CS22) | (1<<CS21) | (1<<CS20))};
 
@@ -115,8 +174,9 @@ namespace Mcucpp
 				//SFIOR |= (1 << PSR2);
 			}
 
-			static void Start(ClockDivider divider)
+			static void Start(ClockDivider divider, DataT reloadValue = BaseTimer2::MaxValue)
 			{
+				TCNT2 = BaseTimer2::MaxValue - reloadValue;
 				ControlRegB = (ControlRegB & ClockDividerMask) | divider;
 			}
 
@@ -136,11 +196,21 @@ namespace Mcucpp
 			}
 		};
 
+	#if defined(__ATmega64__) || defined(__AVR_ATmega64__)
+		template<> struct BaseTimer2::Divider <0> { static const ClockDivider value = Div1;		enum {Div = 1}; };
+		template<> struct BaseTimer2::Divider <1> { static const ClockDivider value = Div8;		enum {Div = 8}; };
+		template<> struct BaseTimer2::Divider <2> { static const ClockDivider value = Div32;	enum {Div = 32}; };
+		template<> struct BaseTimer2::Divider <3> { static const ClockDivider value = Div64;	enum {Div = 64}; };
+		template<> struct BaseTimer2::Divider <4> { static const ClockDivider value = Div128;	enum {Div = 128}; };
+		template<> struct BaseTimer2::Divider <5> { static const ClockDivider value = Div256;	enum {Div = 256}; };
+		template<> struct BaseTimer2::Divider <6> { static const ClockDivider value = Div1024;	enum {Div = 1024}; };
+	#else
 		template<> struct BaseTimer2::Divider <0> { static const ClockDivider value = Div1;		enum {Div = 1}; };
 		template<> struct BaseTimer2::Divider <1> { static const ClockDivider value = Div8;		enum {Div = 8}; };
 		template<> struct BaseTimer2::Divider <2> { static const ClockDivider value = Div64;	enum {Div = 64}; };
 		template<> struct BaseTimer2::Divider <3> { static const ClockDivider value = Div256;	enum {Div = 256}; };
 		template<> struct BaseTimer2::Divider <4> { static const ClockDivider value = Div1024;	enum {Div = 1024}; };
+	#endif
 
 	#if defined WGM20
 
