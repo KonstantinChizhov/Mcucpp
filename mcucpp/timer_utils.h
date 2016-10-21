@@ -42,35 +42,37 @@ namespace Mcucpp
 			template<class Timer, class Divider, unsigned long Freq, unsigned long Fcpu>
 			struct ReloadValue
 			{
-				static const unsigned long _ticks = Fcpu / Divider::Div / Freq;
-				static const unsigned long ticks = Timer::MaxValue > _ticks ? _ticks : Timer::MaxValue;
+				static const unsigned long ticks_ = Fcpu / Divider::Div / Freq;
+				static const unsigned long ticks = ticks_ == 0 ? 1 : ticks_;
 				static const unsigned long value = Timer::MaxValue - ticks;
 				static const unsigned long realFreq = Fcpu / Divider::Div / ticks;
 				static const unsigned long error = realFreq > Freq ? realFreq - Freq : Freq - realFreq;
 			};
 
-			template<class Timer, unsigned long Freq, unsigned long Fcpu, int CurrentDividerN, int BestDividerN>
+			template<class Timer, unsigned long Freq, unsigned long Fcpu, int MinDividerNumber, int MaxDividerNumber>
 			class DividerSelector
 			{
+				static const unsigned long CurrentDividerN = (MinDividerNumber + MaxDividerNumber) / 2;
 				typedef typename Timer::template Divider<CurrentDividerN> CurrentDivider;
 				typedef ReloadValue<Timer, CurrentDivider, Freq, Fcpu> CurrentValue;
-
-				typedef typename Timer::template Divider<BestDividerN> BestDivider;
-				typedef ReloadValue<Timer, BestDivider, Freq, Fcpu> BestValue;
-
-				enum{NewBestDivider = (CurrentValue::error < BestValue::error ||
-										(CurrentValue::error == BestValue::error &&
-											CurrentValue::ticks > BestValue::ticks)) ?
-					CurrentDividerN	: BestDividerN};
-
-				public:
+				
+				static const unsigned long NewMinDividerNumber = 
+							CurrentValue::ticks > Timer::MaxValue ? 
+							CurrentDividerN + 1:
+							MinDividerNumber;
+							
+				static const unsigned long NewMaxDividerNumber = 
+							CurrentValue::ticks > Timer::MaxValue ?
+							MaxDividerNumber:
+							CurrentDividerN;
+			public:
 				typedef typename DividerSelector<
 					Timer, Freq, Fcpu,
-					CurrentDividerN-1, NewBestDivider>::Result Result;
+					NewMinDividerNumber, NewMaxDividerNumber>::Result Result;
 			};
 
 			template<class Timer, unsigned long Freq, unsigned long Fcpu, int BestDivider>
-			struct DividerSelector<Timer, Freq, Fcpu, -1, BestDivider>
+			struct DividerSelector<Timer, Freq, Fcpu, BestDivider, BestDivider>
 			{
 				typedef typename Timer::template Divider<BestDivider> Result;
 			};
@@ -79,7 +81,7 @@ namespace Mcucpp
 		template<class Timer, unsigned long Freq, unsigned long Fcpu DEFAULT_TIMER_CLOCK_FREQ>
 		class TimerFreqSetup
 		{
-			typedef Private::DividerSelector<Timer, Freq, Fcpu, Timer::MaxDivider, Timer::MaxDivider> DivSelector;
+			typedef Private::DividerSelector<Timer, Freq, Fcpu, 0, Timer::MaxDivider> DivSelector;
 			typedef Private::ReloadValue<Timer, typename DivSelector::Result, Freq, Fcpu> ReloadValueHolder;
 		public:
 			static const typename Timer::ClockDivider divider = DivSelector::Result::value;

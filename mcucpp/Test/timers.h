@@ -68,8 +68,8 @@ namespace Mcucpp
 		
 			template<unsigned Number> struct Divider
 			{ 
-				static const ClockDivider value = (ClockDivider)Number;
-				enum {Div = Number }; 
+				static const ClockDivider value = (ClockDivider)(Number+1);
+				enum {Div = Number+1 }; 
 			};
 			
 			enum {MaxDivider = 0xffff};
