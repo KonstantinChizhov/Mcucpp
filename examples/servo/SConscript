@@ -1,0 +1,4 @@
+
+SConscript('Test/SConscript')
+SConscript('stm32f100/SConscript')
+SConscript('atmega8/SConscript')

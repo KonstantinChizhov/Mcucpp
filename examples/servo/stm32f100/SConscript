@@ -1,0 +1,20 @@
+Import('McucppHome')
+
+armEnv = Environment(DEVICE_NAME = 'stm32f100', 
+	toolpath = ["%s/scons" % McucppHome], 
+	tools=['mcucpp'])
+
+armEnv.Append(CPPPATH = ['#/inc', '#/./'])
+armEnv.Append(CCFLAGS = "-O3")
+
+app_objects = armEnv.Object(['main.cpp'])
+
+elf = armEnv.Program('servo_test', app_objects)
+lss = armEnv.Disassembly(elf)
+hex = armEnv.Hex(elf)
+
+#flash = armEnv.Flash(hex)
+#run = armEnv.Run(hex)
+
+#Alias("flash", [lss, hex, flash])
+#Alias("run", [lss, hex, flash, run])
