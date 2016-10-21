@@ -28,6 +28,7 @@
 
 #include <stdint.h>
 #include <template_utils.h>
+#include <clock.h>
 
 namespace Mcucpp
 {
@@ -75,13 +76,15 @@ namespace Mcucpp
 			
 			static ClockDivider DividerValue(unsigned number)
 			{
-				return (ClockDivider)number;
+				return (ClockDivider)(number+1);
 			}
 			
 			static uint32_t DividerCoeff(unsigned number)
 			{
-				return number;
+				return number + 1;
 			}
+			
+			static uint32_t ClockFreq()      { return Clock::SysClock::ClockFreq(); }
 			
 			static void Enable(){  }
 			static void Disable(){  }
@@ -136,13 +139,6 @@ namespace Mcucpp
 			{
 				
 			}
-		
-			struct TimerData
-			{
-				volatile DataT Counter;
-				ClockDivider CurrentDivider;
-			};
-			static TimerData timerData;
 
 			enum TimerMode
 			{
