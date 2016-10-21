@@ -3,4 +3,13 @@ Mcucpp - is a C++ hardware abstraction library for microcontrollers.
 
 The aim of the project is to make a high level but extremly efficient C++ hardware abstraction framework for different microcontroller families.
 
-For latest version visit https://github.com/KonstantinChizhov/Mcucpp
+Prerequisites:
+1. Python 2.7.x;
+2. SCons build tool;
+3. GNU toolchain for target paltform and for host system for unit tests. Currently supported targets:
+	- AVR;
+	- ARM;
+	- MSP430;
+	
+All prerequisite tools need to be available on environment PATH variable.
+
