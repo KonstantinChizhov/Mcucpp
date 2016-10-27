@@ -99,7 +99,7 @@ namespace Mcucpp
 		static void LeftAlign(){_data.flags |= LeftFlag;}
 		static void RightAlign(){_data.flags &= ~LeftFlag;}
 		static void Hex(){_data.flags |= HexFlag;}
-		static void Dec(){_data.flags &= ~DecFlag;}
+		static void Dec(){_data.flags &= ~HexFlag;}
 
 		template<class T>
 		static void Write(T value)

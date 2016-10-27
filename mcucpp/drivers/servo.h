@@ -56,7 +56,7 @@ namespace Mcucpp
 		_pulseMaxTicks(0),
 		_pulseMinTicks(0),
 		_pauseDivider(Timer::DividerValue(0)),
-		_pauseTicks(0),
+		_pauseTicks(Timer::MaxValue),
 		_phase(0)
 	{
 		for(unsigned i = 0; i < ServoPins::Length; i++)
@@ -131,13 +131,13 @@ namespace Mcucpp
 	template<class ServoPins, class Timer, int PositionMin, int PositionMax>
 	void Servo<ServoPins, Timer, PositionMin, PositionMax>::TimerHandler()
 	{
-		Timer::Stop();
-		typename ServoPins::ValueType portValue = 0, mask = 1;
-		typename Timer::DataT next = Timer::MaxValue;
-		typename Timer::DataT phase = _phase;
+		Timer::Stop(); 
+		unsigned portValue = 0, mask = 1;
+		unsigned next = Timer::MaxValue;
+		unsigned phase = _phase;
 		for(unsigned i = 0; i < ServoPins::Length; i++)
 		{
-			typename Timer::DataT pos = _position[i];
+			unsigned pos = _position[i];
 			if(pos > phase)
 			{
 				if(pos < next)
@@ -148,7 +148,7 @@ namespace Mcucpp
 			}
 			mask <<= 1;
 		}
-		typename Timer::DataT ticks;
+		unsigned ticks;
 		typename Timer::ClockDivider divider;
 		
 		if(portValue)
@@ -161,11 +161,11 @@ namespace Mcucpp
 			next = 0;
 			ticks = _pauseTicks;
 			divider = _pauseDivider;
+			SyncCache();
 		}
 		_phase = next;
-		Timer::Start(divider, ticks);
-		ServoPins::Write(portValue);
-		SyncCache();
+		Timer::Start(divider, ( typename Timer::DataT)ticks);
+		ServoPins::Write((typename ServoPins::ValueType)portValue);
 	}
 	
 	template<class ServoPins, class Timer, int PositionMin, int PositionMax>
