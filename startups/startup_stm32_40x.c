@@ -139,7 +139,8 @@ void (* const g_pfnVectors[])(void) =
 
 __attribute__((noreturn, __interrupt__)) void Reset_Handler(void)
 {
-	unsigned long *pSrc, *pDest;
+	unsigned long volatile * pSrc;
+	unsigned long volatile * pDest;
 
 	// copy the data segment initializers from flash to SRAM
 	pSrc = &_etext;
