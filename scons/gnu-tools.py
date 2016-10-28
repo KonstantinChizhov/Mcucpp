@@ -28,10 +28,12 @@ def overrideProgramBuilder(env, target, source):
 	
 	originalProgramBuilder = env['OriginalProgramBuilder']
 	res = originalProgramBuilder(env, target, source + startupObjects)
-	env.Command(None, res, "$SIZE $SOURCE")
+	env.Command(None, target, "$SIZE $SOURCE")
 	if 'Hex' in env['BUILDERS']:
-		env.Hex(res)
-	env.Disassembly(res)
+		hexFile = env.Hex(target)
+		env.Default(hexFile)
+	lssFile = env.Disassembly(target)
+	env.Default(lssFile)
 	return res
 	
 
@@ -50,11 +52,12 @@ def setup_gnu_tools(env, prefix):
 	env['RANLIB'] = prefix+"ranlib"
 	env['SIZE'] = prefix+"size"
 	env['PROGSUFFIX'] = '.elf'
+	env['GDB'] = prefix + 'gdb'
 	
-	env['CFLAGS'] = ["-std=gnu99", "-Wredundant-decls","-Wnested-externs"]
+	env['CFLAGS'] = ["-std=gnu11", "-Wredundant-decls","-Wnested-externs"]
 	
 	env['CCFLAGS'] = [
-		"-gdwarf-2",
+		"-g",
 		"-funsigned-char",
 		"-funsigned-bitfields",
 		"-fshort-enums",
@@ -73,7 +76,8 @@ def setup_gnu_tools(env, prefix):
 		"-fno-threadsafe-statics",
 		"-fno-rtti",
 		"-fuse-cxa-atexit",
-		"-Woverloaded-virtual"
+		"-Woverloaded-virtual",
+		"-std=c++11"
 		#"-std=c++03"
 	]
 	
