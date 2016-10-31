@@ -589,6 +589,9 @@ namespace IO
 		template <class PinList, class ValueType> struct PortWriteIterator<NullType, PinList, ValueType>
 		{
 			typedef ValueType DataType;
+			
+			static void Enable()
+			{   }
 
 			static void Write(DataType)
 			{   }
@@ -667,6 +670,12 @@ namespace IO
 					  ValueType
 					 >::Result DataType;
 
+			static void Enable()
+			{
+				Port::Enable();
+				PortWriteIterator<Tail, PinList, ValueType>::Enable();
+			}
+			
 			static void Write(DataType value)
 			{
 				DataType result = PinWriteIterator<Pins>::AppendValue(value, DataType(0));

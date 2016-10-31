@@ -179,6 +179,12 @@ namespace IO
 // PinList functions
 ////////////////////////////////////////////////////////////////////////////////
 	template<class PINS>
+	void PinSet<PINS>::Enable()
+	{
+		IoPrivate::PortWriteIterator<Ports, PINS, ValueType>::Enable();
+	}
+	
+	template<class PINS>
 	void PinSet<PINS>::Write(typename PinSet<PINS>::ValueType value)
 	{
 		IoPrivate::PortWriteIterator<Ports, PINS, ValueType>::Write(value);
