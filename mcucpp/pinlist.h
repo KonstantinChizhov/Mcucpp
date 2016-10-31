@@ -113,7 +113,15 @@ namespace IO
 		template<uint8_t PIN>
 		class Pin :public TypeAt<PINS, PIN>::Result::Pin
 		{};
-
+		
+		template<class Pin>
+		struct PinIndex
+		{
+			static const int Value = PinIndexSelector<PINS, Pin>::PinIndex;
+		};
+		
+		static void Enable();
+		
 		static void Write(ValueType value);
 		
 		static ValueType Read();

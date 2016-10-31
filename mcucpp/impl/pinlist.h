@@ -832,6 +832,23 @@ namespace IO
 				PortConfigurationIterator<Tail, PinList, Configuration, config, ValueType>::template SetConfiguration<mask>();
 			}
 		};
+////////////////////////////////////////////////////////////////////////////////
+// PortConfigurationIterator
+////////////////////////////////////////////////////////////////////////////////
+		
+		template<class PinList, class Pin> struct PinIndexSelector;
+		
+		template<class Pin> struct PinIndexSelector<NullType, Pin>
+		{
+			static const int PinIndex = -1; // Pin not found
+		};
+		
+		template<class Head, class Tail, class Pin> struct PinIndexSelector<Typelist<Head, Tail>, Pin>
+		{
+			static const int PinIndex = (Pin::Number == Head::Pin::Number && (int)Pin::Port::Id == (int)Head::Pin::Port::Id) ? 
+				Head::Position : 
+				PinIndexSelector<Tail, Pin>::PinIndex;
+		};
 	}
 }
 }
