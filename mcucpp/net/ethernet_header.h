@@ -1,9 +1,7 @@
-
-
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2014
+// Date			: 2016
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification, 
@@ -26,8 +24,65 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
+#pragma once
+
+#include <stdint.h>
+#include <net/net_addr.h>
+#include <net/ether_type.h>
+
 namespace Mcucpp
 {
-	typedef void (*TransferCallback)(void *data, size_t size, bool success);
-	typedef void (*TaggedTransferCallback)(void *tag, void *data, size_t size, bool success);
+namespace Net
+{
+	class EthernetHeader
+	{
+		enum{AddrLen = 6};
+		uint8_t _bytes[AddrLen + AddrLen + 2 + 4];
+	public:
+		size_t Size()
+		{
+			return AddrLen + AddrLen + 2; // TODO: add VLAN frame support
+		}
+		
+		void SetSrcAddr(const MacAddr &addr)
+		{
+			for(unsigned i = 0; i < AddrLen; i++)
+				_bytes[AddrLen + i] = addr[i];
+		}
+		
+		void SetDestAddr(const MacAddr &addr)
+		{
+			for(unsigned i = 0; i < AddrLen; i++)
+				_bytes[i] = addr[i];
+		}
+		
+		MacAddr GetSrcAddr()
+		{
+			return MacAddr(&_bytes[AddrLen]);
+		}
+		
+		MacAddr GetDestAddr()
+		{
+			return MacAddr(&_bytes[0]);
+		}
+		
+		void SetEtherType(uint16_t type)
+		{
+			_bytes[AddrLen + AddrLen + 0] = (type >> 8) & 0xff;
+			_bytes[AddrLen + AddrLen + 1] = type & 0xff;
+		}
+		
+		unsigned GetEtherType()
+		{
+			unsigned etherType = _bytes[AddrLen + AddrLen + 0] << 8 |
+			       _bytes[AddrLen + AddrLen + 1];
+			if(etherType == VLAN_Tagged)
+			{
+				etherType = _bytes[AddrLen + AddrLen + 4] << 8 |
+			       _bytes[AddrLen + AddrLen + 5];
+			}
+			return etherType;
+		}
+	};
+}
 }

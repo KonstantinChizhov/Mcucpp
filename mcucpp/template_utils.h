@@ -230,6 +230,25 @@ namespace Mcucpp
 			static const unsigned long value = (x4 & 0x0000ffff) + ((x4 >> 16) & 0x0000ffff);
 		};
 		
+		inline unsigned GetPopulatedBits(uint32_t value)
+		{
+			value = (value & 0x55555555) + ((value >> 1) & 0x55555555);
+			value = (value & 0x33333333) + ((value >> 2) & 0x33333333);
+			value = (value & 0x0f0f0f0f) + ((value >> 4) & 0x0f0f0f0f);
+			value = (value & 0x00ff00ff) + ((value >> 8) & 0x00ff00ff);
+			value = (value & 0x0000ffff) + ((value >> 16) & 0x0000ffff);
+			return value;
+		}
+		
+		inline unsigned GetPopulatedBits(uint16_t value)
+		{
+			value = (value & 0x5555) + ((value >> 1) & 0x5555);
+			value = (value & 0x3333) + ((value >> 2) & 0x3333);
+			value = (value & 0x0f0f) + ((value >> 4) & 0x0f0f);
+			value = (value & 0x00ff) + ((value >> 8) & 0x00ff);
+			return value;
+		}
+		
 		template <class ForwardIterator, class T>
 		void fill (ForwardIterator first, ForwardIterator last, const T& val)
 		{
@@ -272,6 +291,19 @@ namespace Mcucpp
 				++first;
 			}
 			return target;
+		}
+		
+		template<class InputIterator1, class InputIterator2>
+		bool equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2)
+		{
+			for (; first1 != last1; ++first1, ++first2)
+			{
+				if (!(*first1 == *first2))
+				{
+					return false;
+				}
+			}
+			return true;
 		}
 		
 		template<class T> void swap(T &a, T &b)
