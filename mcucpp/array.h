@@ -91,8 +91,8 @@ public:
     void insert (iterator position, size_type n, const value_type& val);
 	iterator begin(){return _data();}
 	iterator end(){return _data() + Atomic::Fetch(&_bottom);}
-	iterator rbegin(){return reverse_iterator(end());}
-	iterator rend(){return reverse_iterator(begin());}
+	reverse_iterator rbegin(){return reverse_iterator(end());}
+	reverse_iterator rend(){return reverse_iterator(begin());}
 };
 
 template<size_t SIZE, class T, class Atomic>
