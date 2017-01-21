@@ -3,8 +3,8 @@ import os
 from SCons.Script import *
 
 
-def builder_unit_test(target, source, env):
-	targetName = str(target[0])
+def builder_unit_test(env, target, source):
+	targetName = str(target)
 	objects = []
 	for src in source:
 		objects.append(env.Object('%s-%s' % (targetName, os.path.splitext(str(src))[0]), src))
@@ -12,8 +12,10 @@ def builder_unit_test(target, source, env):
 	objects.append(env.Object('%s-%s' % (targetName, 'gtest_main'), '%s/gtest/gtest_main.cc' % env['MCUCPP_HOME']))
 	objects.append(env.Object('%s-%s' % (targetName, 'gtest-all'), '%s/gtest/gtest-all.cc' % env['MCUCPP_HOME']))
 	testExeNode = env.Program('%s_test' % targetName, objects)
+	env.Default(testExeNode)
 	testApp = str(testExeNode[0].abspath)
 	testNode = env.Command('run_test_%s' % targetName, '', testApp)
+	env.Default(testNode)
 	env.AlwaysBuild(testNode)
 	return 0
 
@@ -25,7 +27,7 @@ def generate(env, **kw):
 	#else:
 	env.Tool('default')
 	
-	print 'Used C comiler "%s"' % env['CC']
+	#print 'Used C compiler "%s"' % env['CC']
 	
 	env.Append(CPPPATH = [\
 		'%s' % env['MCUCPP_HOME'],
@@ -39,8 +41,10 @@ def generate(env, **kw):
 		env.Append(CPPDEFINES=['_VARIADIC_MAX=15'])
 		env.Append(CPPPATH=['%s/tests/include' % env['MCUCPP_HOME']])
 		
-	testBuilder = Builder(action = builder_unit_test)
-	env.Append(BUILDERS = {'Test' :  testBuilder})
+	#testBuilder = Builder(action = builder_unit_test)
+	#env.Append(BUILDERS = {'Test' :  testBuilder})
+	
+	env.AddMethod(builder_unit_test, "Test");
 	
 	env['CCCOMSTR'] = "Host Compiling C: $TARGET"
 	env['CXXCOMSTR'] = "Host Compiling C++: $TARGET"

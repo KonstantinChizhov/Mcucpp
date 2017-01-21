@@ -154,10 +154,13 @@ SupportedDevices = {
 		'flash' : 1024*1024, 'ram' : 112*1024, 'eeprom' : 0,
 		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/CortexM4', '%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x', '%(MCUCPP_HOME)s/startup' ],
 		'libSources' : ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x/src/dma.cpp', 
-					'%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x/src/adc.cpp'],
+					'%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x/src/adc.cpp',
+					'%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x/src/ethernet.cpp',
+					'%(MCUCPP_HOME)s/mcucpp/net/src/net_buffer.cpp',
+					'%(MCUCPP_HOME)s/mcucpp/src/new.cpp'],
 		'linkerScript' : '%(MCUCPP_HOME)s/linker_scripts/stm32_40x.ld',
 		'clock' : 168000000,
-		'defines' : ['STM32F40_41xxx', 'F_OSC=8000000u'],
+		'defines' : ['STM32F40_41xxx', 'F_OSC=8000000u', '__FPU_PRESENT=1'],
 		'cpu' : 'cortex-m4',
 		'startup' : ['%(MCUCPP_HOME)s/startups/startup_stm32_40x.c']
 	}

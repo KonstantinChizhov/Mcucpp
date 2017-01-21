@@ -11,7 +11,8 @@ def SerialOutput(env, target, source):
 
 	portList = list(serial.tools.list_ports.comports())
 	firstPort = portList[0]
-	portName = firstPort.device
+	
+	portName = firstPort[0]
 	if "PORT_NAME" in env:
 		portName = env["PORT_NAME"]
 	portName = ARGUMENTS.get('PORT_NAME', portName)

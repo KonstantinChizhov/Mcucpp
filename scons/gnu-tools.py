@@ -9,6 +9,11 @@ def GetEnvId(env, target):
 	return abs(hash(str(allOptions)))
 
 
+#for item in testExeNode:
+#	print item
+#	for child in item.all_children():
+#		print child
+
 def overrideProgramBuilder(env, target, source):
 	startupObjects = []
 	if 'DEVICE' in env:
@@ -46,6 +51,7 @@ def setup_gnu_tools(env, prefix):
 	env['CXX'] = prefix+'g++'
 	env['AR'] = prefix+'ar'
 	env['AS'] = prefix+'as'
+	env['LINK'] = prefix+'gcc'
 	env['OBJCOPY'] = prefix+'objcopy'
 	env['OBJDUMP'] = prefix+'objdump'
 	env['NM'] = prefix+"nm"
@@ -144,7 +150,7 @@ def setup_gnu_tools(env, prefix):
 	env['CXXCOMSTR'] = "Compiling C++ (%s): $TARGET" % prettyPrefix
 	env['ASCOMSTR'] = "Assembling (%s): $TARGET" % prettyPrefix
 	env['ASPPCOMSTR'] = "Assembling (%s): $TARGET" % prettyPrefix
-	env['LINKCOMSTR'] = "Linking (%s): $TARGET" % prettyPrefix
+	#env['LINKCOMSTR'] = "Linking (%s): $TARGET" % prettyPrefix
 
 def generate(env, **kw):
 	prefix = env['TOOL_PREFIX']

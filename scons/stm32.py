@@ -115,7 +115,6 @@ def generate(env, **kw):
 			suffix = "_debug.log")
 		env.Append(BUILDERS = {'Flash': flashBuilder, 'Run': runBuilder, 'Debug' : debugBuilder})
 		flasherFound = True
-		print "Using OpenOCD tool for flashing image"
 		
 	if not flasherFound:
 		if os.path.isfile(flasher_windows): 
@@ -129,7 +128,6 @@ def generate(env, **kw):
 				src_suffix = ".hex",
 				suffix = "_run.log")
 			env.Append(BUILDERS = {'Flash': flashBuilder, 'Run': runBuilder})
-			print "Using ST-Link utility for flashing image"
 			flasherFound = True
 		else:
 			print "ST-LINK Utility is not found in default location"
