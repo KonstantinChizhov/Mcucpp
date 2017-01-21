@@ -58,6 +58,66 @@ TEST(Containers, RingBuffer1)
 	}
 }
 
+TEST(Containers, RingBufferPO2FullCondition)
+{
+	RingBufferPO2<16, int> buf1;
+	
+	for(unsigned i=0; i < buf1.capacity(); i++)
+		EXPECT_TRUE(buf1.push_back(i));
+	ASSERT_EQ(16, buf1.size());
+	EXPECT_TRUE(buf1.full());
+	
+	for(unsigned i=0; i < 0xffff; i++)
+	{
+		ASSERT_TRUE(buf1.pop_front());
+		ASSERT_TRUE(buf1.push_back(i));
+		ASSERT_EQ(16, buf1.size());
+	}
+}
+
+TEST(Containers, RingBufferFullCondition)
+{
+	RingBuffer<16, int> buf1;
+
+	for(unsigned i=0; i < buf1.capacity(); i++)
+		EXPECT_TRUE(buf1.push_back(i));
+	ASSERT_EQ(16, buf1.size());
+	EXPECT_TRUE(buf1.full());
+	
+	for(unsigned i=0; i < 0xffff; i++)
+	{
+		ASSERT_TRUE(buf1.pop_front());
+		ASSERT_TRUE(buf1.push_back(i));
+		ASSERT_EQ(16, buf1.size());
+	}
+}
+
+size_t RoundToWordBoundary(size_t size)
+{
+	return (size + sizeof(unsigned) - 1) & ~(sizeof(unsigned) - 1);
+}
+
+TEST(Containers, RingBufferPO2StorageSize)
+{
+	EXPECT_EQ(sizeof(uint_fast8_t), sizeof(RingBufferPO2<16, uint8_t>::size_type));
+	EXPECT_EQ(RoundToWordBoundary(16 + 2 * sizeof(uint_fast8_t)), sizeof(RingBufferPO2<16, uint8_t>));
+	
+	EXPECT_EQ(sizeof(uint_fast16_t), sizeof(RingBufferPO2<256, uint8_t>::size_type));
+	EXPECT_EQ(RoundToWordBoundary(256 + 2 * sizeof(uint_fast16_t)), sizeof(RingBufferPO2<256, uint8_t>));
+	
+	EXPECT_EQ(sizeof(uint_fast8_t), sizeof(RingBufferPO2<16, uint16_t>::size_type));
+	EXPECT_EQ(RoundToWordBoundary(16 * 2 + 2 * sizeof(uint_fast8_t)), sizeof(RingBufferPO2<16, uint16_t>));
+	
+	EXPECT_EQ(sizeof(uint_fast16_t), sizeof(RingBufferPO2<256, uint16_t>::size_type));
+	EXPECT_EQ(RoundToWordBoundary(256 * 2 + 2 * sizeof(uint_fast16_t)), sizeof(RingBufferPO2<256, uint16_t>));
+	
+	EXPECT_EQ(sizeof(uint_fast8_t), sizeof(RingBufferPO2<16, uint16_t>::size_type));
+	EXPECT_EQ(RoundToWordBoundary(16 * 4 + 2 * sizeof(uint_fast8_t)), sizeof(RingBufferPO2<16, uint32_t>));
+	
+	EXPECT_EQ(sizeof(uint_fast16_t), sizeof(RingBufferPO2<256, uint32_t>::size_type));
+	EXPECT_EQ(RoundToWordBoundary(256 * 4 + 2 * sizeof(uint_fast16_t)), sizeof(RingBufferPO2<256, uint32_t>));
+}
+
 TEST(Containers, RingBuffer2)
 {
 	RingBuffer<20, int> buf1;

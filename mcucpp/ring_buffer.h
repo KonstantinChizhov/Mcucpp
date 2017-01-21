@@ -168,7 +168,7 @@ namespace Mcucpp
 		template<size_t SIZE, class T, class Atomic>
 		typename RingBufferPO2<SIZE, T, Atomic>::size_type RingBufferPO2<SIZE,T, Atomic>::size()const
 		{
-			return (Atomic::Fetch(&_writeCount) - Atomic::Fetch(&_readCount)) & _mask;
+			return (Atomic::Fetch(&_writeCount) - Atomic::Fetch(&_readCount));
 		}
 
 		template<size_t SIZE, class T, class Atomic>
