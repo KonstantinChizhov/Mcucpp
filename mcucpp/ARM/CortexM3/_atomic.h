@@ -69,6 +69,12 @@ namespace Mcucpp
 		{
 			return __LDREXW((uint32_t*)addr);
 		}
+		
+		template<class T>
+		inline T* LDREX(T **addr)
+		{
+			return (T*)__LDREXW((uint32_t*)addr);
+		}
 
 		inline uint32_t STREX(unsigned char value, unsigned char *addr)
 		{
@@ -111,6 +117,12 @@ namespace Mcucpp
 		}
 		
 		inline uint32_t STREX(long  value, long *addr)
+		{
+			return __STREXW((uint32_t)value, (uint32_t*)addr);
+		}
+		
+		template<class T>
+		inline uint32_t STREX(T *value, T **addr)
 		{
 			return __STREXW((uint32_t)value, (uint32_t*)addr);
 		}

@@ -1,5 +1,6 @@
 #pragma once
-#include <core_cm4.h>
+
+#include <mcu_header.h>
 
 namespace Mcucpp
 {
@@ -69,6 +70,12 @@ namespace Mcucpp
 		{
 			return __LDREXW((uint32_t*)addr);
 		}
+		
+		template<class T>
+		inline T* LDREX(T **addr)
+		{
+			return (T*)__LDREXW((uint32_t*)addr);
+		}
 
 		inline uint32_t STREX(unsigned char value, unsigned char *addr)
 		{
@@ -114,9 +121,14 @@ namespace Mcucpp
 		{
 			return __STREXW((uint32_t)value, (uint32_t*)addr);
 		}
+		
+		template<class T>
+		inline uint32_t STREX(T *value, T **addr)
+		{
+			return __STREXW((uint32_t)value, (uint32_t*)addr);
+		}
 	}
 
-// TODO: reimplement it with LDREX/STREX
 #define DECLARE_OP(OPERATION, OP_NAME) \
 	template<class T, class T2>\
 	static T FetchAnd ## OP_NAME (volatile T * ptr, T2 value)\
