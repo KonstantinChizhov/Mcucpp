@@ -129,8 +129,8 @@ namespace Mcucpp
 
 		static void SetChannel(uint8_t channel)
 		{
-			if(!VerifyReady())
-				return;
+			//if(!VerifyReady())
+			//	return;
 			
 			if(channel < Pins::Length)
 			{
@@ -144,7 +144,7 @@ namespace Mcucpp
 			}
 			if(channel > 18)
 				return;
-			Regs()->SQR1 = (Regs()->SQR3 & ~0x001f) | (channel );
+			Regs()->SQR3 = (Regs()->SQR3 & ~0x001f) | (channel );
 		}
 		 
 		static void Init(uint8_t channel = 0, AdcDivider divider = Div2, Vref ref = VCC)
