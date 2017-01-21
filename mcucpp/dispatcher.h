@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2013
+// Date			: 2016
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification,
@@ -27,64 +27,179 @@
 
 #pragma once
 
-#include <containers.h>
+#include <stdint.h>
+#include <stddef.h>
 #include <atomic.h>
 
 namespace Mcucpp
 {
-	typedef void (*task_t)();
+	typedef void (*task_t)(void *tag);
+	typedef void (*simple_task_t)();
 
-	template<uint8_t TasksLenght, uint8_t TimersLenght, class Atomic=VoidAtomic>
+	struct TaskItem
+	{
+		TaskItem(task_t taskArg = 0, void *tagArg = 0)
+		:task(taskArg), tag(tagArg)
+		{
+
+		}
+		void Invoke()
+		{
+			if(task)
+				task(tag);
+		}
+		task_t task;
+		void *tag;
+	};
+
+	struct TimerData
+	{
+		TimerData()
+		:time(0), id(0)
+		{}
+		TaskItem task;
+		uint32_t time;
+		uint32_t id;
+	};
+
+	typedef uint32_t (*GetTimerTicksFuncT)();
+
 	class Dispatcher
 	{
-		struct TimerData
+		template<class ObjectT, void (ObjectT::* Func)()>
+		static void Invoke(void *object)
 		{
-			task_t task;
-			uint16_t period;
-		};
-
+			return (static_cast<ObjectT*>(object)->* Func)();
+		}
+		Dispatcher(const Dispatcher&);
+		Dispatcher &operator=(const Dispatcher&);
+		
+		static void SimpleTaskAdapter(void *simple_task)
+		{
+			static_cast<simple_task_t>(simple_task)();
+		}
+		
 	public:
-		Dispatcher()
+		Dispatcher(TaskItem *taskStorage, size_t tasksCount, TimerData *timerStorage, size_t timersCount)
+			:_timerSequence(0),
+			_count(0),
+			_first(0),
+			_last(0),
+			_tasksLen(tasksCount),
+			_timersLen(timersCount),
+			_tasks(taskStorage),
+			_timers(timerStorage),
+			GetTimerTicksFunc(0)
 		{
-			for(size_t i=0; i < TimersLenght; i++)
-			{
-				_timers[i].task = 0;
-			}
 		}
 
-		bool SetTask(task_t task)
+		void SetTimerFunc(GetTimerTicksFuncT timerFunc)
 		{
-			return _tasks.push_back(task);
+			GetTimerTicksFunc = timerFunc;
 		}
 
-		bool SetTimer(task_t timerTask, uint16_t period)
+		template<class ObjectT, void (ObjectT::*Func)()>
+		bool SetTask(ObjectT * object)
 		{
-			for(size_t i=0; i <TimersLenght; i++)
+			return SetTask(&Invoke<ObjectT, Func>, object);
+		}
+		
+		bool SetTask(simple_task_t task)
+		{
+			return SetTask(SimpleTaskAdapter, task);
+		}
+
+		bool SetTask(task_t task, void *tag)
+		{
+			if(_count >= _tasksLen)
+				return false;
+			TaskItem item(task, tag);
+			_tasks[_last] = item;
+			_last++;
+			if(_last >= _tasksLen)
+				_last = 0;
+			Atomic::AddAndFetch(&_count, 1);
+			return true;
+		}
+
+		template<class ObjectT, void (ObjectT::*Func)()>
+		uint32_t SetTimer(uint32_t time, ObjectT * object)
+		{
+			return SetTimer(time, &Invoke<ObjectT, Func>, object);
+		}
+		
+		uint32_t SetTimer(uint32_t period, task_t timerTask)
+		{
+			return SetTimer(period, SimpleTaskAdapter, timerTask);
+		}
+
+		uint32_t SetTimer(uint32_t period, task_t timerTask, void *tag)
+		{
+			if(!GetTimerTicksFunc)
+				return 0;
+			uint32_t currentTime = GetTimerTicksFunc();
+			TimerData *timer = 0;
+			for(size_t i=0; i <_timersLen; i++)
 			{
-				task_t task = Atomic::Fetch(&_timers[i].task);
-				if(task == 0)
+				task_t task = _timers[i].task.task;
+				if(task == 0 && !timer)
 				{
-					_timers[i].task = timerTask;
-					_timers[i].period = period;
-					return true;
+					timer = &_timers[i];
 				}
-				if(task == timerTask)
+				if(task == timerTask && _timers[i].task.tag == tag)
 				{
-					_timers[i].period = period;
-					return true;
+					timer = &_timers[i];
 				}
 			}
-			return false;
+			if(timer)
+			{
+				if(period == 0)
+				{
+					timer->task = 0;
+					timer->time = 0;
+				}
+				else
+				{
+					timer->task.task = timerTask;
+					timer->task.tag = tag;
+					timer->time = currentTime + period;
+				}
+				if(!++_timerSequence)
+					_timerSequence++;
+				timer->id = _timerSequence;
+				return _timerSequence;
+			}
+			return 0;
 		}
 
-		void StopTimer(task_t taskToStop)
+		template<class ObjectT, void (ObjectT::*Func)()>
+		void StopTimer(ObjectT * object)
 		{
-			for(size_t i=0; i < TimersLenght; i++)
+			StopTimer(&Invoke<ObjectT, Func>, object);
+		}
+
+		void StopTimer(task_t taskToStop, void *tag)
+		{
+			for(size_t i=0; i < _timersLen; i++)
 			{
-				task_t task = Atomic::Fetch(&_timers[i].task);
-				if(task == taskToStop)
+				task_t task = _timers[i].task.task;
+				if(task == taskToStop && _timers[i].task.tag == tag)
 				{
 					_timers[i].task = 0;
+					_timers[i].id = 0;
+					return;
+				}
+			}
+		}
+		
+		void StopTimer(uint32_t id)
+		{
+			for(size_t i=0; i < _timersLen; i++)
+			{
+				if(_timers[i].id == id)
+				{
+					_timers[i].task = 0;
+					_timers[i].id = 0;
 					return;
 				}
 			}
@@ -92,30 +207,46 @@ namespace Mcucpp
 
 		void Poll()
 		{
-			if(!_tasks.empty())
+			if(GetTimerTicksFunc)
 			{
-				task_t task = _tasks.front();
-				_tasks.pop_front();
-				task();
+				uint32_t ticks = GetTimerTicksFunc();
+				TimerHandler(ticks);
+			}
+			if(_count > 0)
+			{
+				TaskItem &task = _tasks[_first];
+				Atomic::SubAndFetch(&_count, 1);
+				_first++;
+				if(_first >= _tasksLen)
+					_first = 0;
+				task.Invoke();
 			}
 		}
 
-		void TimerHandler()
+		void TimerHandler(uint32_t time)
 		{
-			for(size_t i=0; i < TimersLenght; i++)
+			for(size_t i=0; i < _timersLen; i++)
 			{
-				task_t task = Atomic::Fetch(&_timers[i].task);
-				if(task != 0 &&	Atomic::SubAndFetch(&_timers[i].period, 1) == 0)
+				TaskItem &task = _timers[i].task;
+				if(task.task != 0 && _timers[i].time <= time)
 				{
-					_tasks.push_back(task);
-					_timers[i].task = 0;
+					SetTask(task.task, task.tag);
+					task.task = 0;
+					_timers[i].id = 0;
 				}
 			}
 		}
-
+		uint32_t GetTicks(){return GetTimerTicksFunc ? GetTimerTicksFunc() : 0;}
 	private:
-		Containers::RingBuffer<TasksLenght, task_t, Atomic> _tasks;
-		TimerData _timers[TimersLenght];
+		uint32_t _timerSequence;
+		size_t _count;
+		size_t _first;
+		size_t _last;
+		size_t _tasksLen;
+		size_t _timersLen;
+		TaskItem *_tasks;
+		TimerData *_timers;
+		GetTimerTicksFuncT GetTimerTicksFunc;
 	};
 }
 
