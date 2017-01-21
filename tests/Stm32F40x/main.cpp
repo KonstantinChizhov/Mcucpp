@@ -136,12 +136,6 @@ int main()
 	}
 }
 
-extern "C" void ADC_IRQHandler()
-{
-	//Usart1::Write('.');
-	ADC1->SR &= ~ADC_SR_EOC;
-}
-
 extern "C" void USART1_IRQHandler()
 {
 	if(Usart1::ReadReady())
