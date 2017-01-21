@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <atomic.h>
+#include <template_utils.h>
 
 namespace Mcucpp
 {
@@ -65,7 +66,7 @@ namespace Mcucpp
 		{
 			size_t used = 0;
 			for(size_t i = 0; i < MapSize; i++)
-				used += PopulatedBits(_map[i]);
+				used += Util::GetPopulatedBits(_map[i]);
 			return used;
 		}
 
@@ -115,7 +116,10 @@ namespace Mcucpp
 
 		bool IsInPool(void *ptr)
 		{
-			if(ptr < _data || ptr > _data + sizeof(_data))
+			uint8_t *bPtr =  (uint8_t *)ptr;
+			uint8_t *dPtr =  (uint8_t *)(&_data[0]);
+			
+			if((bPtr < dPtr) || (bPtr > (dPtr + sizeof(_data))))
 				return false;
 			return true;
 		}
@@ -129,7 +133,7 @@ namespace Mcucpp
 	protected:
 		struct Block
 		{
-			uint8_t data[BlockSize];
+			unsigned data[(BlockSize + sizeof(unsigned) - 1) / sizeof(unsigned)];
 		};
 		MapT _map[MapSize];
 		Block _data[NBlocks];
