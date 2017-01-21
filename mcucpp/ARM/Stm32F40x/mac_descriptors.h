@@ -30,7 +30,7 @@
 #include <enum.h>
 #include <debug.h>
 #include <data_transfer.h>
-#include <net/ethernet_header.h>
+#include <net/net_buffer.h>
 
 namespace Mcucpp
 {
@@ -39,7 +39,7 @@ namespace Net
 #if defined(MAX_ETH_DESCROPTORS) && MAX_ETH_DESCROPTORS > 0
 	const size_t MaxEthDescriptors = MAX_ETH_DESCROPTORS;
 #else
-	const size_t MaxEthDescriptors = 6;
+	const size_t MaxEthDescriptors = 8;
 #endif
 
 	enum MacDmaTxStatus
@@ -84,6 +84,7 @@ namespace Net
 		
 	enum MacDmaTxOptions
 	{
+		MacDmaTxNone,
 		MacDmaTxEndOfRing          = (1 << 21),
 		MacDmaTxIpHeaderCrc        = (1 << 22),
 		MacDmaTxIpHeaderAndDataCrc = (1 << 23),
@@ -120,23 +121,44 @@ namespace Net
 		void Lock() { des0 &= ~(1 << 31); }
 		
 		
-		bool SetBuffer(void *buffer, size_t size)
+		bool SetBuffer(const void *buffer, size_t size)
 		{
 			if(size > 0x1fff)
 				return false;
 			des1 = (des1 & 0x1fff0000) | size;
-			des2 = (uint32_t)buffer;
+			des2 = reinterpret_cast<uint32_t>(buffer);
 			return true;
 		}
 		
-		bool SetBuffer2(void *buffer, size_t size)
+		bool SetBuffer2(const void *buffer, size_t size)
 		{
 			if(size > 0x1fff)
 				return false;
 			des1 = (des1 & 0x00001fff) | (size << 16);
-			des3 = (uint32_t)buffer;
+			des3 = reinterpret_cast<uint32_t>(buffer);
 			return true;
 		}
+		
+		void * GetBuffer()
+		{
+			return reinterpret_cast<void*>(des2);
+		}
+		
+		void * GetBuffer2()
+		{
+			return reinterpret_cast<void*>(des3);
+		}
+		
+		uint32_t GetSize()
+		{
+			return des1 & 0x00001fff;
+		}
+		
+		uint32_t GetSize2()
+		{
+			return (des1 & 0x1fff0000) >> 16;
+		}
+		
 		
 		MacDescriptor* NextChained() { return (MacDescriptor*)des3; }
 	};
@@ -161,7 +183,12 @@ namespace Net
 			
 		void SetOptions(MacDmaTxOptions options)
 		{ 
-			des0 = (des0 & 0xFFE00000) | options;
+			des0 = (des0 & ~0xFFE00000) | options;
+		}
+		
+		MacDmaTxOptions GetOptions()
+		{ 
+			return (MacDmaTxOptions)(des0 & 0xFFE00000);
 		}
 		
 		void AppendOptions(MacDmaTxOptions options)
@@ -195,7 +222,7 @@ namespace Net
 		
 		bool IsNextChained() { return des1 & (1 << 14); }
 		MacDmaRxStatus GetStatus(){ return (MacDmaRxStatus)(des0 & 0x4000ffff); }
-		unsigned GetFrameLength()
+		size_t GetFrameLength()
 		{
 			if(des0 & MacDmaRxLastDescriptor)
 				return (des0 >> 16) & 0x3ff;
@@ -212,8 +239,7 @@ namespace Net
 	
 	struct EthTransferData
 	{
-		EthernetHeader header;
-		void *data;
+		const void *data;
 		size_t size;
 		
 		EthTransferData()
@@ -224,87 +250,154 @@ namespace Net
 			data = 0;
 			size = 0;
 		}
-		
 	};
 	
 	class EthTxPool
 	{
+	public:
 		enum {DescriptorCount = MaxEthDescriptors};
+		struct TxDescriptorWithBufferPointer : public MacTxDescriptor
+		{
+			DataBuffer *buffer1;
+			DataBuffer *buffer2;
+			uint32_t seqNumber;
+			void Reset()
+			{
+				MacTxDescriptor::Reset();
+				buffer1 = 0;
+				buffer2 = 0;
+			}
+		};
 		
-		MacTxDescriptor _descriptors[DescriptorCount];
-		EthTransferData _transferData[DescriptorCount];
-		MacAddr _selfAddr;
-		unsigned _currentDescriptor;
+		TxDescriptorWithBufferPointer Descriptors[DescriptorCount];
+		size_t _currentDescriptor;
 	public:
 		EthTxPool()
 		:_currentDescriptor(0)
 		{
-			_descriptors[DescriptorCount - 1].SetEndOfRing();
+			Descriptors[DescriptorCount - 1].SetEndOfRing();
 		}
 		
-		MacTxDescriptor *StartOfList(){ return &_descriptors[0];}
-		
-		void SetSrcAddr(const MacAddr &macAddr)
-		{
-			_selfAddr = macAddr;
-		}
+		MacTxDescriptor *StartOfList(){ return &Descriptors[0];}
 		
 		void Reset()
 		{
-			for(unsigned i = 0; i < DescriptorCount; i++)
-				_descriptors[i].Reset();
-			_descriptors[DescriptorCount - 1].SetEndOfRing();
+			_currentDescriptor = 0;
+			for(size_t i = 0; i < DescriptorCount; i++)
+				Descriptors[i].Reset();
+			Descriptors[DescriptorCount - 1].SetEndOfRing();
 		}
 		
-		void ClenUp()
+		bool EnqueueBuffer(NetBuffer &buffer, uint32_t seqNumber)
 		{
-			for(unsigned i = 0; i < DescriptorCount; i++)
+			size_t partsCount = buffer.Parts();
+			size_t descriptorsRequired = (partsCount + 1) / 2;
+			size_t descrIndex = _currentDescriptor;
+			
+			for(size_t index = 0; index < descriptorsRequired; index++)
 			{
-				MacTxDescriptor & descr = _descriptors[_currentDescriptor];
-				EthTransferData &txData = _transferData[_currentDescriptor];
-				if(!descr.InUse() && txData.data != 0)
+				MacTxDescriptor & descr = Descriptors[descrIndex];
+				if(descr.InUse())
 				{
-					txData.Reset();
+					return false; // Not enougth free descriptors
 				}
-			}
-			_descriptors[DescriptorCount - 1].SetEndOfRing();
-		}
-		
-		bool EnqueueBuffer(const MacAddr &dest, uint16_t etherType, void *data, size_t size)
-		{
-			MacTxDescriptor & descr = _descriptors[_currentDescriptor];
-			EthTransferData &txData = _transferData[_currentDescriptor];
-			if(descr.InUse() || txData.data != 0)
-			{
-				return false;
+				descrIndex++;
+				if(descrIndex >= DescriptorCount)
+					descrIndex=0;
 			}
 			
-			txData.data = data;
-			txData.size = size;
+			descrIndex = _currentDescriptor;
 			
-			txData.header.SetEtherType(etherType);
-			txData.header.SetDestAddr(dest);
-			txData.header.SetSrcAddr(_selfAddr);
-			
-			descr.SetBuffer(&txData.header, txData.header.Size());
-			
-			if(!descr.SetBuffer2(data, size))
+			for(size_t i = 0; i < descriptorsRequired; i++)
 			{
-				txData.Reset();
+				TxDescriptorWithBufferPointer & descr = Descriptors[descrIndex];
+				DataBuffer *part = buffer.DetachFront();
 				descr.Reset();
-				return false;
-			}
-			
-			descr.AppendOptions(MacDmaTxFirstSegment | MacDmaTxLastSegment | MacDmaTxInterrupt);
-			descr.SetReady();
-			
-			_currentDescriptor++;
-			 if(_currentDescriptor >= DescriptorCount)
-				_currentDescriptor=0;
+				descr.SetBuffer(part->Data(), part->Size());
+				descr.buffer1 = part;
+				descr.seqNumber = seqNumber;
 				
+				if(i < partsCount)
+				{
+					DataBuffer *part2 = buffer.DetachFront();
+					descr.SetBuffer2(part2->Data(), part2->Size());
+					descr.buffer2 = part2;
+				}
+				
+				MacDmaTxOptions options = MacDmaTxNone;
+				if(i == 0)
+					options |= MacDmaTxFirstSegment | MacDmaTxInterrupt;
+				
+				if(i == descriptorsRequired - 1)
+					options |= MacDmaTxLastSegment;
+				
+				descrIndex++;
+				if(descrIndex >= DescriptorCount)
+				{
+					descrIndex=0;
+					options |= MacDmaTxEndOfRing;
+				}
+				descr.SetOptions(options | MacDmaTxReady);
+			}
+			_currentDescriptor = descrIndex;
+			
 			return true;
 		}
 	};
 	
-	
+	class EthRxPool
+	{
+	public:
+		enum {DescriptorCount = 3};
+		
+		struct RxDescriptorWithBufferPointer : public MacRxDescriptor
+		{
+			DataBuffer *buffer1;
+			DataBuffer *buffer2;
+			uint32_t reserved;
+			
+			void Reset()
+			{
+				MacRxDescriptor::Reset();
+				buffer1 = 0;
+				buffer2 = 0;
+			}
+			
+			bool SetBuffer(DataBuffer *buffer)
+			{
+				bool res = MacRxDescriptor::SetBuffer(buffer->Data(), buffer->Capacity());
+				if(!res)
+				{
+					return false;
+				}
+				buffer1 = buffer;
+				return true;
+			}
+			
+			bool SetBuffer2(DataBuffer *buffer)
+			{
+				bool res = MacRxDescriptor::SetBuffer2(buffer->Data(), buffer->Capacity());
+				if(!res)
+				{
+					return false;
+				}
+				buffer1 = buffer;
+				return true;
+			}
+		};
+		
+		RxDescriptorWithBufferPointer Descriptors[DescriptorCount];
+	public:
+		EthRxPool()
+		{
+			Descriptors[DescriptorCount - 1].SetEndOfRing();
+		}
+		
+		void Reset()
+		{
+			for(size_t i = 0; i < DescriptorCount; i++)
+				Descriptors[i].Reset();
+			Descriptors[DescriptorCount - 1].SetEndOfRing();
+		}
+	};
 }}

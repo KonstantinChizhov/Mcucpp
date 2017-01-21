@@ -1,3 +1,5 @@
+
+
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
@@ -24,65 +26,24 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
-#pragma once
 
-#include <stdint.h>
+#pragma once
 #include <net/net_addr.h>
-#include <net/ether_type.h>
+#include <net/net_buffer.h>
 
 namespace Mcucpp
 {
 namespace Net
 {
-	class EthernetHeader
+	
+	typedef uint32_t TransferId;
+	
+	class INetDispatch
 	{
-		enum{AddrLen = 6};
-		uint8_t _bytes[AddrLen + AddrLen + 2 + 4];
 	public:
-		size_t Size()
-		{
-			return AddrLen + AddrLen + 2; // TODO: add VLAN frame support
-		}
-		
-		void SetSrcAddr(const MacAddr &addr)
-		{
-			for(unsigned i = 0; i < AddrLen; i++)
-				_bytes[AddrLen + i] = addr[i];
-		}
-		
-		void SetDestAddr(const MacAddr &addr)
-		{
-			for(unsigned i = 0; i < AddrLen; i++)
-				_bytes[i] = addr[i];
-		}
-		
-		MacAddr GetSrcAddr()
-		{
-			return MacAddr(&_bytes[AddrLen]);
-		}
-		
-		MacAddr GetDestAddr()
-		{
-			return MacAddr(&_bytes[0]);
-		}
-		
-		void SetEtherType(uint16_t type)
-		{
-			_bytes[AddrLen + AddrLen + 0] = (type >> 8) & 0xff;
-			_bytes[AddrLen + AddrLen + 1] = type & 0xff;
-		}
-		
-		unsigned GetEtherType()
-		{
-			unsigned etherType = _bytes[AddrLen + AddrLen + 0] << 8 |
-			       _bytes[AddrLen + AddrLen + 1];
-			if(etherType == VLAN_Tagged)
-			{
-				etherType = _bytes[AddrLen + AddrLen + 4] << 8 |
-			       _bytes[AddrLen + AddrLen + 5];
-			}
-			return etherType;
-		}
+		virtual void TxComplete(TransferId txId, bool success)=0;
+		virtual void RxComplete(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer)=0;
+		virtual bool SendMesage(const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer)=0;
 	};
-}
-}
+	
+}}

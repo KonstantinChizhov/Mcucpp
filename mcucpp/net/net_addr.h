@@ -39,18 +39,22 @@ namespace Net
 	class NetAddress
 	{
 		uint8_t _value[BytesCount];
+		
+		explicit NetAddress(bool broadcast)
+		{
+			if(broadcast)
+			{
+				Util::fill_n(_value, sizeof(_value), 0xff);
+			}
+		}
 	public:
 		unsigned Length() const { return BytesCount; }
 		
 		NetAddress()
 		{
-			Util::fill_n(_value, sizeof(_value), 0xff);
+			Util::fill_n(_value, sizeof(_value), 0);
 		}
 		
-		explicit NetAddress(bool noInit)
-		{
-			(void)noInit;
-		}
 		
 		explicit NetAddress(const uint8_t *value)
 		{
@@ -140,12 +144,33 @@ namespace Net
 		}
 		operator bool()const
 		{
+			return IsEmpty();
+		}
+		
+		bool IsBroadcast() const
+		{
 			for(unsigned i = 0; i < sizeof(_value); i++)
 			{
 				if(_value[i] != 0xff)
 					return true;
 			}
 			return false;
+		}
+		
+		bool IsEmpty() const
+		{
+			for(unsigned i = 0; i < sizeof(_value); i++)
+			{
+				if(_value[i] != 0)
+					return true;
+			}
+			return false;
+		}
+		
+		static const NetAddress& Broadcast()
+		{
+			static NetAddress broadcast(true);
+			return broadcast;
 		}
 	};
 	
