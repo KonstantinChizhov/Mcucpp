@@ -1,5 +1,3 @@
-
-
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
@@ -29,41 +27,16 @@
 
 #pragma once
 #include <net/NetInterface.h>
-#include <net/INetDispatch.h>
-#include <net/INetProtocol.h>
-#include <Dispatcher.h>
-#include <array.h>
+#include <net/IpProtocolId.h>
 
 namespace Mcucpp
 {
 namespace Net
 {
-
-	class NetDispatch: public INetDispatch
+	class IIpSubProtocol
 	{
-		enum{MaxInterfaces = 4};
-		enum{MaxProtocols = 4};
-		Dispatcher &_dispatcher;
-		
-		struct ProtocolIdPair
-		{
-			ProtocolIdPair(INetProtocol *p, uint16_t i) :protocol(p), id(i) {}
-			INetProtocol *protocol;
-			uint16_t id;
-		};
-		
-		Containers::FixedArray<MaxInterfaces, NetInterface *> _interfaces;
-		Containers::FixedArray<MaxProtocols, ProtocolIdPair> _protocols;
-		
-	public: // INetDispatch
-		virtual void TxComplete(TransferId txId, bool success);
-		virtual void RxComplete(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer);
-		virtual bool SendMesage(const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer);
 	public:
-		NetDispatch(Dispatcher &dispatcher);
-		void AddInterface(NetInterface *interface);
-		void AddProtocol(uint16_t protocoId, INetProtocol *protocol);
-		void Poll();
+		virtual void ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, Net::NetBuffer &buffer);
 	};
 	
 }}

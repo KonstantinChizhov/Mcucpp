@@ -4,12 +4,13 @@
 using namespace Mcucpp;
 using namespace Mcucpp::Net;
 
-void NetDispatch::TxComplete(NetInterface *interface, TransferId txId, bool success)
+void NetDispatch::TxComplete(TransferId txId, bool success)
 {
-	
+	(void)txId;
+	(void)success;
 }
 
-void NetDispatch::RxComplete(NetInterface *interface, const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer)
+void NetDispatch::RxComplete(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer)
 {
 	for(unsigned i = 0; i < _interfaces.size(); i++)
 	{

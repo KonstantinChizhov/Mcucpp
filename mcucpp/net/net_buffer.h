@@ -184,12 +184,11 @@ namespace Net
 		
 		Net::IpAddr ReadIp()
 		{
-			Net::IpAddr addr;
-			for(size_t i = 0; i < addr.Length(); i++)
-			{
-				addr[i] = Read();
-			}
-			return addr;
+			uint8_t a = Read();
+			uint8_t b = Read();
+			uint8_t c = Read();
+			uint8_t d = Read();
+			return Net::IpAddr(a, b, c, d);
 		}
 		
 		void Clear();

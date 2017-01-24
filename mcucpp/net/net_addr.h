@@ -142,9 +142,29 @@ namespace Net
 		{
 			return _value[index];
 		}
-		operator bool()const
+		
+		NetAddress operator & (const NetAddress & rhs)const
 		{
-			return IsEmpty();
+			NetAddress result(false);
+			for(unsigned i = 0; i < sizeof(_value); i++)
+				result._value[i] = _value[i] & rhs._value[i];
+			return result;
+		}
+		
+		NetAddress operator | (const NetAddress & rhs)const
+		{
+			NetAddress result(false);
+			for(unsigned i = 0; i < sizeof(_value); i++)
+				result._value[i] = _value[i] | rhs._value[i];
+			return result;
+		}
+		
+		NetAddress operator ^ (const NetAddress & rhs)const
+		{
+			NetAddress result(false);
+			for(unsigned i = 0; i < sizeof(_value); i++)
+				result._value[i] = _value[i] ^ rhs._value[i];
+			return result;
 		}
 		
 		bool IsBroadcast() const
@@ -173,6 +193,119 @@ namespace Net
 			return broadcast;
 		}
 	};
+	
+	template<>
+	class NetAddress<4>
+	{
+		uint32_t _value;
+		
+		explicit NetAddress(bool broadcast)
+		{
+			if(broadcast)
+			{
+				_value = 0xffffffff;
+			}
+		}
+	public:
+		unsigned Length() const { return 4; }
+		
+		NetAddress()
+			:_value(0)
+		{
+			
+		}
+		
+		explicit NetAddress(uint32_t v)
+		{
+			_value = v;
+		}
+		
+		explicit NetAddress(const uint8_t *value)
+		{
+			_value = ((uint32_t)value[0] << 0) | ((uint32_t)value[1] << 8) |
+					((uint32_t)value[2] << 16) | ((uint32_t)value[3] << 24);
+		}
+		
+		NetAddress(uint8_t a, uint8_t b, uint8_t c, uint8_t d)
+		{
+			_value = ((uint32_t)a << 0) | ((uint32_t)b << 8) |
+					((uint32_t)c << 16) | ((uint32_t)d << 24);
+		}
+		
+		NetAddress(const NetAddress<4> & rhs)
+		{
+			_value = rhs._value;
+		}
+		
+		NetAddress & operator=(const NetAddress<4> & rhs)
+		{
+			_value = rhs._value;
+			return *this;
+		}
+		
+		bool operator==(const NetAddress<4> & rhs)const
+		{
+			return _value == rhs._value;
+		}
+		
+		bool operator!=(const NetAddress<4> & rhs)const
+		{
+			return _value != rhs._value;
+		}
+		
+		// uint8_t& operator[](int index)
+		// {
+			// return (uint8_t)(_value >> index*8);
+		// }
+		
+		uint32_t ToInt32() const
+		{
+			return _value;
+		}
+		
+		uint8_t operator[](int index)const
+		{
+			return (uint8_t)(_value >> index*8);
+		}
+		
+		NetAddress operator & (const NetAddress & rhs)const
+		{
+			NetAddress result(false);
+			result._value = _value & rhs._value;
+			return result;
+		}
+		
+		NetAddress operator | (const NetAddress & rhs)const
+		{
+			NetAddress result(false);
+			result._value = _value | rhs._value;
+			return result;
+		}
+		
+		NetAddress operator ^ (const NetAddress & rhs)const
+		{
+			NetAddress result(false);
+			result._value = _value ^ rhs._value;
+			return result;
+		}
+		
+		bool IsBroadcast() const
+		{
+			return _value == 0xffffffff;
+		}
+		
+		bool IsEmpty() const
+		{
+			return _value == 0;
+		}
+		
+		static const NetAddress& Broadcast()
+		{
+			static NetAddress broadcast(true);
+			return broadcast;
+		}
+	};
+	
 	
 	typedef NetAddress<6> MacAddr;
 	typedef NetAddress<4> IpAddr;
