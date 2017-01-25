@@ -12,7 +12,7 @@ void NetDispatch::TxComplete(TransferId txId, bool success)
 
 void NetDispatch::RxComplete(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer)
 {
-	for(unsigned i = 0; i < _interfaces.size(); i++)
+	for(unsigned i = 0; i < _protocols.size(); i++)
 	{
 		if(_protocols[i].id == protocoId)
 		{

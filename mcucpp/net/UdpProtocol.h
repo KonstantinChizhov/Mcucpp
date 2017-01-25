@@ -1,4 +1,3 @@
-
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
@@ -29,33 +28,25 @@
 #pragma once
 #include <net/NetInterface.h>
 #include <net/IpProtocolId.h>
+#include <net/IIpSubProtocol.h>
+#include <net/IPortListner.h>
 
 namespace Mcucpp
 {
 namespace Net
 {
-	class INetProtocol
+	class UdpProtocol :public IIpIncapsulatingSubProtocol
 	{
-	public:
-		virtual void ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, Net::NetBuffer &buffer)=0;
-	};
-	
-	class INetIncapsulatingProtocol :public INetProtocol
-	{
-	protected:
-		Net::IpAddr _ipAddr;
-		Net::IpAddr _netMask;
-		Net::IpAddr _ipDefaultGateway;
-	public:
-		virtual bool SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocolId, Net::NetBuffer &buffer)=0;
-	public:
-		Net::IpAddr GetIpAddr(){ return _ipAddr; }
-		Net::IpAddr GetNetMask(){ return _netMask; }
-		Net::IpAddr GetDefaultGateway(){ return _ipDefaultGateway; }
+		INetIncapsulatingProtocol &_netProtocol;
+		enum{MaxListners = 8;}
+		IPortListner *_listners[MaxListners];
 		
-		void SetIpAddr(const Net::IpAddr &ipAddr){ _ipAddr = ipAddr; }
-		void SetNetMask(const Net::IpAddr &netMask){ _netMask = netMask;}
-		void SetDefaultGateway(const Net::IpAddr &gateway){ _ipDefaultGateway = gateway;}
+	public:
+		UdpProtocol(INetIncapsulatingProtocol &netProtocol);
+		
+		void ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, Net::NetBuffer &buffer);
+		bool SendMessage(const Net::IpAddr &destAddr, uint16_t srcPort, uint16_t destPort, Net::NetBuffer &buffer);
+		void AddListener(IPortListner *listner);
 	};
 	
 }}

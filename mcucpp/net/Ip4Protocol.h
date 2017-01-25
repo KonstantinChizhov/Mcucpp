@@ -95,7 +95,7 @@ namespace Net
 		bool IsFree(){return !buffer;}
 	};
 	
-	class IP4Protocol: public INetProtocol
+	class IP4Protocol: public INetIncapsulatingProtocol
 	{
 	public:
 		enum
@@ -126,29 +126,23 @@ namespace Net
 		Containers::FixedArray<MaxProtocols, ProtocolId> _protocols;
 		PendingPacket _pendingPackets[MaxPendingPackets];
 		
-		Net::IpAddr _ipAddr;
-		Net::IpAddr _netMask;
-		Net::IpAddr _ipDefaultGateway;
 		IAddressResolve *_adresssResolve;
+		uint32_t _sequence;
 		bool EnqueuePacket(const PendingPacket &packet);
 		void ProcessPendingPackets();
 	public:
 		virtual void ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, Net::NetBuffer &buffer);
-		virtual bool SendMessage(const Net::IpAddr &destAddr, Net::NetBuffer &buffer, IpProtocolId protocolId);
+		virtual bool SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocolId, Net::NetBuffer &buffer);
 	public:
 		IP4Protocol(Dispatcher &dispatcher, INetDispatch &netDispatch, NetInterface &iface);
 		void AddProtocol(uint16_t protocolId, IIpSubProtocol *protocol);
-		Net::IpAddr GetIpAddr();
-		Net::IpAddr GetNetMask();
-		Net::IpAddr GetDefaultGateway();
-		void SetIpAddr(Net::IpAddr ipAddr);
-		void SetNetMask(Net::IpAddr netMask);
-		void SetDefaultGateway(Net::IpAddr gateway);
 		void SetAddressResolver(IAddressResolve *adresssResolve);
 		IAddressResolve * GetAddressResolver();
 		void AddressResolved(const Net::IpAddr &ipAddr, const Net::MacAddr &macAddr);
+		uint32_t PacketId(const Net::IpAddr &destAddr, IpProtocolId protocolId);
 	public: // static
 		static uint16_t HeaderChecksum(uint8_t *header, size_t len);
+		
 	};
 	
 }}

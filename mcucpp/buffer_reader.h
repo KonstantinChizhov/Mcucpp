@@ -52,6 +52,8 @@ namespace Mcucpp
 		{
 			_pos = 0;
 		}
+		
+		bool EndOfStream(){return _pos >= _size;}
 
 	private:
 		const uint8_t *_ptr;

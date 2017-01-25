@@ -200,6 +200,7 @@ namespace Net
 		DataBuffer* DetachFront();
 		
 		bool Seek(size_t pos);
+		size_t Tell();
 		size_t Size();
 		unsigned Parts();
 	};

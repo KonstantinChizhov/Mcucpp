@@ -112,3 +112,26 @@ TEST(NetBuffer, DetachFront)
 	EXPECT_TRUE(buf2 != NULL);
 	EXPECT_EQ(0, buffer.Parts());
 }
+
+TEST(NetBuffer, SeekAndTell)
+{
+	NetBuffer buffer;
+	EXPECT_TRUE(buffer.BufferList() == 0);
+	buffer.AttachFront(DataBuffer::GetNew(10));
+	buffer.AttachFront(DataBuffer::GetNew(10));
+	buffer.AttachFront(DataBuffer::GetNew(10));
+	buffer.Seek(0);
+	EXPECT_EQ(0, buffer.Tell());
+	
+	buffer.Seek(10);
+	EXPECT_EQ(10, buffer.Tell());
+	
+	buffer.Seek(15);
+	EXPECT_EQ(15, buffer.Tell());
+	
+	buffer.Seek(20);
+	EXPECT_EQ(20, buffer.Tell());
+	
+	buffer.Seek(25);
+	EXPECT_EQ(25, buffer.Tell());
+}

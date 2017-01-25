@@ -222,6 +222,19 @@ bool NetBufferBase::Seek(size_t pos)
 	return true;
 }
 
+size_t NetBufferBase::Tell()
+{
+	DataBuffer *current = _first;
+	size_t result = _pos;
+
+	while(current && current != _current)
+	{
+		result += current->Size();
+		current = current->Next();
+	}
+	return result;
+}
+
 size_t NetBufferBase::Size()
 {
 	DataBuffer *current = _first;

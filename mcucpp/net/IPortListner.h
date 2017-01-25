@@ -1,4 +1,3 @@
-
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
@@ -34,28 +33,20 @@ namespace Mcucpp
 {
 namespace Net
 {
-	class INetProtocol
+	class IPortListner
 	{
+		
+		uint16_t _destPort;
 	public:
-		virtual void ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, Net::NetBuffer &buffer)=0;
+		IPortListner()
+		_destPort(0)
+		{}
+		
+		uint16_t DestPort(){return _destPort; }
+		void SetDestPort(uint16_t value){ _destPort = value; }
+		
+		virtual void ProcessMessage(const Net::IpAddr &srcAddr, uint16_t srcPort, uint16_t destPort, uint16_t dataLen, Net::NetBuffer &buffer)=0;
 	};
 	
-	class INetIncapsulatingProtocol :public INetProtocol
-	{
-	protected:
-		Net::IpAddr _ipAddr;
-		Net::IpAddr _netMask;
-		Net::IpAddr _ipDefaultGateway;
-	public:
-		virtual bool SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocolId, Net::NetBuffer &buffer)=0;
-	public:
-		Net::IpAddr GetIpAddr(){ return _ipAddr; }
-		Net::IpAddr GetNetMask(){ return _netMask; }
-		Net::IpAddr GetDefaultGateway(){ return _ipDefaultGateway; }
-		
-		void SetIpAddr(const Net::IpAddr &ipAddr){ _ipAddr = ipAddr; }
-		void SetNetMask(const Net::IpAddr &netMask){ _netMask = netMask;}
-		void SetDefaultGateway(const Net::IpAddr &gateway){ _ipDefaultGateway = gateway;}
-	};
 	
 }}

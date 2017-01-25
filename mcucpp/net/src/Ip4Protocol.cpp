@@ -1,11 +1,14 @@
 
 #include <net/Ip4Protocol.h>
 #include <net/ether_type.h>
-#include <mempool.h>
 
 using namespace Mcucpp;
 using namespace Mcucpp::Net;
 
+uint32_t IP4Protocol::PacketId(const Net::IpAddr &destAddr, IpProtocolId protocolId)
+{
+	return (++_sequence) + (( _ipAddr.ToInt32() * (protocolId  + 17) * 7) ^ (destAddr.ToInt32() * (protocolId+13)));
+}
 
 uint16_t IP4Protocol::HeaderChecksum(uint8_t *header, size_t len)
 {
@@ -48,7 +51,12 @@ void IP4Protocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr
 	{
 		return; // wrong version
 	}
-	unsigned extHeaderLengthWords = (ipVerHLen & 0xff);
+	unsigned headerLengthWords = (ipVerHLen & 0x0f);
+	if(headerLengthWords < 5)
+	{
+		return; 
+	}
+
 	unsigned dscpEcn = buffer.Read();
 	checksumCalc.Feed((uint8_t)ipVerHLen, (uint8_t)dscpEcn);
 	
@@ -79,7 +87,7 @@ void IP4Protocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr
 	}
 	
 	// read options if any
-	for(unsigned i = 0; i < extHeaderLengthWords; i++)
+	for(unsigned i = 0; i < headerLengthWords - 5; i++)
 	{
 		uint16_t o1 = buffer.ReadU16Be();
 		uint16_t o2 = buffer.ReadU16Be();
@@ -107,7 +115,7 @@ void IP4Protocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr
 	}
 }
 
-bool IP4Protocol::SendMessage(const Net::IpAddr &destAddr, Net::NetBuffer &buffer, IpProtocolId protocolId)
+bool IP4Protocol::SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocolId, Net::NetBuffer &buffer)
 {
 	if(!buffer.InsertFront(Ip4HeaderSize))
 	{
@@ -119,7 +127,7 @@ bool IP4Protocol::SendMessage(const Net::IpAddr &destAddr, Net::NetBuffer &buffe
 	buffer.Write(0x00);
 	buffer.WriteU16Be(buffer.Size());
 	
-	buffer.WriteU16Be(0); //fragment ID
+	buffer.WriteU16Be((uint16_t)PacketId(destAddr, protocolId)); //fragment ID
 	buffer.WriteU16Be(0); //flags and fragment offset
 	
 	buffer.Write(DefaultTLL);
@@ -206,8 +214,9 @@ void IP4Protocol::ProcessPendingPackets()
 }
 
 IP4Protocol::IP4Protocol(Dispatcher &dispatcher, INetDispatch &netDispatch, NetInterface &iface)
-:_dispatcher(dispatcher), _netDispatch(netDispatch), _iface(iface),
-_adresssResolve(0)
+	:_dispatcher(dispatcher), _netDispatch(netDispatch), _iface(iface),
+	_adresssResolve(0),
+	_sequence(123)
 {
 	
 }
@@ -215,36 +224,6 @@ _adresssResolve(0)
 void IP4Protocol::AddProtocol(uint16_t protocolId, IIpSubProtocol *protocol)
 {
 	_protocols.push_back(ProtocolId(protocol, protocolId));
-}
-
-Net::IpAddr IP4Protocol::GetIpAddr()
-{
-	return _ipAddr;
-}
-
-Net::IpAddr IP4Protocol::GetNetMask()
-{
-	return _netMask;
-}
-
-Net::IpAddr IP4Protocol::GetDefaultGateway()
-{
-	return _ipDefaultGateway;
-}
-
-void IP4Protocol::SetIpAddr(Net::IpAddr ipAddr)
-{
-	_ipAddr = ipAddr;
-}
-
-void IP4Protocol::SetNetMask(Net::IpAddr netMask)
-{
-	_netMask = netMask;
-}
-
-void IP4Protocol::SetDefaultGateway(Net::IpAddr gateway)
-{
-	_ipDefaultGateway = gateway;
 }
 
 void IP4Protocol::SetAddressResolver(IAddressResolve *adresssResolve)

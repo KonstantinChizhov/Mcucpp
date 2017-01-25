@@ -3,7 +3,7 @@ testEnv = Environment(toolpath = ['#/../../scons'], tools=['mcucpp'])
 
 
 tests = [\
-	'Ip4Protocol.cpp',
+	'Ip4ProtocolTest.cpp',
 	'NetBuffer.cpp',
 	'Arp.cpp',
 	]
@@ -16,5 +16,6 @@ sources = [\
 	]
 
 test_result = testEnv.Test('net_test', tests + sources)
+
 Default(test_result)
 testEnv.Alias("NetTests", test_result)
