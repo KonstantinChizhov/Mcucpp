@@ -139,7 +139,7 @@ TEST(Ip4, RecivePacket)
 		0x00, 0x00, // flags and fragment offset
 		0x64, // TTL
 		0x11, // protocol
-		0x83, 0x73, // checksum
+		0x58, 0x9e, // checksum
 		192,168,1,5, // src IP
 		192,168,1,2, // dest IP
 		

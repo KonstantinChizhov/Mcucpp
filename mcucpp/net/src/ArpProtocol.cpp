@@ -98,8 +98,10 @@ void  ArpProtocol::SetIp4Protocol(class IP4Protocol *ipProtocol)
 
 void ArpProtocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, Net::NetBuffer &buffer)
 {
-	int i=0;
-	
+	(void)srcAddr;
+	(void)destAddr;
+
+		
 	uint16_t hardwareType = buffer.ReadU16Be();
 	(void)hardwareType;
 	
@@ -111,6 +113,7 @@ void ArpProtocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr
 	
 	uint8_t hardwareSize = buffer.ReadU8();
 	uint8_t protocolSize = buffer.ReadU8();
+	
 	if(hardwareSize != 6 || protocolSize != 4)
 	{
 		return;
@@ -121,6 +124,8 @@ void ArpProtocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr
 	IpAddr srcIp = buffer.ReadIp();
 	
 	MacAddr destMac = buffer.ReadMac(); 
+	(void)destMac;
+	
 	IpAddr destIp = buffer.ReadIp();
 	buffer.Clear();
 	
@@ -169,7 +174,7 @@ void ArpProtocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr
 ArpProtocol::ArpProtocol(Dispatcher &dispatcher, INetDispatch &netDispatch, NetInterface &iface)
 :_dispatcher(dispatcher), _netDispatch(netDispatch), _iface(iface)
 {
-	_dispatcher.SetTimer<ArpProtocol, &ArpProtocol::InvalidateChache>(_arpTable.GetCacheTimeout(), this);
+	_dispatcher.SetTask<ArpProtocol, &ArpProtocol::InvalidateChache>(this);
 }
 
 bool ArpProtocol::AddressResolve(const Net::IpAddr &ipAddr, Net::MacAddr &result)

@@ -76,7 +76,7 @@ namespace Mcucpp
 		
 		static void SimpleTaskAdapter(void *simple_task)
 		{
-			static_cast<simple_task_t>(simple_task)();
+			reinterpret_cast<simple_task_t>(simple_task)();
 		}
 		
 	public:
@@ -106,7 +106,7 @@ namespace Mcucpp
 		
 		bool SetTask(simple_task_t task)
 		{
-			return SetTask(SimpleTaskAdapter, task);
+			return SetTask(SimpleTaskAdapter, (void*)task);
 		}
 
 		bool SetTask(task_t task, void *tag)
@@ -128,9 +128,9 @@ namespace Mcucpp
 			return SetTimer(time, &Invoke<ObjectT, Func>, object);
 		}
 		
-		uint32_t SetTimer(uint32_t period, task_t timerTask)
+		uint32_t SetTimer(uint32_t period, simple_task_t timerTask)
 		{
-			return SetTimer(period, SimpleTaskAdapter, timerTask);
+			return SetTimer(period, SimpleTaskAdapter, (void*)timerTask);
 		}
 
 		uint32_t SetTimer(uint32_t period, task_t timerTask, void *tag)

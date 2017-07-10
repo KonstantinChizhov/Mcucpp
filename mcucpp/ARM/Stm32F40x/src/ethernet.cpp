@@ -12,6 +12,7 @@ const unsigned MaxEthFrames = 4;
 using namespace Mcucpp;
 using namespace Mcucpp::Net;
 
+
 namespace Mcucpp
 {
 	EthernetMac ethernet(ETH);
@@ -59,12 +60,12 @@ namespace Mcucpp
 	
 	bool EthernetMac::TxCompleteFor(Net::TransferId txId)
 	{
-		for(unsigned i = 0; i < Net::EthTxPool::DescriptorCount; i++)
-		{
-			Net::EthTxPool::TxDescriptorWithBufferPointer &descr = _txPool.Descriptors[i];
-			if(txId == descr.seqNumber)
-				return false;
-		}
+		// for(unsigned i = 0; i < Net::EthTxPool::DescriptorCount; i++)
+		// {
+			// Net::EthTxPool::TxDescriptorWithBufferPointer &descr = _txPool.Descriptors[i];
+			// if(txId == descr.seqNumber)
+				// return false;
+		// }
 		return true;
 	}
 	
@@ -75,6 +76,7 @@ namespace Mcucpp
 			_state = EthNotConnected;
 			return 0;
 		}
+		const size_t EthernetHeaderSize = 6+6+2;
 		
 		if(!buffer.InsertFront(EthernetHeaderSize))
 		{
@@ -83,15 +85,15 @@ namespace Mcucpp
 		}
 		buffer.Seek(0);
 		
-		buffer.WriteMac(_macaddr);
 		buffer.WriteMac(destAddr);
+		buffer.WriteMac(_macaddr);
 		
 		buffer.WriteU16Be(protocoId);
 	
 		if(++_txSequence == 0)
 			_txSequence = 0;
 		
-		bool res = _txPool.EnqueueBuffer(buffer, _txSequence);
+		bool res = _rxTxQueue.EnqueueBuffer(buffer, _txSequence);
 		_eth->DMATPDR = 1;
 		if(!res)
 		{
@@ -120,6 +122,8 @@ namespace Mcucpp
 		return true;
 	}
 	
+	
+	
 	void EthernetMac::InterruptHandler()
 	{
 		uint32_t dmasr = _eth->DMASR;
@@ -130,134 +134,9 @@ namespace Mcucpp
 		_framesAppMissed += (missedFramesReg >> 17) & 0x07ff;
 		_framesMacMissed += (missedFramesReg >> 0)  & 0x7fff;
 		
-		for(unsigned i = 0; i < Net::EthTxPool::DescriptorCount; i++)
-		{
-			Net::EthTxPool::TxDescriptorWithBufferPointer &descr = _txPool.Descriptors[i];
-			if(!descr.InUse())
-			{
-				if(descr.GetOptions() & MacDmaTxFirstSegment)
-				{
-					MacDmaTxStatus status = descr.GetStatus();
-					if(status & MacDmaTxError)
-					{
-						_sendErrors++;
-					}
-					else
-					{
-						_framesSend++;
-					}
-					TxQueueItem transferStatus(descr.seqNumber, (status & MacDmaTxError) == MacDmaTxSuccess);
-					(void)_txQueue.push_back(transferStatus);
-				}
-				
-				if(descr.buffer1)
-				{
-					DataBuffer::Release(descr.buffer1);
-				}
-				if(descr.buffer2)
-				{
-					DataBuffer::Release(descr.buffer2);
-				}
-				descr.Reset();
-			}
-		}
-		
-		bool frameError = false;
-		NetBuffer netBuffer;
-		size_t currentFrameSize = 0;
-		
-		for(unsigned i = 0; i < Net::EthRxPool::DescriptorCount; i++)
-		{
-			Net::EthRxPool::RxDescriptorWithBufferPointer &descr = _rxPool.Descriptors[i];
-			if(!descr.InUse())
-			{
-				MacDmaRxStatus status = descr.GetStatus();
-				if(status & MacDmaRxFirstDescriptor)
-				{
-					frameError = false;
-					currentFrameSize = 0;
-				}
-				
-				bool chunkError = status & MacDmaRxError;
-				frameError = frameError || chunkError;
-				
-				if(chunkError || frameError)
-				{
-					_reciveErrors++;
-					DataBuffer::Release(descr.buffer1);
-					DataBuffer::Release(descr.buffer2);
-					netBuffer.Clear();
-				}else
-				{
-					size_t buf1Size = descr.GetSize();
-					size_t buf2Size = descr.GetSize2();
-					bool lastDescriptor = status & MacDmaRxLastDescriptor;
-					if(lastDescriptor)
-					{
-						size_t frameSize = descr.GetFrameLength();
-						if(currentFrameSize + buf1Size >= frameSize)
-						{
-							buf1Size = frameSize - currentFrameSize;
-							buf2Size = 0;
-						}
-						else
-						{
-							buf2Size = frameSize - currentFrameSize - buf1Size;
-						}
-					}
-					
-					currentFrameSize += buf1Size;
-					descr.buffer1->Resize(buf1Size);
-					netBuffer.AttachBack(descr.buffer1);
-					
-					if(buf2Size > 0)
-					{
-						currentFrameSize += buf2Size;
-						descr.buffer2->Resize(buf2Size);
-						netBuffer.AttachBack(descr.buffer2);
-					}else
-					{
-						DataBuffer::Release(descr.buffer2);
-					}
-					
-					if(lastDescriptor)
-					{
-						DataBuffer *bufferList = netBuffer.MoveToBufferList();
-						if(!_rxQueue.push_back(bufferList))
-						{
-							DataBuffer::ReleaseRecursive(bufferList);
-							_framesAppMissed++;
-						}
-						else
-						{
-							_framesRecived++;
-						}
-						currentFrameSize = 0;
-					}
-				}
-				
-				descr.Reset();
-				DataBuffer *smallBuffer = DataBuffer::GetNew(MedPoolBufferSize);
-				if(!smallBuffer)
-				{
-					_state = EthOutOfMem; continue;
-				}
-				DataBuffer *largeBuffer = DataBuffer::GetNew(LargePoolBufferSize);
-				if(!largeBuffer)
-				{
-					_state = EthOutOfMem; continue;
-				}
-				if(!descr.SetBuffer(smallBuffer))
-				{
-					_state = EthDriverError; continue;
-				}
-				if(!descr.SetBuffer2(largeBuffer))
-				{
-					_state = EthDriverError; continue;
-				}
-				descr.SetReady();
-			}
-		}
+		EthMacState state = _rxTxQueue.ProcessInterrupt();
+		if(state != EthOk)
+			_state = state;
 	}
 	
 	void EthernetMac::SetSpeed(EthSpeed speed)
@@ -457,6 +336,7 @@ namespace Mcucpp
 							
 		uint32_t crValue = ETH_MACCR_IFG_64Bit | _speed | _duplexMode | ETH_MACCR_TE | ETH_MACCR_RE;
 		_eth->MACCR = (_eth->MACCR & ~clearMask) | crValue;
+		_eth->MACFFR |= ETH_MACFFR_RA;
 	}
 
 	void EthernetMac::Init()
@@ -477,9 +357,7 @@ namespace Mcucpp
 	
 	void EthernetMac::SetDmaParameters()
 	{
-		MCUCPP_STATIC_ASSERT(sizeof(_txPool.Descriptors[0]) == sizeof(_rxPool.Descriptors[0]));
-		
-		const unsigned descriptorExtraDWords = (sizeof(_txPool.Descriptors[0]) + 3) / 4 - 4;
+		const unsigned descriptorExtraDWords = _rxTxQueue.ExtraDescriptorDWords();
 		
 		_eth->DMAOMR |= ETH_DMAOMR_FTF; // Flush Tx FIFO
 		
@@ -489,41 +367,12 @@ namespace Mcucpp
 					ETH_DMAIER_ROIE | ETH_DMAIER_TUIE | ETH_DMAIER_RIE | ETH_DMAIER_RBUIE |
 					ETH_DMAIER_RPSIE | ETH_DMAIER_RWTIE | ETH_DMAIER_ETIE | ETH_DMAIER_FBEIE |
 					ETH_DMAIER_ERIE  | ETH_DMAIER_NISE | ETH_DMAIER_AISE;
-					
-		for(unsigned i = 0; i < Net::EthTxPool::DescriptorCount; i++)
-		{
-			Net::EthTxPool::TxDescriptorWithBufferPointer &tx = _txPool.Descriptors[i];
-			if(tx.buffer1) DataBuffer::Release(tx.buffer1);
-			if(tx.buffer2) DataBuffer::Release(tx.buffer2);
-			tx.Reset();
-		}
 		
-		for(unsigned i = 0; i < Net::EthRxPool::DescriptorCount; i++)
+		EthMacState state = _rxTxQueue.PrepareQueues();
+		if(state != EthOk)
 		{
-			Net::EthRxPool::RxDescriptorWithBufferPointer &rx = _rxPool.Descriptors[i];
-			if(rx.buffer1) DataBuffer::Release(rx.buffer1);
-			if(rx.buffer2) DataBuffer::Release(rx.buffer2);
-			
-			rx.Reset();
-			DataBuffer *smallBuffer = DataBuffer::GetNew(MedPoolBufferSize);
-			if(!smallBuffer)
-			{
-				_state = EthOutOfMem; return;
-			}
-			DataBuffer *largeBuffer = DataBuffer::GetNew(LargePoolBufferSize);
-			if(!largeBuffer)
-			{
-				_state = EthOutOfMem; return;
-			}
-			if(!rx.SetBuffer(smallBuffer))
-			{
-				_state = EthDriverError; return;
-			}
-			if(!rx.SetBuffer2(largeBuffer))
-			{
-				_state = EthDriverError; return;
-			}
-			rx.SetReady();
+			_state = state;
+			return;
 		}
 		
 		uint32_t timeout = 10000;
@@ -538,8 +387,8 @@ namespace Mcucpp
 			return;
 		}
 		
-		_eth->DMATDLAR = (uint32_t)&_txPool.Descriptors[0];
-		_eth->DMARDLAR = (uint32_t)&_rxPool.Descriptors[0];
+		_eth->DMATDLAR = _rxTxQueue.TxDescriptorListStartAddr();
+		_eth->DMARDLAR = _rxTxQueue.RxDescriptorListStartAddr();
 		_eth->DMAOMR |= ETH_DMAOMR_ST | ETH_DMAOMR_SR;
 		NVIC_EnableIRQ(ETH_IRQn);
 	}
@@ -585,36 +434,6 @@ namespace Mcucpp
 		return true;
 	}
 	
-	void EthernetMac::InvokeCallbacks()
-	{
-		while(!_rxQueue.empty())
-		{
-			Net::NetBuffer buffer(_rxQueue.front()); // move buffer chain from queue
-			_rxQueue.pop_front();
-			buffer.Seek(0);
-			Net::MacAddr src = buffer.ReadMac();
-			Net::MacAddr dest = buffer.ReadMac();
-			uint16_t protocoId = buffer.ReadU16Be();
-			// TODO: VLAN handling
-			if(_dispatch)
-			{
-				_dispatch->RxComplete(src, dest, protocoId, buffer);
-			}
-			else
-			{
-				_framesAppMissed++;
-			}
-		}
-		
-		while(!_txQueue.empty())
-		{
-			TxQueueItem transferStatus = _txQueue.front();
-			_txQueue.pop_front();
-			if(_dispatch)
-				_dispatch->TxComplete(transferStatus.seqNumber, transferStatus.success);
-		}
-	}
-	
 	void EthernetMac::ReadLinkParameters()
 	{
 		
@@ -638,7 +457,7 @@ namespace Mcucpp
 		}
 		if(_linked)
 		{
-			InvokeCallbacks();
+			_rxTxQueue.InvokeCallbacks(_dispatch);
 			_eth->DMATPDR = 1;
 			_eth->DMARPDR = 1;
 		}

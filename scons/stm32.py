@@ -84,7 +84,7 @@ def generate(env, **kw):
 	flasherFound = False
 	flasher_windows = "C:\Program Files (x86)\STMicroelectronics\STM32 ST-LINK Utility\ST-LINK Utility\ST-LINK_CLI.exe"
 	
-	if not flasherFound and env.Detect("openocd"):
+	if not flasherFound and env.Detect("openocd") and False:
 		if not 'DEVICE_NAME' in env and not 'OCD_INTERFACE' in env:
 			raise Exception("No device name specified. Set DEVICE_NAME with valid device name.")
 		

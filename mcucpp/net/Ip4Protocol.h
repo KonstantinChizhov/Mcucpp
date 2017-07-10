@@ -34,47 +34,13 @@
 #include <Dispatcher.h>
 #include <array.h>
 #include <ring_buffer.h>
+#include <net/Ip4Checksum.h>
 
 namespace Mcucpp
 {
 namespace Net
 {
 
-	class Ip4Checksum
-	{
-		uint32_t result;
-	public:
-		Ip4Checksum()
-			:result(0)
-		{
-			
-		}
-		
-		uint16_t Result()
-		{
-			while(result & 0xffff0000)
-				result = (result & 0xffff) + (result >> 16);
-			return ~(uint16_t)result;
-		}
-		
-		void Feed(uint16_t value)
-		{
-			result += value;
-		}
-		
-		void Feed(uint8_t b1, uint8_t b2)
-		{
-			result += b1 | (b2 << 8);
-		}
-		
-		void Feed(const Net::IpAddr &addr)
-		{
-			uint32_t v = addr.ToInt32();
-			result += (uint16_t)v;
-			result += (uint16_t)(v >> 16);
-		}
-	};
-	
 	class PendingPacket
 	{
 	public:

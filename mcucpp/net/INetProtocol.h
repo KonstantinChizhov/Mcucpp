@@ -39,7 +39,7 @@ namespace Net
 	public:
 		virtual void ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, Net::NetBuffer &buffer)=0;
 	};
-	
+
 	class INetIncapsulatingProtocol :public INetProtocol
 	{
 	protected:

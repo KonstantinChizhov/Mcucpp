@@ -1,12 +1,15 @@
 
 #include <net/UdpProtocol.h>
+#include <net/Ip4Checksum.h>
 
 using namespace Mcucpp;
 using namespace Mcucpp::Net;
 
+static const uint16_t UdpTempPortStart = 49152;
 
 UdpProtocol::UdpProtocol(INetIncapsulatingProtocol &netProtocol)
-:_netProtocol(netProtocol)
+:_netProtocol(netProtocol),
+_nextTempPort(UdpTempPortStart)
 {
 	for(unsigned i = 0; i < MaxListners; i++)
 	{
@@ -64,9 +67,9 @@ void UdpProtocol::ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &
 	{
 		if(!_listners[i])
 		{
-			if(_listners[i]->DestPort() == destAddr)
+			if(_listners[i]->DestPort() == destPort)
 			{
-				_listners[i]->ProcessMessage(srcAddr, srcPort, destPort, dataSize, buffer);
+				_listners[i]->ProcessMessage(srcAddr, srcPort, dataSize, buffer);
 			}
 		}
 	}
@@ -91,7 +94,7 @@ bool UdpProtocol::SendMessage(const Net::IpAddr &destAddr, uint16_t srcPort, uin
 	buffer.WriteU16Be(0);
 	
 	// pseudo header
-	checksumCalc.Feed(_netProtocol->GetIpAddr());
+	checksumCalc.Feed(_netProtocol.GetIpAddr());
 	checksumCalc.Feed(destAddr);
 	checksumCalc.Feed(0, UDP);
 	// UDP header
@@ -103,7 +106,7 @@ bool UdpProtocol::SendMessage(const Net::IpAddr &destAddr, uint16_t srcPort, uin
 	size_t dataSize = messageLen - 8;
 	bool calcChecksum = true;
 	
-	if(checksumCalc)
+	if(calcChecksum)
 	{
 		for(unsigned i = 0; i < dataSize; i+=2)
 		{
@@ -117,7 +120,7 @@ bool UdpProtocol::SendMessage(const Net::IpAddr &destAddr, uint16_t srcPort, uin
 		buffer.WriteU16Be(checksumCalc.Result());
 	}
 	
-	return _netProtocol->SendMessage(destAddr, UDP, buffer);
+	return _netProtocol.SendMessage(destAddr, UDP, buffer);
 }
 
 void UdpProtocol::AddListener(IPortListner *listner)
@@ -131,3 +134,28 @@ void UdpProtocol::AddListener(IPortListner *listner)
 		}
 	}
 }
+
+uint16_t UdpProtocol::GetTempPort()
+{
+	uint16_t port = _nextTempPort;
+	bool found;
+	do
+	{
+		port++;
+		if(_nextTempPort == 0)
+		{
+			port = UdpTempPortStart;
+		}
+		found = true;
+		for(unsigned i = 0; i < MaxListners; i++)
+		{
+			if(_listners[i]->DestPort() == _nextTempPort)
+			{
+				found = false;
+			}
+		}
+	}while(!found);
+	_nextTempPort = port;
+	return _nextTempPort;
+}
+

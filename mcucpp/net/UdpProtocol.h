@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2016
+// Date			: 2017
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification, 
@@ -29,6 +29,7 @@
 #include <net/NetInterface.h>
 #include <net/IpProtocolId.h>
 #include <net/IIpSubProtocol.h>
+#include <net/INetProtocol.h>
 #include <net/IPortListner.h>
 
 namespace Mcucpp
@@ -38,15 +39,16 @@ namespace Net
 	class UdpProtocol :public IIpIncapsulatingSubProtocol
 	{
 		INetIncapsulatingProtocol &_netProtocol;
-		enum{MaxListners = 8;}
+		enum{MaxListners = 8};
 		IPortListner *_listners[MaxListners];
-		
+		uint16_t _nextTempPort;
 	public:
 		UdpProtocol(INetIncapsulatingProtocol &netProtocol);
 		
 		void ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, Net::NetBuffer &buffer);
 		bool SendMessage(const Net::IpAddr &destAddr, uint16_t srcPort, uint16_t destPort, Net::NetBuffer &buffer);
 		void AddListener(IPortListner *listner);
+		uint16_t GetTempPort();
 	};
 	
 }}

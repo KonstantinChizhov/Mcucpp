@@ -228,8 +228,8 @@ namespace Net
 		
 		NetAddress(uint8_t a, uint8_t b, uint8_t c, uint8_t d)
 		{
-			_value = ((uint32_t)a << 0) | ((uint32_t)b << 8) |
-					((uint32_t)c << 16) | ((uint32_t)d << 24);
+			_value = ((uint32_t)a << 24) | ((uint32_t)b << 16) |
+					((uint32_t)c << 8) | ((uint32_t)d << 0);
 		}
 		
 		NetAddress(const NetAddress<4> & rhs)
@@ -265,7 +265,8 @@ namespace Net
 		
 		uint8_t operator[](int index)const
 		{
-			return (uint8_t)(_value >> index*8);
+			if(index >= 4) return 0;
+			return (uint8_t)(_value >> (3 - index)*8);
 		}
 		
 		NetAddress operator & (const NetAddress & rhs)const

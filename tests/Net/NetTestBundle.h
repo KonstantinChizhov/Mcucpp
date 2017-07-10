@@ -1,6 +1,7 @@
 
 #pragma once
 #include <net/ArpProtocol.h>
+#include <net/IcmpProtocol.h>
 #include <net/NetDispatch.h>
 #include <net/ether_type.h>
 

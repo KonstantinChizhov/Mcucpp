@@ -6,6 +6,7 @@ tests = [\
 	'Ip4ProtocolTest.cpp',
 	'NetBuffer.cpp',
 	'Arp.cpp',
+	'RxTxQueue.cpp',
 	]
 	
 sources = [\
@@ -13,6 +14,7 @@ sources = [\
 	'#/../../mcucpp/net/src/Ip4Protocol.cpp',
 	'#/../../mcucpp/net/src/ArpProtocol.cpp',
 	'#/../../mcucpp/net/src/NetDispatch.cpp'
+	
 	]
 
 test_result = testEnv.Test('net_test', tests + sources)

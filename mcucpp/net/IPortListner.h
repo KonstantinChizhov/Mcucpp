@@ -35,17 +35,21 @@ namespace Net
 {
 	class IPortListner
 	{
-		
+		IpAddr _destAddr;
 		uint16_t _destPort;
 	public:
 		IPortListner()
-		_destPort(0)
+			:_destPort(0)
 		{}
 		
 		uint16_t DestPort(){return _destPort; }
 		void SetDestPort(uint16_t value){ _destPort = value; }
 		
-		virtual void ProcessMessage(const Net::IpAddr &srcAddr, uint16_t srcPort, uint16_t destPort, uint16_t dataLen, Net::NetBuffer &buffer)=0;
+		IpAddr DestAddr(){return _destAddr; }
+		void SetDestAddr(IpAddr value){ _destAddr = value; }
+		
+		virtual void ProcessMessage(const Net::IpAddr &srcAddr, uint16_t srcPort, uint16_t dataLen, Net::NetBuffer &buffer)=0;
+		void Reply(Net::NetBuffer &buffer);
 	};
 	
 	

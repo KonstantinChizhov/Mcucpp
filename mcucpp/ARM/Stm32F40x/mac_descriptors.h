@@ -102,7 +102,6 @@ namespace Net
 	DECLARE_ENUM_OPERATIONS(MacDmaRxStatus);
 	DECLARE_ENUM_OPERATIONS(MacDmaTxStatus);
 	
-	#pragma pack(push, 1)
 	
 	struct MacDescriptor
 	{
@@ -125,7 +124,7 @@ namespace Net
 		{
 			if(size > 0x1fff)
 				return false;
-			des1 = (des1 & 0x1fff0000) | size;
+			des1 = (des1 & 0x1fff8000) | size;
 			des2 = reinterpret_cast<uint32_t>(buffer);
 			return true;
 		}
@@ -134,7 +133,7 @@ namespace Net
 		{
 			if(size > 0x1fff)
 				return false;
-			des1 = (des1 & 0x00001fff) | (size << 16);
+			des1 = (des1 & 0x00009fff) | (size << 16);
 			des3 = reinterpret_cast<uint32_t>(buffer);
 			return true;
 		}
@@ -228,27 +227,15 @@ namespace Net
 				return (des0 >> 16) & 0x3ff;
 			return 0;
 		}
+
+		void SetFrameLength(size_t size)
+		{
+			des0 = (des0 & 0x3ff0000) | (size << 16);
+		}
 		
 		void SetEndOfRing()
 		{
 			des1 |= (1 << 15);
-		}
-	};
-	
-	#pragma pack(pop)
-	
-	struct EthTransferData
-	{
-		const void *data;
-		size_t size;
-		
-		EthTransferData()
-			:data(0), size(0){}
-			
-		void Reset()
-		{
-			data = 0;
-			size = 0;
 		}
 	};
 	
@@ -258,6 +245,10 @@ namespace Net
 		enum {DescriptorCount = MaxEthDescriptors};
 		struct TxDescriptorWithBufferPointer : public MacTxDescriptor
 		{
+			TxDescriptorWithBufferPointer()
+				:buffer1(0), buffer2(0), seqNumber(0)
+			{}
+
 			DataBuffer *buffer1;
 			DataBuffer *buffer2;
 			uint32_t seqNumber;
@@ -348,13 +339,17 @@ namespace Net
 	class EthRxPool
 	{
 	public:
-		enum {DescriptorCount = 3};
+		enum {DescriptorCount = 2};
 		
 		struct RxDescriptorWithBufferPointer : public MacRxDescriptor
 		{
 			DataBuffer *buffer1;
 			DataBuffer *buffer2;
 			uint32_t reserved;
+
+			RxDescriptorWithBufferPointer()
+				:buffer1(0), buffer2(0)
+			{}
 			
 			void Reset()
 			{
@@ -381,7 +376,7 @@ namespace Net
 				{
 					return false;
 				}
-				buffer1 = buffer;
+				buffer2 = buffer;
 				return true;
 			}
 		};

@@ -43,8 +43,12 @@ bool IP4Protocol::EnqueuePacket(const PendingPacket &packet)
 	return false;
 }
 
+void Print(const char*str, uint32_t t);
+
 void IP4Protocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, Net::NetBuffer &buffer)
 {
+	Print("IP4 psize", buffer.Size());
+	
 	Ip4Checksum checksumCalc;
 	unsigned ipVerHLen = buffer.Read();
 	if((ipVerHLen >> 4) != 4)
@@ -71,7 +75,11 @@ void IP4Protocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr
 	IpProtocolId protocolId = (IpProtocolId)buffer.Read();
 	checksumCalc.Feed((uint8_t)ttl, (uint8_t)protocolId);
 	
+	Print("IP4 sub protocol ", protocolId);
+	
 	uint16_t checkSum = buffer.ReadU16Be();
+	Print("IP4 checksum ", checkSum);
+	
 	checksumCalc.Feed(checkSum);
 	
 	Net::IpAddr srcIpAddr = buffer.ReadIp();
@@ -83,6 +91,7 @@ void IP4Protocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr
 	if(destIpAddr != _ipAddr)
 	{
 		// TODO: routing
+		Print("IP4 wrong addr ", destIpAddr.ToInt32());
 		return;
 	}
 	
@@ -95,10 +104,11 @@ void IP4Protocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr
 		checksumCalc.Feed(o2);
 	}
 	
-	if(checksumCalc.Result() !=0)
+	if(checkSum != 0 && checksumCalc.Result() !=0)
 	{
 		// TODO: checksum error handling
-		return;
+		Print("IP4 wrong checksum ", checksumCalc.Result());
+		//return;
 	}
 	// TODO: packet reassembly
 	
@@ -108,6 +118,7 @@ void IP4Protocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr
 		{
 			if(_protocols[i].protocol)
 			{
+				
 				_protocols[i].protocol->ProcessMessage(srcIpAddr, destIpAddr, buffer);
 				break;
 			}
@@ -117,6 +128,7 @@ void IP4Protocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr
 
 bool IP4Protocol::SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocolId, Net::NetBuffer &buffer)
 {
+	Print("Sending IP ", buffer.Size());
 	if(!buffer.InsertFront(Ip4HeaderSize))
 	{
 		return false;
@@ -132,7 +144,7 @@ bool IP4Protocol::SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocol
 	
 	buffer.Write(DefaultTLL);
 	buffer.Write(protocolId);
-	buffer.WriteU16Be(0);
+	buffer.WriteU16Be(0); // checkSum
 	
 	buffer.WriteIp(_ipAddr);
 	buffer.WriteIp(destAddr);
@@ -152,15 +164,18 @@ bool IP4Protocol::SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocol
 	
 	if(_adresssResolve && _adresssResolve->AddressResolve(destAddr, destMacAddr))
 	{
+		Print("Addr cached ", 0);
 		TransferId txId = _iface.Transmit(destMacAddr, EtherIPv4, buffer);
+		Print("Transmit ", txId);
 		if(!txId)
 			return false;
 	}else
 	{
 		DataBuffer *bufferList = buffer.MoveToBufferList();
-		
+		Print("Enq packt ", 0);
 		if(!EnqueuePacket(PendingPacket(bufferList, destAddr)))
 		{
+			Print("Out of mem ", 0);
 			DataBuffer::ReleaseRecursive(bufferList);
 			return false;
 		}
@@ -171,6 +186,8 @@ bool IP4Protocol::SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocol
 
 void IP4Protocol::AddressResolved(const Net::IpAddr &ipAddr, const Net::MacAddr &macAddr)
 {
+	Print("Addr resolved for ", ipAddr.ToInt32());
+	
 	for(unsigned i = 0; i < MaxPendingPackets; i++)
 	{
 		if(!_pendingPackets[i].IsFree() && _pendingPackets[i].destAddr == ipAddr)
@@ -200,12 +217,14 @@ void IP4Protocol::ProcessPendingPackets()
 				NetBuffer buffer(_pendingPackets[i].buffer);
 				_pendingPackets[i].Reset();
 				TransferId txId = _iface.Transmit(destMacAddr, EtherIPv4, buffer);
+				Print("Transmit ", txId);
 				if(!txId)
 				{
 					// TODO: handle
 				}
 			}else if(time > _pendingPackets[i].timestamp + AddressResoleTimeoutMsek)
 			{
+				Print("Packet timeout ", i);
 				DataBuffer::ReleaseRecursive(_pendingPackets[i].buffer);
 				_pendingPackets[i].Reset();
 			}

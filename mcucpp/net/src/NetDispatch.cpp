@@ -4,6 +4,8 @@
 using namespace Mcucpp;
 using namespace Mcucpp::Net;
 
+void Print(const char*str, uint32_t t);
+
 void NetDispatch::TxComplete(TransferId txId, bool success)
 {
 	(void)txId;
@@ -12,11 +14,15 @@ void NetDispatch::TxComplete(TransferId txId, bool success)
 
 void NetDispatch::RxComplete(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer)
 {
+	Print("NetDispatch1 ", protocoId);
+	Print("NetDispatch2 ", buffer.Size());
+	
 	for(unsigned i = 0; i < _protocols.size(); i++)
 	{
 		if(_protocols[i].id == protocoId)
 		{
 			_protocols[i].protocol->ProcessMessage(srcAddr, destAddr, buffer);
+			Print("Dispatch handled ", i);
 			break;
 		}
 	}
