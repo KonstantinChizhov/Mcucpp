@@ -106,7 +106,7 @@ def generate(env, **kw):
 	
 	for tool in device['arch']['tools']:
 		env.Tool(tool)
-		
+	env.Tool('code-blocks')
 
 
 def exists(env):
