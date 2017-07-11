@@ -168,7 +168,7 @@ namespace Mcucpp
 				
 				static void SetDriverType(DataT mask, DriverType driver)
 				{
-					GpioRegs()->OTYPER = UnpackConfig2bits(mask, GpioRegs()->OTYPER, driver);
+					GpioRegs()->OTYPER = (GpioRegs()->OTYPER & ~mask) | mask * configuration;
 				}
 				
 				static void AltFuncNumber(DataT mask, uint8_t number)
