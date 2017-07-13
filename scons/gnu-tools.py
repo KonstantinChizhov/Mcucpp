@@ -2,46 +2,6 @@ import os
 from SCons.Script import *
 
 
-def GetEnvId(env, target):
-	allOptions = env['CFLAGS'] + env['CCFLAGS'] + env['ASFLAGS'] + env['CPPDEFINES'] + env['LINKFLAGS'] + target
-	if 'DEVICE' in env:
-		allOptions = allOptions + [env['DEVICE']['cpu']]
-	return abs(hash(str(allOptions)))
-
-
-#for item in testExeNode:
-#	print item
-#	for child in item.all_children():
-#		print child
-
-def overrideProgramBuilder(env, target, source):
-	startupObjects = []
-	if 'DEVICE' in env:
-		device = env['DEVICE']
-		id = GetEnvId(env, target)
-		if 'startup' in device and device['startup'] is not None:
-			for startupSrc in device['startup']:
-				objName = '%s_%s' % (os.path.splitext(os.path.basename(startupSrc))[0], id)
-				formattedStartupSrc = startupSrc % env
-				startupObjects += env.Object(objName, formattedStartupSrc)
-		
-		if 'libSources' in device and device['libSources'] is not None:
-			for libSrc in device['libSources']:
-				objName = '%s_%s' % (os.path.splitext(os.path.basename(libSrc))[0], id)
-				formattedLibSrc = libSrc % env
-				startupObjects += env.Object(objName, formattedLibSrc)
-	
-	originalProgramBuilder = env['OriginalProgramBuilder']
-	res = originalProgramBuilder(env, target, source + startupObjects)
-	env.Command(None, target, "$SIZE $SOURCE")
-	if 'Hex' in env['BUILDERS']:
-		hexFile = env.Hex(target)
-		env.Default(hexFile)
-	lssFile = env.Disassembly(target)
-	env.Default(lssFile)
-	return res
-	
-
 def setup_gnu_tools(env, prefix):
 
 	for tool in ['gcc', 'g++', 'gnulink', 'ar', 'gas']:
@@ -115,11 +75,6 @@ def setup_gnu_tools(env, prefix):
 		
 		if 'startup' in device and device['startup'] is not None:
 			startFiles = '-nostartfiles'
-	
-	
-	originalProgramBuilder = env['BUILDERS']['Program']
-	env['BUILDERS']['Program'] = overrideProgramBuilder
-	env['OriginalProgramBuilder'] = originalProgramBuilder
 	
 	env['LINKFLAGS'] = [
 		"-Wl,--gc-sections",

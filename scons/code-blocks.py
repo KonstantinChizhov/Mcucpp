@@ -4,25 +4,12 @@ import xml.etree.ElementTree as ET
 import os
 from os.path import basename
 from xml.dom import minidom
+import extensions
 
-
-def GetSourcesAndIncludes(env, node, sources, includes):
-	if isinstance(node, basestring):
-		node = env.File(node)
-	if node.sources is not None:
-		for src in node.sources:
-			sources.add(src)
-			GetSourcesAndIncludes(env, src, sources, includes)
-	if node.implicit is not None:
-		for inc in node.implicit:
-			includes.add(inc)
-			GetSourcesAndIncludes(env, inc, sources, includes)
 
 def create_project_target(env, currentSource, buildElement, projectFileDir, buildTarget, compiler, project):
 	targetElement = ET.SubElement(buildElement, "Target", {"title":buildTarget})
-	sources = set()
-	includes = set()
-	GetSourcesAndIncludes(env, currentSource, sources, includes)
+	sources, includes = extensions.get_sources_and_includes(env, currentSource)
 	
 	outPutRelative = projectFileDir.rel_path(currentSource)
 	objectPath = os.path.dirname(outPutRelative)
@@ -76,7 +63,7 @@ def create_project_target(env, currentSource, buildElement, projectFileDir, buil
 	for src in sources | includes:
 		item = projectFileDir.rel_path(src.srcnode())
 		filename, file_extension = os.path.splitext(item)
-		if file_extension.lower() in [".c", ".cpp", ".s", ".cxx", ".cc", ".h", ".hpp", ".inc", ".hxx", ".hh"]:
+		if file_extension.lower() in env["CPPSUFFIXES"]:
 			#unit = ET.SubElement(targetElement, "Unit", { "filename":item})
 			unit = ET.SubElement(project, "Unit", { "filename":item})
 			if file_extension.lower() in [".c", ".cpp", ".s", ".cxx", ".cc"]:

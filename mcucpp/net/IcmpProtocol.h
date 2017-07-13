@@ -31,7 +31,7 @@
 #include <net/IIpSubProtocol.h>
 #include <net/INetProtocol.h>
 #include <net/IPortListner.h>
-void Print(const char*str, uint32_t t);
+
 
 namespace Mcucpp
 {
@@ -123,7 +123,6 @@ namespace Net
 			reply.Seek(2);
 			reply.WriteU16Be(checksumCalc.Result());
 			_netProtocol.SendMessage(destAddr, ICMP, reply);
-			Print("echo send ", reply.Size());
 		}
 	};
 	

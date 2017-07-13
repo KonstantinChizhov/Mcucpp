@@ -2,23 +2,14 @@
 import os
 from SCons.Script import *
 
-
-def builder_unit_test(env, target, source):
-	targetName = str(target)
-	objects = []
-	for src in source:
-		objects.append(env.Object('%s-%s' % (targetName, os.path.splitext(str(src))[0]), src))
+def unit_test_run(env, target, source):
+	testApp = str(target[0].abspath)
+	testNode = env.Command('run_test_%s' % str(target[0]), '', testApp)
 	
-	objects.append(env.Object('%s-%s' % (targetName, 'gtest_main'), '%s/gtest/gtest_main.cc' % env['MCUCPP_HOME']))
-	objects.append(env.Object('%s-%s' % (targetName, 'gtest-all'), '%s/gtest/gtest-all.cc' % env['MCUCPP_HOME']))
-	testExeNode = env.Program('%s_test' % targetName, objects)
-	env.Default(testExeNode)
-	testApp = str(testExeNode[0].abspath)
-	testNode = env.Command('run_test_%s' % targetName, '', testApp)
-	env.Default(testNode)
-	env.AlwaysBuild(testNode)
-	return 0
-
+def unit_test_emitter(target, source, env):
+	source.append(env.Object('%s/gtest/gtest_main.cc' % env['MCUCPP_HOME']))
+	source.append(env.Object('%s/gtest/gtest-all.cc' % env['MCUCPP_HOME']))
+	return target, source
 	
 def generate(env, **kw):
 	env['ENV'] = os.environ 
@@ -40,11 +31,15 @@ def generate(env, **kw):
 		env.Append(CXXFLAGS = ['/wd4503', '/wd4530'])
 		env.Append(CPPDEFINES=['_VARIADIC_MAX=15'])
 		env.Append(CPPPATH=['%s/tests/include' % env['MCUCPP_HOME']])
-		
-	#testBuilder = Builder(action = builder_unit_test)
-	#env.Append(BUILDERS = {'Test' :  testBuilder})
 	
-	env.AddMethod(builder_unit_test, "Test");
+	programBuilder = env['BUILDERS']['Program']
+	
+	testBuilder = Builder(action = [programBuilder.action, unit_test_run], 
+			src_suffix = programBuilder.src_suffix,
+			suffix = programBuilder.suffix,
+			emitter = [programBuilder.emitter, unit_test_emitter])
+	
+	env.Append(BUILDERS = {'Test' :  testBuilder})
 	
 	env['CCCOMSTR'] = "Host Compiling C: $TARGET"
 	env['CXXCOMSTR'] = "Host Compiling C++: $TARGET"

@@ -34,7 +34,6 @@
 #include <ARM/Stm32F40x/mac_descriptors.h>
 #include <ARM/Stm32F40x/MacEnums.h>
 
-void Print(const char*str, uint32_t t);
 
 namespace Mcucpp
 {
@@ -280,7 +279,6 @@ namespace Net
 					//_framesAppMissed++;
 				}
 				buffer.Clear();
-				Print("Rx handled ", protocoId);
 			}
 			
 			while(!_txQueue.empty())
@@ -289,7 +287,6 @@ namespace Net
 				_txQueue.pop_front();
 				if(dispatch)
 				{
-					Print("Tx complete ", transferStatus.seqNumber);
 					dispatch->TxComplete(transferStatus.seqNumber, transferStatus.success);
 				}
 			}

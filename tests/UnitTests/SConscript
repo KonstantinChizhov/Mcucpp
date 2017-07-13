@@ -3,26 +3,7 @@ testEnv = Environment(toolpath = ['#/scons'], tools=['mcucpp'])
 
 testEnv.Append(CPPPATH = '#/./')
 
-tests = [\
-	'7Segments.cpp', 
-	'BinaryStream.cpp',
-	'containers.cpp',
-	'crc.cpp',
-	'DelegateTest.cpp',
-	'DispatcherTest.cpp',
-	'DivTest.cpp',
-	'encoding.cpp',
-	'fixedpoint.cpp',
-	'FormatWriter.cpp',
-	'istream_test.cpp',
-	'PinList.cpp',
-	'timers.cpp',
-	'UsartTests.cpp',
-	'saturated.cpp',
-	'first_zero_bit.cpp',
-	'mem_pool.cpp'
-	]
+tests = testEnv.Object(testEnv.Glob('*.cpp'))
 
 test_result = testEnv.Test('mcucpp_test', tests)
-Default(test_result)
 testEnv.Alias("UnitTests", test_result)

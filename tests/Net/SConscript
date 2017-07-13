@@ -9,15 +9,6 @@ tests = [\
 	'RxTxQueue.cpp',
 	]
 	
-sources = [\
-	'#/../../mcucpp/net/src/net_buffer.cpp',
-	'#/../../mcucpp/net/src/Ip4Protocol.cpp',
-	'#/../../mcucpp/net/src/ArpProtocol.cpp',
-	'#/../../mcucpp/net/src/NetDispatch.cpp'
-	
-	]
 
-test_result = testEnv.Test('net_test', tests + sources)
-
-Default(test_result)
+test_result = testEnv.Test('net_test', tests)
 testEnv.Alias("NetTests", test_result)

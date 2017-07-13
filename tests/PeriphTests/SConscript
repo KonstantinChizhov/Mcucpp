@@ -2,14 +2,19 @@
 hostedEnv = Environment(toolpath = ['#/scons'], tools=['mcucpp'])
 devices = hostedEnv['SUPPORTED_DEVICES']
 
-tests = ['GPIO_sample', 'Usart']
+tests = [
+	'GPIO_sample', 
+	'Usart']
 
 def Build(deviceName):
 	env = Environment(DEVICE_NAME = deviceName, toolpath = ['#/scons'], tools=['mcucpp'])
 	env.Append(CCFLAGS = '-O2')
 	for test in tests:
 		object = env.Object('%s_%s' % (deviceName, test), '%s.cpp' % test)
-		env.Program('%s_%s' % (deviceName, test), object)
-
+		prog = env.Program('%s_%s' % (deviceName, test), [object])
+		
 for devName in devices:
 	Build(devName)
+
+
+
