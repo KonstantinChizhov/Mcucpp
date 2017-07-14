@@ -323,24 +323,26 @@ TEST(Containers, ArrayBool)
 	}
 }
 
-class Foo
+class ArrayBoolInitClass
 {
 	public:
 	FixedArray<20, bool> array;
-
-	Foo()
-		:array()
-	{
-		array.push_back(false);
-	}
+	ArrayBoolInitClass();
 };
+
+
+ArrayBoolInitClass::ArrayBoolInitClass()
+		:array()
+{
+	array.push_back(false);
+}
 
 TEST(Containers, ArrayBoolInit)
 {
-	Foo foo;
+	ArrayBoolInitClass foo;
 
 	EXPECT_EQ(foo.array.size(), 1);
-	Foo *pfoo = new Foo();
+	ArrayBoolInitClass *pfoo = new ArrayBoolInitClass();
 	EXPECT_EQ(pfoo->array.size(), 1);
 	delete pfoo;
 }
