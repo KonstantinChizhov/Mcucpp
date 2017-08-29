@@ -29,3 +29,8 @@
 #if defined (__GNUC__) && defined(__arm__)
 	#define MCUCPP_INTERRUPT(ISR_NAME) __attribute__(( __interrupt__)) void ISR_NAME() 
 #endif
+
+#if __cplusplus <= 199711L // check for c++11
+	#define nullptr 0
+#endif
+

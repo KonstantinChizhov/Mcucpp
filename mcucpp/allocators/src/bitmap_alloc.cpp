@@ -25,7 +25,7 @@
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
 
-#include <bitmap_alloc.h>
+#include <allocators/bitmap_alloc.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <atomic.h>
@@ -51,6 +51,8 @@ namespace Mcucpp
 		return used;
 	}
 
+
+
 	size_t BitMap::Alloc(unsigned blockCount)
 	{
 		if(blockCount == 0)
@@ -61,59 +63,60 @@ namespace Mcucpp
 		if(blockCount < BitsInWord)
 		{
 			MapT mask = (1 << blockCount) - 1;
-			const size_t mapElements = _mapElements;
-			for(unsigned mapIndex = _lastBlock; mapIndex < mapElements; mapIndex++)
-			{
-				MapT mapElem = _map[mapIndex];
-				if(mapElem == BusyBlock)
-				{
-					continue;
-				}
+            MapT *mapPtr = &_map[_lastBlock];
+            MapT *endPtr = &_map[_mapElements];
+            const int shiftLimit = BitsInWord - blockCount;
+            do
+            {
+                outerLoop1:
+                MapT mapElem = mapPtr[0];
+                if(mapElem == BusyBlock)
+                {
+                    continue;
+                }
 
-				const unsigned trailingOnes = CountTrailingZeros(~mapElem);
-				MapT currentMask = mask << trailingOnes;
-				const unsigned shiftLimit = BitsInWord - blockCount;
-				for(unsigned bitShift = trailingOnes; bitShift < shiftLimit; bitShift++)
-				{
-					MapT test = mapElem & currentMask;
-					if(test == 0)
-					{
-						if(Atomic::CompareExchange(&_map[mapIndex], mapElem, MapT(mapElem | currentMask)))
-						{
-							_lastBlock = mapIndex;
-							return mapIndex * BitsInWord + bitShift;
-						}
-						bitShift--;
-					}
-					currentMask <<= 1;
-				}
+                int bitShift = CountTrailingZeros((MapT)~mapElem);
+                MapT currentMask = mask << bitShift;
+                for(; bitShift < shiftLimit; bitShift++, currentMask <<= 1)
+                {
+                    if(mapElem & currentMask)
+                    {
+                        continue;
+                    }
+                    if(Atomic::CompareExchange(mapPtr, mapElem, MapT(mapElem | currentMask)))
+                    {
+                        size_t mapIndex = mapPtr - _map;
+                        _lastBlock = mapIndex;
+                        return mapIndex * BitsInWord + bitShift;
+                    }
+                    goto outerLoop1;
+                }
 
-				unsigned leadingZeros = CountLeadingZeros(mapElem);
+                int leadingZeros = CountLeadingZeros(mapElem);
 
-				if(leadingZeros > 0 && mapIndex + 1 < mapElements)
-				{
-					MapT startMask = ~MapT(0) << (BitsInWord - leadingZeros);
-					MapT endMask = mask >> leadingZeros;
-					MapT mapElem2 = _map[mapIndex + 1];
-					if((mapElem2 & endMask) == 0)
-					{
-						if(!Atomic::CompareExchange(&_map[mapIndex], mapElem, MapT(mapElem | startMask)))
-						{
-							mapIndex--;
-							continue;
-						}
-						if(!Atomic::CompareExchange(&_map[mapIndex + 1], mapElem2, MapT(mapElem2 | endMask)))
-						{
-							Atomic::AndAndFetch(&_map[mapIndex], ~startMask);
-							mapIndex--;
-							continue;
-						}
-						_lastBlock = mapIndex + 1;
-						return mapIndex * BitsInWord + (BitsInWord - leadingZeros);
-					}
-				}
-			}
-			return size_t(-1);
+                if(leadingZeros > 0 && mapPtr + 1 < endPtr)
+                {
+                    MapT endMask = mask >> leadingZeros;
+                    MapT mapElem2 = mapPtr[1];
+                    if((mapElem2 & endMask) == 0)
+                    {
+                        MapT startMask = BusyBlock << (BitsInWord - leadingZeros);
+                        if(!Atomic::CompareExchange(mapPtr, mapElem, MapT(mapElem | startMask)))
+                        {
+                            goto outerLoop1;
+                        }
+                        if(!Atomic::CompareExchange(mapPtr + 1, mapElem2, MapT(mapElem2 | endMask)))
+                        {
+                            Atomic::AndAndFetch(mapPtr, ~startMask);
+                            goto outerLoop1;
+                        }
+                        size_t mapIndex = mapPtr - _map;
+                        _lastBlock = mapIndex + 1;
+                        return mapIndex * BitsInWord + (BitsInWord - leadingZeros);
+                    }
+                }
+            }while(++mapPtr < endPtr);
+            return size_t(-1);
 		}
 
         const size_t mapElements = _mapElements;

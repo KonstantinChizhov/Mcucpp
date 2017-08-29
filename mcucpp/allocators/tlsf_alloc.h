@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2013
+// Date			: 2017
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification,
@@ -30,34 +30,16 @@
 #include <stdint.h>
 #include <stddef.h>
 
+
 namespace Mcucpp
 {
-	class BitMap
+	class TlsfAlloc
 	{
-		typedef uint32_t MapT;
-		static const MapT BusyBlock = MapT(-1);
-		static const int MapTBits = sizeof(MapT) == 8 ? 6 :
-									sizeof(MapT) == 4 ? 5 :
-									sizeof(MapT) == 2 ? 4 :
-									3;
-		static const int BitsInWord = 8 * sizeof(MapT);
-
-		MapT *const _map;
-		const size_t _mapSizeBits;
-		const size_t _mapElements;
-		unsigned _lastBlock;
-
+		void *_pool;
 	public:
-		BitMap(MapT *map, size_t mapSizeBits);
-		size_t UsedBlocks() const;
-		size_t Alloc(unsigned blockCount);
-        void Free(size_t blockIndex, unsigned blockCount);
-		void FreeAll();
-
-		size_t TotalBlocks() const
-		{
-			return _mapSizeBits;
-		}
+		TlsfAlloc(void * storage, size_t storageSize);
+		void* Alloc(size_t nbytes) noexcept;	
+		void Free(void* ptr) noexcept;
+		size_t GetUsedSize();
 	};
 }
-

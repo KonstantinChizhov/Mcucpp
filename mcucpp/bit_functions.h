@@ -156,7 +156,7 @@ namespace Mcucpp
 		{
 			return 16;
 		}
-		return __builtin_clz(x);
+		return __builtin_clz(x) - ((sizeof(unsigned) - sizeof(x)) * 8);
 	#else
 		if (x == 0)
 		{

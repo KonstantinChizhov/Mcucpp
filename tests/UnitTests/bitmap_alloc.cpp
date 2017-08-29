@@ -1,6 +1,6 @@
 
 #include <gtest.h>
-#include <bitmap_alloc.h>
+#include <allocators/bitmap_alloc.h>
 
 using namespace Mcucpp;
 
