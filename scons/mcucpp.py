@@ -53,7 +53,7 @@ def mcucpp_program_emitter(target, source, env):
 			objName = '%s_%s' % (os.path.splitext(os.path.basename(libSrc))[0], id)
 			object = env.Object(objName, libSrc)
 			for o in object:
-				objects.add(o)				
+				objects.add(o)
 		lib_src_to_add = get_lib_sources(target, objects, env) - all_lib_src_to_add
 		objects_to_add = objects_to_add | objects
 		all_lib_src_to_add = all_lib_src_to_add | lib_src_to_add
@@ -68,8 +68,10 @@ def generate(env, **kw):
 	env['SUPPORTED_DEVICES'] = devices.SupportedDevices
 	env['MCUCPP_HOME'] = os.path.abspath(os.path.join( os.path.dirname( os.path.realpath( __file__ ) ), '../'))
 	#print "MCUCPP_HOME = %s" % env['MCUCPP_HOME']
-		
+	
 	env['PROGEMITTER'] = mcucpp_program_emitter
+	
+	env.Append(CPPPATH = os.path.join(env['MCUCPP_HOME'], '3rdparty\include'))
 	
 	if 'DEVICE_NAME' in env:
 		deviceName = env['DEVICE_NAME']

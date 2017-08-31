@@ -27,7 +27,7 @@ def generate_vs_project(env, source):
 	env.Append(CPPDEFINES = '_ALLOW_KEYWORD_MACROS')
 	env.Append(CPPDEFINES = ['DEBUG', '_DEBUG'])
 	env.Append(CCFLAGS='/MDd')
-	env.Append(CCFLAGS=Split('/Zi /Fd${TARGET}.pdb'))
+	env.Append(CCFLAGS=['/Zi', '/Fd${TARGET}.pdb'])
 	env.Append(LINKFLAGS = ['/DEBUG'])
 
 	proj = env.MSVSProject(target = source[0],
