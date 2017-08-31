@@ -1,5 +1,5 @@
 
-#include <gtest.h>
+#include <gtest/gtest.h>
 #include <delegate.h>
 
 class Foo

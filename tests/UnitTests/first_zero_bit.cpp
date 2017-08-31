@@ -1,5 +1,5 @@
 
-#include <gtest.h>
+#include <gtest/gtest.h>
 #include <bit_functions.h>
 
 TEST(FirstZeroBit, Calculate)

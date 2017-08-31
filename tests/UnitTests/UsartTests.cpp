@@ -2,7 +2,7 @@
 #include <usart.h>
 #include <buffered_output.h>
 
-#include <gtest.h>
+#include <gtest/gtest.h>
 
 using namespace Mcucpp;
 

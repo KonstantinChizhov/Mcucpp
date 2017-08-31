@@ -1,7 +1,7 @@
 #include <drivers/7segments.h>
 #include <iopins.h>
 #include <pinlist.h>
-#include <gtest.h>
+#include <gtest/gtest.h>
 #include <iostream>
 #include <template_utils.h>
 

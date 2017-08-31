@@ -6,7 +6,7 @@
 #include <stack.h>
 #include <array.h>
 
-#include <gtest.h>
+#include <gtest/gtest.h>
 
 using namespace Mcucpp;
 using namespace  Containers;

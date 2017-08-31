@@ -3,8 +3,8 @@
 #include <tiny_ostream.h>
 #include <tiny_iomanip.h>
 #include <format_parser.h>
-#include <gtest.h>
 #include <limits>
+#include <gtest/gtest.h>
 
 class MyWriter
 {

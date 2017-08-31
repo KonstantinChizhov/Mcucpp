@@ -1,8 +1,8 @@
 
 #include <iostream>
 #include <string>
-#include <gtest.h>
 #include <utf8.h>
+#include <gtest/gtest.h>
 
 using namespace Mcucpp;
 

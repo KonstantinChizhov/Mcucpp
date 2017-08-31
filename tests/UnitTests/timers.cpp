@@ -1,5 +1,5 @@
 #include <iostream>
-#include <gtest.h>
+#include <gtest/gtest.h>
 #include <cmath>
 #include <timers.h>
 #include <timer_utils.h>
