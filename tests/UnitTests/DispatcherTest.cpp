@@ -52,6 +52,11 @@ public:
 	{
 		called++;
 	}
+	
+	void operator()()
+	{
+		called++;
+	}
 };
 
 
@@ -62,11 +67,36 @@ TEST(Dispatcher, SetTaskClass)
 	TaskItem tasks[10];
 	TimerData timers[10];
 	
-	
 	Dispatcher dispatcher(tasks, 10, timers, 10);
 	EXPECT_TRUE((dispatcher.SetTask<FooBar, &FooBar::Bar>(&foo)));
 	dispatcher.Poll();
 	EXPECT_EQ(1, foo.called);
+}
+
+TEST(Dispatcher, SetTaskFunctor)
+{
+	FooBar foo;
+	
+	TaskItem tasks[10];
+	TimerData timers[10];
+	
+	Dispatcher dispatcher(tasks, 10, timers, 10);
+	EXPECT_TRUE(dispatcher.SetTask(foo));
+	dispatcher.Poll();
+	EXPECT_EQ(1, foo.called);
+}
+
+TEST(Dispatcher, SetTaskLambda)
+{
+	bool called = false;
+	
+	TaskItem tasks[10];
+	TimerData timers[10];
+	
+	Dispatcher dispatcher(tasks, 10, timers, 10);
+	EXPECT_TRUE(dispatcher.SetTask( [&called] {called=true;} ));
+	dispatcher.Poll();
+	EXPECT_EQ(true, called);
 }
 
 static uint32_t ticks;
