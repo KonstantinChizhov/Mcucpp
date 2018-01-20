@@ -47,7 +47,7 @@ namespace Mcucpp
 	template<class Module, class ChannelRegs, int Channel>
 	class DmaChannel :public DmaBase
 	{
-		STATIC_ASSERT(Channel < Module::Channels);
+		STATIC_ASSERT(Channel <= Module::Channels);
 		public:
 		using DmaBase::Mode;
 		
