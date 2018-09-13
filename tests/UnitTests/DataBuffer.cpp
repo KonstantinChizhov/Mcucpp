@@ -1,13 +1,13 @@
 
 #include <gtest/gtest.h>
-#include <net/net_buffer.h>
+#include <data_buffer.h>
 
 using namespace Mcucpp;
-using namespace Mcucpp::Net;
 
-TEST(NetBuffer, InsertFront)
+
+TEST(DataBuffer, InsertFront)
 {
-	NetBuffer buffer;
+	DataBuffer buffer;
 	EXPECT_TRUE(buffer.BufferList() == 0);
 	bool res = buffer.InsertFront(10);
 	ASSERT_TRUE(res);
@@ -15,9 +15,9 @@ TEST(NetBuffer, InsertFront)
 	EXPECT_EQ(10, buffer.BufferList()->Size());
 }
 
-TEST(NetBuffer, InsertBack)
+TEST(DataBuffer, InsertBack)
 {
-	NetBuffer buffer;
+	DataBuffer buffer;
 	EXPECT_TRUE(buffer.BufferList() == 0);
 	bool res = buffer.InsertBack(10);
 	ASSERT_TRUE(res);
@@ -26,9 +26,9 @@ TEST(NetBuffer, InsertBack)
 }
 
 
-TEST(NetBuffer, Insert2)
+TEST(DataBuffer, Insert2)
 {
-	NetBuffer buffer;
+	DataBuffer buffer;
 	EXPECT_TRUE(buffer.BufferList() == 0);
 	bool res = buffer.InsertFront(10);
 	ASSERT_TRUE(res);
@@ -38,9 +38,9 @@ TEST(NetBuffer, Insert2)
 	EXPECT_EQ(20, buffer.Size());
 }
 
-TEST(NetBuffer, InsertFront2Times)
+TEST(DataBuffer, InsertFront2Times)
 {
-	NetBuffer buffer;
+	DataBuffer buffer;
 	EXPECT_TRUE(buffer.BufferList() == 0);
 	bool res = buffer.InsertFront(10);
 	ASSERT_TRUE(res);
@@ -50,9 +50,9 @@ TEST(NetBuffer, InsertFront2Times)
 	EXPECT_EQ(2, buffer.Parts());
 }
 
-TEST(NetBuffer, ReadWrite)
+TEST(DataBuffer, ReadWrite)
 {
-	NetBuffer buffer;
+	DataBuffer buffer;
 	ASSERT_TRUE(buffer.InsertFront(10));
 	ASSERT_TRUE(buffer.InsertBack(10));
 	EXPECT_EQ(20, buffer.BufferList()->Size());
@@ -79,47 +79,47 @@ TEST(NetBuffer, ReadWrite)
 }
 
 
-TEST(NetBuffer, AttachFront)
+TEST(DataBuffer, AttachFront)
 {
-	NetBuffer buffer;
+	DataBuffer buffer;
 	EXPECT_TRUE(buffer.BufferList() == 0);
-	buffer.AttachFront(DataBuffer::GetNew(10));
-	buffer.AttachFront(DataBuffer::GetNew(10));
+	buffer.AttachFront(DataChunk::GetNew(10));
+	buffer.AttachFront(DataChunk::GetNew(10));
 	EXPECT_EQ(20, buffer.Size());
 }
 
-TEST(NetBuffer, AttachBack)
+TEST(DataBuffer, AttachBack)
 {
-	NetBuffer buffer;
+	DataBuffer buffer;
 	EXPECT_TRUE(buffer.BufferList() == 0);
-	buffer.AttachBack(DataBuffer::GetNew(10));
-	buffer.AttachBack(DataBuffer::GetNew(10));
+	buffer.AttachBack(DataChunk::GetNew(10));
+	buffer.AttachBack(DataChunk::GetNew(10));
 	EXPECT_EQ(20, buffer.Size());
 }
 
-TEST(NetBuffer, DetachFront)
+TEST(DataBuffer, DetachFront)
 {
-	NetBuffer buffer;
+	DataBuffer buffer;
 	EXPECT_TRUE(buffer.BufferList() == 0);
 	EXPECT_TRUE(buffer.InsertBack(10));
 	EXPECT_TRUE(buffer.InsertFront(10));
 	EXPECT_EQ(20, buffer.Size());
 	EXPECT_EQ(2, buffer.Parts());
-	DataBuffer * buf = buffer.DetachFront();
+	DataChunk * buf = buffer.DetachFront();
 	EXPECT_TRUE(buf != NULL);
 	EXPECT_EQ(1, buffer.Parts());
-	DataBuffer * buf2 = buffer.DetachFront();
+	DataChunk * buf2 = buffer.DetachFront();
 	EXPECT_TRUE(buf2 != NULL);
 	EXPECT_EQ(0, buffer.Parts());
 }
 
-TEST(NetBuffer, SeekAndTell)
+TEST(DataBuffer, SeekAndTell)
 {
-	NetBuffer buffer;
+	DataBuffer buffer;
 	EXPECT_TRUE(buffer.BufferList() == 0);
-	buffer.AttachFront(DataBuffer::GetNew(10));
-	buffer.AttachFront(DataBuffer::GetNew(10));
-	buffer.AttachFront(DataBuffer::GetNew(10));
+	buffer.AttachFront(DataChunk::GetNew(10));
+	buffer.AttachFront(DataChunk::GetNew(10));
+	buffer.AttachFront(DataChunk::GetNew(10));
 	buffer.Seek(0);
 	EXPECT_EQ(0, buffer.Tell());
 	

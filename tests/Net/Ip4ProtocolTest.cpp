@@ -55,7 +55,7 @@ TEST(Ip4, Ip4Checksum)
 		 0xac, 0x12, 0x44, 0xf6};
 		 
 	Ip4Checksum checksum;
-	BinaryStream<BufferReader> reader(testHeader, sizeof(testHeader));
+	BinaryStream<MemoryReader> reader(testHeader, sizeof(testHeader));
 	
 	while(!reader.EndOfStream())
 		checksum.Feed(reader.ReadU16Be());

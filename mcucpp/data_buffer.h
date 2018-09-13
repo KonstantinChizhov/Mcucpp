@@ -34,34 +34,28 @@
 
 namespace Mcucpp
 {
-namespace Net
-{
-	const size_t SmallPoolBufferSize = 32;
-	const size_t MedPoolBufferSize = 128;
-	const size_t LargePoolBufferSize = 1396;
 	
-	class DataBuffer
+	class DataChunk
 	{
 		uint8_t *_data;
-		DataBuffer * _next;
+		DataChunk * _next;
 		uint16_t _size;
 		uint16_t _storage;
-		friend class NetBufferBase;
-		friend class BufferChain;
+		friend class DataBufferBase;
 	public:
 		
-		~DataBuffer()
+		~DataChunk()
 		{
 			Release(this);
 		}
 	
-		DataBuffer(uint8_t *data, size_t size)
+		DataChunk(uint8_t *data, size_t size)
 			:_data(data), _next(0), _size(size), _storage(0)
 		{
 			
 		}
 		
-		DataBuffer(uint8_t *data, size_t size, size_t storageSize)
+		DataChunk(uint8_t *data, size_t size, size_t storageSize)
 			:_data(data), _next(0), _size(size), _storage(storageSize)
 		{
 			
@@ -89,47 +83,75 @@ namespace Net
 		size_t Size() const {return _size; }
 		
 		size_t Capacity() const {return _storage ? _storage : _size; }
-		DataBuffer* Next() const {return _next; }
+		DataChunk* Next() const {return _next; }
 		
-		static DataBuffer* GetNew(size_t size);
-		static DataBuffer* GetNew(const void *data, size_t size);
+		static DataChunk* GetNew(size_t size);
+		static DataChunk* GetNew(const void *data, size_t size);
 		
-		static void Release(DataBuffer * data);
-		static void ReleaseRecursive(DataBuffer * data);
-		static DataBuffer *FindLast(DataBuffer *first);
+		static void Release(DataChunk * data);
+		static void ReleaseRecursive(DataChunk * data);
+		static DataChunk *FindLast(DataChunk *first);
 	};
 	
 
-	class NetBufferBase
+	class DataBufferBase
 	{
-		DataBuffer *_first;
-		DataBuffer *_current;
+		DataChunk *_first;
+		DataChunk *_current;
 		size_t _pos;
+		static uint8_t _dummy;
 	public:
-		NetBufferBase();
-		~NetBufferBase();
+		DataBufferBase();
+		~DataBufferBase();
 		
 		// move semantic, like std::auto_ptr
 		// transfers buffers ownership to target object
-		NetBufferBase(NetBufferBase &);
-		NetBufferBase & operator=(NetBufferBase &);
+		DataBufferBase(DataBufferBase &);
+		DataBufferBase & operator=(DataBufferBase &);
 		
-		NetBufferBase(DataBuffer* chain)
+		DataBufferBase(DataChunk* chain)
 		:_first(chain), _current(0), _pos(0)
 		{
 		
 		}
 		
-		DataBuffer* MoveToBufferList()
+		DataChunk* MoveToBufferList()
 		{
-			DataBuffer* result = _first;
+			DataChunk* result = _first;
 			_first = 0;
 			_current = 0;
 			_pos = 0;
 			return result;
 		}
 		
-		DataBuffer* BufferList(){ return _first;}
+		DataChunk* BufferList(){ return _first;}
+		
+		uint8_t operator*() const
+		{
+			if(!_current)
+				return 0;
+			return (*_current)[_pos];
+		}
+		
+		uint8_t& operator*()
+		{
+			if(!_current)
+				return _dummy;
+			return (*_current)[_pos];
+		}
+		
+		DataBufferBase& operator++()
+		{
+			if(_current)
+			{
+				if(++_pos >= _current->Size())
+				{
+					_pos = 0;
+					_current = _current->Next();
+				}
+			}
+			return *this;
+		}
 		
 		uint8_t Read()
 		{
@@ -195,9 +217,9 @@ namespace Net
 		bool InsertFront(size_t size);
 		bool InsertBack(size_t size);
 		bool Insert(size_t pos, size_t size);
-		void AttachBack(DataBuffer* buffer);
-		void AttachFront(DataBuffer* buffer);
-		DataBuffer* DetachFront();
+		void AttachBack(DataChunk* buffer);
+		void AttachFront(DataChunk* buffer);
+		DataChunk* DetachFront();
 		
 		bool Seek(size_t pos);
 		size_t Tell();
@@ -205,6 +227,5 @@ namespace Net
 		unsigned Parts();
 	};
 	
-	typedef Mcucpp::BinaryStream<NetBufferBase> NetBuffer;
-}
+	typedef Mcucpp::BinaryStream<DataBufferBase> DataBuffer;
 }

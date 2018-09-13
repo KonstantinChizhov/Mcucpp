@@ -2,7 +2,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2013
+// Date			: 2017
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification,
@@ -28,36 +28,54 @@
 #pragma once
 #include <stdint.h>
 
+#include <binary_stream.h>
+
 namespace Mcucpp
 {
-	class BufferReader
+	class MemoryStreamSource
 	{
-	public:
-
-		uint8_t Read()
-		{
-			if(_pos >= _size)
-				return 0;
-			return _ptr[_pos++];
-		}
-
-		BufferReader(const uint8_t *buffer, size_t size)
-			:_ptr(buffer),
-			_size(size),
-			_pos(0)
-		{
-		}
-		
-		void Reset()
-		{
-			_pos = 0;
-		}
-		
-		bool EndOfStream(){return _pos >= _size;}
-
-	private:
-		const uint8_t *_ptr;
+		uint8_t *_memory;
 		size_t _size;
 		size_t _pos;
+	public:
+	
+		MemoryStreamSource(void *memory, size_t size)
+		:_memory(static_cast<uint8_t *>(memory)),
+		_size(size),
+		_pos(0)
+		{
+			
+		}
+	
+		bool Seek(size_t pos)
+		{
+			if(pos < _size)
+			{
+				_pos = pos;
+				return true;
+			}
+			return false;
+		}
+		
+		bool Write(uint8_t value)
+		{
+			if(_pos < _size)
+			{
+				_memory[_pos++] = value;
+				return true;
+			}
+			return false;
+		}
+		
+		uint8_t Read()
+		{
+			if(_pos < _size)
+			{
+				return _memory[_pos++];
+			}
+			return 0xff;
+		}
 	};
+
+	typedef BinaryStream<MemoryStreamSource> MemoryStream;
 }

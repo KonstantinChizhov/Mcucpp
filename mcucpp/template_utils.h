@@ -288,8 +288,8 @@ namespace Mcucpp
 			for(size_t i = 0; i < count; i++)
 			{
 				*target = *source;
-				target++;
-				source++;
+				++target;
+				++source;
 			}
 		}
 
