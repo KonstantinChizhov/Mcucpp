@@ -160,5 +160,19 @@ SupportedDevices = {
 		'cpu' : 'cortex-m4',
 		'startup' : ['%(MCUCPP_HOME)s/startups/startup_stm32_40x.c'],
 		'libSources' : ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
+	},
+	
+	'stm32f429': 
+	{
+		'manufacturer' : 'ST',
+		'arch' : stm32m4,
+		'flash' : 2*1024*1024, 'ram' : 256*1024, 'eeprom' : 0,
+		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x','%(MCUCPP_HOME)s/mcucpp/ARM/CortexM4',  '%(MCUCPP_HOME)s/startup' ],
+		'linkerScript' : '%(MCUCPP_HOME)s/linker_scripts/stm32_40x.ld',
+		'clock' : 180000000,
+		'defines' : ['STM32F429_439xx', 'F_OSC=8000000u', '__FPU_PRESENT=1'],
+		'cpu' : 'cortex-m4',
+		'startup' : ['%(MCUCPP_HOME)s/startups/startup_stm32_40x.c'],
+		'libSources' : ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
 	}
 }

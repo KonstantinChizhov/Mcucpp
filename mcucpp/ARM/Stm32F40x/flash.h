@@ -86,8 +86,8 @@ namespace Mcucpp
 	{
 	#if defined(STM32F40_41xxx)
 		return 1024*1024;
-		//#elif defined(STM32F427_437xx)
-		//return 2*1024*1024;
+	#elif defined(STM32F429_439xx)
+		return 2*1024*1024;
 	#else
 		#error Not supported device. TODO: add support.
 	#endif
@@ -97,8 +97,8 @@ namespace Mcucpp
 	{
 	#if defined(STM32F40_41xxx)
 		return 12;
-		//#elif defined(STM32F427_437xx)
-		//return 24;
+	#elif defined(STM32F429_439xx)
+		return 24;
 	#else
 		#error Not supported device. TODO: add support.
 	#endif
@@ -112,8 +112,21 @@ namespace Mcucpp
 		if(page == 4)
 			return BaseAddress + 0x10000;
 		return BaseAddress + 0x20000 + (page-5) * 0x20000;
-		//#elif defined(STM32F427_437xx)
-		//return 24;
+	#elif defined(STM32F429_439xx)
+		// bank 1
+		if(page < 4)
+			return BaseAddress + page * 0x4000;
+		if(page == 4)
+			return BaseAddress + 0x10000;
+		if(page < 12)
+			return BaseAddress + 0x20000 + (page-5) * 0x20000;
+		// bank 2
+		if(page < 16)
+			return BaseAddress + 0x100000 + (page-15) * 0x4000;
+		if(page == 16)
+			return BaseAddress + 0x110000;
+		
+		return BaseAddress + 0x120000 + (page-17) * 0x20000;
 	#else
 		#error Not supported device. TODO: add support.
 	#endif
@@ -127,8 +140,19 @@ namespace Mcucpp
 		if(page == 4)
 			return 0x10000;
 		return 0x20000;
-		//#elif defined(STM32F427_437xx)
-		//return 24;
+	#elif defined(STM32F429_439xx)
+		// bank 1
+		if(page < 4)
+			return 0x4000;
+		if(page == 4)
+			return 0x10000;
+		return 0x20000;
+		// bank 2
+		if(page < 16)
+			return 0x4000;
+		if(page == 16)
+			return 0x10000;
+		return 0x20000;
 	#else
 		#error Not supported device. TODO: add support.
 	#endif

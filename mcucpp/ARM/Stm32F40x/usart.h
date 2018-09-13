@@ -388,6 +388,31 @@ namespace Mcucpp
 		typedef IO::PinList<IO::Pc6, IO::Pg14> Usart6TxPins;
 		typedef IO::PinList<IO::Pc7, IO::Pg9> Usart6RxPins;
 		
+	#elif defined(STM32F429_439xx)
+	
+		typedef IO::PinList<IO::Pa9,  IO::Pb6> Usart1TxPins;
+		typedef IO::PinList<IO::Pa10, IO::Pb7> Usart1RxPins;
+		
+		typedef IO::PinList<IO::Pa2,  IO::Pd5> Usart2TxPins;
+		typedef IO::PinList<IO::Pa3,  IO::Pd6> Usart2RxPins;
+		
+		typedef IO::PinList<IO::Pb10, IO::Pc10, IO::Pd8> Usart3TxPins;
+		typedef IO::PinList<IO::Pb11, IO::Pc11, IO::Pd9> Usart3RxPins;
+		
+		typedef IO::PinList<IO::Pa0,  IO::Pc10> Uart4TxPins;
+		typedef IO::PinList<IO::Pa1,  IO::Pc11> Uart4RxPins;
+		
+		typedef IO::PinList<IO::Pc12> Uart5TxPins;
+		typedef IO::PinList<IO::Pd2> Uart5RxPins;
+		
+		typedef IO::PinList<IO::Pc6, IO::Pg14> Usart6TxPins;
+		typedef IO::PinList<IO::Pc7, IO::Pg9> Usart6RxPins;
+		
+		typedef IO::PinList<IO::Pf7, IO::Pe8> Uart7TxPins;
+		typedef IO::PinList<IO::Pf6, IO::Pe7> Uart7RxPins;
+		
+		typedef IO::PinList<IO::Pe1> Uart8TxPins;
+		typedef IO::PinList<IO::Pe0> Uart8RxPins;
 		
 	#else
 	#error TODO: add USART pins description
