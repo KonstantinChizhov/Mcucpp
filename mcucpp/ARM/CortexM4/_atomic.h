@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mcu_header.h>
+#include <static_assert.h>
 
 namespace Mcucpp
 {
@@ -126,6 +127,28 @@ namespace Mcucpp
 		inline uint32_t STREX(T *value, T **addr)
 		{
 			return __STREXW((uint32_t)value, (uint32_t*)addr);
+		}
+		
+		template<class T, class T2>
+		inline uint32_t STREX(T value, T2 *addr)
+		{
+			MCUCPP_STATIC_ASSERT(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4);
+			if(sizeof(T) == 1)
+				return __STREXB((uint8_t)value, (uint8_t*)addr);
+			if(sizeof(T) == 2)
+				return __STREXH((uint16_t)value, (uint16_t*)addr);
+			return __STREXW((uint32_t)value, (uint32_t*)addr);
+		}
+		
+		template<class T>
+		inline T LDREX(T *addr)
+		{
+			MCUCPP_STATIC_ASSERT(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4);
+			if(sizeof(T) == 1)
+				return (T)__LDREXB((uint8_t*)addr);
+			if(sizeof(T) == 2)
+				return (T)__LDREXH((uint16_t*)addr);
+			return (T)__LDREXW((uint32_t*)addr);
 		}
 	}
 
