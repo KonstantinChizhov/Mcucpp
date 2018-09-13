@@ -7,9 +7,13 @@ def unit_test_run(env, target, source):
 	testNode = env.Command('run_test_%s' % str(target[0]), '', testApp)
 	
 def unit_test_emitter(target, source, env):
-	source.append(env.Object('%s/3rdparty/googletest/googletest/src/gtest_main.cc' % env['MCUCPP_HOME']))
-	
-	source.append(env.Object('%s/3rdparty/googletest/googletest/src/gtest-all.cc' % env['MCUCPP_HOME']))
+	build_dir = os.path.dirname(target[0].abspath) 
+	source.append(env.Object(os.path.join(build_dir, 'gmock_main'), 
+				'%s/3rdparty/googletest/googlemock/src/gmock_main.cc' % env['MCUCPP_HOME']))
+	source.append(env.Object(os.path.join(build_dir, 'gtest-all'), 
+				'%s/3rdparty/googletest/googletest/src/gtest-all.cc' % env['MCUCPP_HOME']))
+	source.append(env.Object(os.path.join(build_dir, 'gmock-all'), 
+				'%s/3rdparty/googletest/googlemock/src/gmock-all.cc' % env['MCUCPP_HOME']))
 
 	return target, source
 	
@@ -26,6 +30,7 @@ def generate(env, **kw):
 		'%s/3rdparty/googletest/googletest/include' % env['MCUCPP_HOME'],
 		'%s/3rdparty/googletest/googlemock/include' % env['MCUCPP_HOME'],
 		'%s/3rdparty/googletest/googletest' % env['MCUCPP_HOME'],
+		'%s/3rdparty/googletest/googlemock' % env['MCUCPP_HOME'],
 		'%s/mcucpp' % env['MCUCPP_HOME'], 
 		'%s/mcucpp/Test' % env['MCUCPP_HOME'], 
 		'#/./'])

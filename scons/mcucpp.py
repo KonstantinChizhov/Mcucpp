@@ -5,9 +5,7 @@ import extensions
 
 
 def get_env_id(env, target):
-	allOptions = env['CFLAGS'] + env['CCFLAGS'] + env['ASFLAGS'] + env['CPPDEFINES'] + env['LINKFLAGS'] + [str(t.abspath) for t in target]
-	if 'DEVICE' in env:
-		allOptions = allOptions + [env['DEVICE']['cpu']]
+	allOptions = [str(t.abspath) for t in target]
 	return abs(hash(str(allOptions)))
 
 def get_lib_sources(target, source, env):
