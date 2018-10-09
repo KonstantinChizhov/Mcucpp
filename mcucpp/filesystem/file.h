@@ -30,6 +30,7 @@
 #include <filesystem/fscommon.h>
 #include <filesystem/ifsdriver.h>
 #include <enum.h>
+#include <noncopyable.h>
 
 namespace Mcucpp
 {
@@ -40,39 +41,38 @@ namespace Fs
 		FileFlagsNone = 0,
 		FileFlagWritable = 1,
 		FileFlagBufferDirty = 2,
-		FileFlagEof = 4
+		FileFlagEof = 4,
+		FileNotExists = 8,
+		FileOutOufMem = 16
 	};
-	
+
 	DECLARE_ENUM_OPERATIONS(FileFlags)
-		
-	class File
-	{	
+
+	class File : NonCopyable
+	{
 		IFsDriver &_driver;
 		FsNode _firstNode;
 		FsNode _current;
 		uint8_t *_blockBuffer;
 		FileFlags _flags;
-		uint32_t _positionInFile;
+		TFileSize _positionInFile;
 		TFileSize _size;
 		uint16_t _positionInBuffer;
 		uint16_t _blockInChunk;
 		uint16_t _blockSize;
-		
+
 	public:
+	    File(IFsDriver &driver);
 		File(IFsDriver &driver, FsNode node, TFileSize size);
+		File(IFsDriver &driver, const char *filePath);
 		~File();
-		
-		// move semantic, like std::auto_ptr
-		// transfers buffers ownership to target object
-		// TODO: use c++11 move constructor
-		File(File &);
-		File & operator=(File &);
-		
+
+        bool Open(const char *filePath);
 		void Flush();
 		uint8_t Read();
 		size_t Read(void *buffer, size_t bytesToRead);
 		bool Write(uint8_t value);
-		bool Seek(uint32_t pos);
+		bool Seek(TFileSize pos);
 		bool EndOfFile();
 	};
 }}

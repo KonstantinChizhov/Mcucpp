@@ -2,7 +2,10 @@
 #include <filesystem/filesystem.h>
 #include <filesystem/fscommon.h>
 #include <block_device.h>
+#include <binary_stream.h>
 #include <memory_stream.h>
+#include <filesystem/file.h>
+#include <data_buffer.h>
 
 namespace Mcucpp
 {
@@ -74,23 +77,22 @@ namespace Mcucpp
 			FatType type;
 		};
 
-		class FatFs : public Mcucpp::Fs::IFsDriver
+		class FatFs : public Mcucpp::Fs::IFsDriver 
 		{
 			FatInfo _fat;
 			Mcucpp::IBlockDevice &_device;
 			Fs::ErrorCode _lastError;
 			uint32_t _cachedSector;
-			enum {SectorSize = Fs::DefaultBlockSize, LfnNameChunkBytes = 26};
+			enum {SectorSize = Fs::DefaultBlockSize, LfnNameChunkBytes = 26, LfnChunkSymbols = 13};
 			uint8_t *_sectorBuffer;
-			uint8_t *_pathBuffer;
 		private:
 			uint32_t ClusterToSector(uint32_t cluster);
 			uint32_t SectorToClaster(uint32_t sector);
 			uint32_t ReadFat(uint32_t cluster, unsigned fatNum);
 			bool WriteFat(uint32_t cluster, uint32_t nextCluster);
 			MemoryStream ReadSector(uint32_t sector);
-			int ReadLfnEntry(MemoryStream &reader, uint8_t *lfnBuffer);
-			bool ReadDirEntry(MemoryStream &reader, Fs::FileSystemEntry &entry, int lfnChecksum, uint8_t *lfnBuffer);
+			int ReadLfnEntry(BinaryStream<Fs::File> &reader, DataBuffer &lfnBuffer);
+			bool ReadDirEntry(BinaryStream<Fs::File> &reader, Fs::FileSystemEntry &entry, int lfnChecksum, DataBuffer &lfnBuffer);
 		public:
 			FatFs(Mcucpp::IBlockDevice &device);
 

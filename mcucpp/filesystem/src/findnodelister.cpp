@@ -42,9 +42,9 @@ namespace Fs
 
 	bool FindNodeLister::DirectoryEntry(const FileSystemEntry &entry)
 	{
-		if(PathElementMatch(entry.name))
+		if(PathElementMatch(entry.Name()))
 		{
-			_currentNode = entry.node;
+			_currentNode = entry.Node();
 			_pathMatched = true;
 			*_foundEntry = entry;
 			return false;

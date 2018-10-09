@@ -1,0 +1,14 @@
+
+
+armEnv = Environment(DEVICE_NAME = 'stm32l471', 
+	toolpath = ['#../../scons'], 
+	tools=['mcucpp'])
+
+armEnv.Append(LINKFLAGS = ["-nostdlib"])
+armEnv.Append(CCFLAGS = ["-O3", "-finline-limit=60"])
+
+app_objects = armEnv.Object(['main.cpp'])
+
+elf = armEnv.Program('Stm32L471_HwTest', app_objects)
+lss = armEnv.Disassembly(elf)
+hex = armEnv.Hex(elf)

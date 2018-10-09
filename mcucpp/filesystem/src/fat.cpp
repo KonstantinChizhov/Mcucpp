@@ -1,10 +1,10 @@
 #include <filesystem/fat.h>
 #include <memory_stream.h>
-#include <filesystem/filesystem.h>
-#include <iostream>
-#include <iomanip>
+#include <filesystem/file.h>
 #include <template_utils.h>
 #include <utf8.h>
+#include <data_buffer.h>
+#include <new>
 
 namespace Mcucpp
 {
@@ -12,13 +12,15 @@ namespace Fat
 {
 	using namespace Mcucpp::Fs;
 
-	void DecodeShortName(const uint8_t* shortName, uint8_t *name)
+	size_t DecodeShortName(const uint8_t* shortName, uint8_t *name)
 	{
+		size_t nameLen = 0;
 		for(int i = 0; i < 11; i++)
 		{
 			if(i == 8)
 			{
 				*name++ = '.';
+				nameLen++;
 			}
 			if(*shortName == 0x20)
 			{
@@ -26,12 +28,15 @@ namespace Fat
 				continue;
 			}
 			*name++ = *shortName++;
+			nameLen++;
 		}
 		if(name[-1] == '.')
 		{
 			name--;
+			nameLen--;
 		}
 		*name = 0;
+		return nameLen;
 	}
 
 	uint8_t ShortNameCheckSum(const uint8_t* dirEntryName)
@@ -58,7 +63,6 @@ namespace Fat
 		:_device(device),
 		_lastError(ErrOK),
 		_cachedSector(0xffffffff),
-		_pathBuffer(nullptr),
 		_sectorBuffer(nullptr)
 	{
 
@@ -66,8 +70,6 @@ namespace Fat
 
 	MemoryStream FatFs::ReadSector(uint32_t sector)
 	{
-		std::cout << "Read sector: " << sector << std::endl;
-
 		if(_cachedSector != sector)
 		{
 			if(!_device.ReadPage(sector, _sectorBuffer, _fat.bytesPerSector, 0))
@@ -96,138 +98,103 @@ namespace Fat
 
 	bool FatFs::ListDirectory(FsNode dir, DirectoryLister &directoryLister)
 	{
-		FsNode current = dir;
-		int entriesPerSector = _fat.bytesPerSector / DIR_ENTRY_SIZE;
+		BinaryStream<Fs::File> drectory(*this, dir, -1);
+
 		int lfnChecksum = -1;
-		do
+		DataBuffer lfnBuffer;
+
+		for(TFileSize dirEntryIndex = 0; !drectory.EndOfFile(); dirEntryIndex += DIR_ENTRY_SIZE)
 		{
-			uint32_t sector = current;
-			unsigned sectorsToread = _fat.sectorPerCluster;
-			bool fat12_16_rootDir = _fat.rootDirSectors > 0 && dir == RootDirectory();
-			if(fat12_16_rootDir)
+			drectory.Seek(dirEntryIndex);
+			uint8_t marker = drectory.Read();
+			if(marker == DELETED)
 			{
-				sectorsToread = _fat.rootDirSectors;
+				continue;
+			}
+			if(marker == EMPTY)
+			{
+				_lastError = ErrOK;
+				return true;
 			}
 
-			for(unsigned sectorOffset = 0; sectorOffset < sectorsToread; sectorOffset++)
+			drectory.Seek(dirEntryIndex + 11);
+			uint8_t attr = drectory.Read();
+			if(attr == 0xff)
 			{
-				MemoryStream reader = ReadSector(sector + sectorOffset);
-				if(GetError() != ErrOK)
+				continue;
+			}
+			drectory.Seek(dirEntryIndex);
+			FileSystemEntry entry;
+
+			if(attr == ATTR_LONG_NAME) // long name entry
+			{
+				lfnChecksum = ReadLfnEntry(drectory, lfnBuffer);
+				continue;
+			}
+			else
+			{
+				if(!ReadDirEntry(drectory, entry, lfnChecksum, lfnBuffer))
 				{
 					return false;
 				}
-
-				for(unsigned i = 0 ; i < _fat.bytesPerSector; i += DIR_ENTRY_SIZE)
-				{
-					if(sector + sectorOffset != _cachedSector)
-					{
-						MemoryStream reader = ReadSector(sector + sectorOffset);
-						if(GetError() != ErrOK)
-						{
-							return false;
-						}
-					}
-					reader.Seek(i);
-					uint8_t marker = reader.Read();
-					if(marker == DELETED)
-					{
-						continue;
-					}
-					if(marker == EMPTY)
-					{
-						_lastError = ErrOK;
-						return true;
-					}
-
-					reader.Seek(i + 11);
-					uint8_t attr = reader.Read();
-					if(attr == 0xff)
-					{
-						continue;
-					}
-					reader.Seek(i);
-					FileSystemEntry entry;
-
-					if(attr == ATTR_LONG_NAME) // long name entry
-					{
-						lfnChecksum = ReadLfnEntry(reader, _pathBuffer);
-						continue;
-					}
-					else
-					{
-						if(!ReadDirEntry(reader, entry, lfnChecksum, _pathBuffer))
-						{
-							return false;
-						}
-						lfnChecksum = -1;
-					}
-
-					bool stop = !directoryLister.DirectoryEntry(entry);
-					Util::fill_n(_pathBuffer, MaxPath, 0);
-					if(stop)
-					{
-						_lastError = ErrOK;
-						return true;
-					}
-				}
+				lfnChecksum = -1;
 			}
+			lfnBuffer.Clear();
+			bool stop = !directoryLister.DirectoryEntry(entry);
 
-			if(fat12_16_rootDir)
+			if(stop)
 			{
-				break;
+				_lastError = ErrOK;
+				return true;
 			}
-			current = GetNextChunk(current);
-		}while(current >= _fat.eocMarker);
+		}
 		_lastError = ErrOK;
 		return true;
 	}
 
-	int FatFs::ReadLfnEntry(MemoryStream &reader, uint8_t *lfnBuffer)
+	int FatFs::ReadLfnEntry(BinaryStream<Fs::File> &reader, DataBuffer &lfnBuffer)
 	{
-		std::cout << "Log dir entry\r\n";
 		uint8_t lfnSequence = reader.Read();
-		if((lfnSequence & 0x40) != 0) // last LFN entry for item
-		{
-			Util::fill_n(lfnBuffer, MaxPath, 0);
-		}
-		lfnSequence &= 0x1F;
-		if(lfnSequence == 0)
+		if ((lfnSequence & 0x1F) == 0)
 		{
 			return -1;
 		}
-		std::cout << "lfnSequence: " << (int)lfnSequence << std::endl;
-		uint8_t *currentNameChuck = &lfnBuffer[(lfnSequence - 1) * LfnNameChunkBytes];
+		if((lfnSequence & 0x40) != 0) // last LFN entry for item
+		{
+			lfnBuffer.Clear();
+			lfnSequence &= 0x1F;
+			lfnBuffer.InsertFront(lfnSequence * LfnNameChunkBytes);
+		}
+
+		lfnBuffer.Seek((lfnSequence - 1) * LfnNameChunkBytes);
+
 		for(int i = 0; i < 5; i++)
 		{
-			Utf8Encoding<uint8_t>::Encode(currentNameChuck, reader.ReadU16Le());
+			lfnBuffer.WriteU16Le( reader.ReadU16Le());
 		}
-		std::cout << "lfnBuffer: " << (char*)lfnBuffer << std::endl;
+
 		reader.Read(); // attributes
 		uint8_t type = reader.Read();
-		std::cout << "type: " << (int)type << std::endl;
-
 		if(type != 0) // not type LFN entry
 		{
 			return -1;
 		}
 		int lfnChecksum = reader.Read();
-		std::cout << "lfnChecksum: " << (int)lfnChecksum << std::endl;
 
 		for(int i = 0; i < 6; i++)
 		{
-			Utf8Encoding<uint8_t>::Encode(currentNameChuck, reader.ReadU16Le());
+			lfnBuffer.WriteU16Le(reader.ReadU16Le());
 		}
-		std::cout << "lfnBuffer: " << (char*)lfnBuffer << std::endl;
 
 		/*uint16_t fstClusLO = */reader.ReadU16Le(); // always 0
 		for(int i = 0; i < 2; i++)
 		{
-			Utf8Encoding<uint8_t>::Encode(currentNameChuck, reader.ReadU16Le());
+			lfnBuffer.WriteU16Le(reader.ReadU16Le());
 		}
 		return lfnChecksum;
 	}
 
-	bool FatFs::ReadDirEntry(MemoryStream &reader, FileSystemEntry &entry, int lfnChecksum, uint8_t *lfnBuffer)
+	bool FatFs::ReadDirEntry(BinaryStream<Fs::File> &reader, FileSystemEntry &entry, int lfnChecksum, DataBuffer &lfnBuffer)
 	{
 		uint8_t shortName[12];
 		reader.Read(shortName, 11);
@@ -239,13 +206,38 @@ namespace Fat
 		uint8_t entryNameCecksum = ShortNameCheckSum(shortName);
 		if(lfnChecksum >= 0 && entryNameCecksum == lfnChecksum)
 		{
-			//std::cout << "entry crc: " << (int)entryNameCecksum << "\tlfn crc: " << (int)lfnChecksum << std::endl;
-			//std::cout << "_pathBuffer: " << (char*)_pathBuffer << std::endl;
-			entry.name = lfnBuffer;
+			size_t lfnSize = lfnBuffer.Size() / 2;
+			lfnBuffer.Seek(0);
+			size_t utf8Size = 0;
+			for (size_t i = 0; i < lfnSize; i++)
+			{
+				uint16_t c = lfnBuffer.ReadU16Le();
+				if (!c)
+				{
+					break;
+				}
+				utf8Size += Utf8Encoding<uint16_t>::EncodedLen(c);
+			}
+
+			lfnBuffer.Seek(0);
+			uint8_t *utf8Buffer = new (std::nothrow) uint8_t[utf8Size + 1];
+			uint8_t *utf8ptr = utf8Buffer;
+			for (size_t i = 0; i < lfnSize; i++)
+			{
+				uint16_t c = lfnBuffer.ReadU16Le();
+				if (!c)
+				{
+					break;
+				}
+				Utf8Encoding<uint16_t>::Encode(utf8ptr,c);
+			}
+			utf8Buffer[utf8Size] = 0;
+			entry.SetName(utf8Buffer, utf8Size, false);
 		}else
 		{
-			DecodeShortName(shortName, _pathBuffer);
-			entry.name = _pathBuffer;
+			uint8_t decodedName[12];
+			size_t nameLen = DecodeShortName(shortName, decodedName);
+			entry.SetName(decodedName, nameLen);
 		}
 
 		uint8_t attr = reader.Read();
@@ -260,9 +252,9 @@ namespace Fat
 		uint16_t fstClusLO  = reader.ReadU16Le();
 		uint32_t size = reader.ReadU32Le();
 
-		entry.size = size;
-		entry.attributes = (Fs::FileAttributes)attr;
-		entry.node = ClusterToSector(fstClusLO | (((uint32_t)fstClusHI) << 16));
+		entry.SetSize(size);
+		entry.SetAttributes((Fs::FileAttributes)attr);
+		entry.SetNode(ClusterToSector(fstClusLO | (((uint32_t)fstClusHI) << 16)));
 		return true;
 	}
 
@@ -299,7 +291,7 @@ namespace Fat
 
 		if(_fat.type == Fat12)
 		{
-			if(fatEntryOffsetInSector == (_fat.bytesPerSector - 1))
+			if(fatEntryOffsetInSector == uint32_t(_fat.bytesPerSector - 1))
 			{
 				result = reader.Read();
 				MemoryStream reader = ReadSector(fatEntrySector + 1);
@@ -308,7 +300,7 @@ namespace Fat
 				result = reader.ReadU16Le();
 			}
 
-			if(cluster & 1 != 0)
+			if((cluster & 1) != 0)
 			{
 				result >>= 4;
 			}
@@ -321,10 +313,9 @@ namespace Fat
 			result = reader.ReadU32Le() & 0x0fffffff;
 		}
 		result = ClusterToSector(result);
-		std::cout << "cluster: " << cluster << "\tsector: " << fatEntrySector << "\tresult: " << result << std::endl;
 		return result;
 	}
-	
+
 	bool WriteFat(uint32_t cluster, uint32_t nextCluster)
 	{
 		return false;
@@ -337,12 +328,12 @@ namespace Fat
 			case BlockSize: return _fat.bytesPerSector;
 			case ChunkSize: return _fat.bytesPerSector * _fat.sectorPerCluster;
 			case BlocksInChunk: return _fat.sectorPerCluster;
-			case TotalBlocks: 
+			case TotalBlocks:
 			case UsedBlocks:
 			default: return 0;
 		}
 	}
-	
+
 	uint32_t FatFs::GetBlocksPerNode(Fs::FsNode node)
 	{
 		bool fat12_16_rootDir = _fat.rootDirSectors > 0 && node == RootDirectory();
@@ -381,20 +372,21 @@ namespace Fat
 
 	bool FatFs::WriteBlock(FsNode node, const uint8_t *buffer)
 	{
-		return false;
+		if(!_device.WritePage((uint32_t)node, buffer, _fat.bytesPerSector, 0))
+		{
+			_lastError = ErrIoFailed;
+			return false;
+		}
+		_lastError = ErrOK;
+		return true;
 	}
 
 	void FatFs::Unmount()
 	{
-		if(_pathBuffer)
-		{
-			delete [] _pathBuffer;
-		}
 		if(_sectorBuffer)
 		{
 			delete [] _sectorBuffer;
 		}
-		_pathBuffer = nullptr;
 		_sectorBuffer = nullptr;
 		_fat = FatInfo();
 	}
@@ -407,11 +399,7 @@ namespace Fat
 			_lastError = ErrDeviceNotReady;
 			return false;
 		}
-		
-		if(_pathBuffer)
-		{
-			delete [] _pathBuffer;
-		}
+
 		if(_sectorBuffer)
 		{
 			delete [] _sectorBuffer;
@@ -420,7 +408,7 @@ namespace Fat
 		_fat.firstSector = 0;
 		_fat.bytesPerSector = SectorSize;
 		_sectorBuffer = new (std::nothrow) uint8_t[_fat.bytesPerSector];
-		
+
 		// read boot sector
 		MemoryStream reader = ReadSector(_fat.firstSector);
 		if(GetError() != ErrOK)
@@ -467,7 +455,7 @@ namespace Fat
 		/*uint16_t numberofHeads = */reader.ReadU16Le();
 		_fat.hiddenSectors = reader.ReadU32Le();
 		uint32_t totalSectors_F32 = reader.ReadU32Le();
-		
+
 		if(_fat.bytesPerSector > SectorSize)
 		{
 			delete [] _sectorBuffer;
@@ -518,31 +506,6 @@ namespace Fat
 			_fat.type = Fat32;
 			_fat.eocMarker = 0x0FFFFFF8;
 		}
-		#define Prn(x) std::cout << std::left << std::setw(24) << #x " = " << (uint32_t)x << "\n"
-
-		_pathBuffer = new (std::nothrow) uint8_t[MaxPath];
-		if(!_pathBuffer)
-		{
-			delete [] _sectorBuffer;
-			_sectorBuffer = 0;
-			_lastError = ErrOutOfMemory;
-			return false;
-		}
-
-		Prn(_fat.type);
-		Prn(_fat.firstSector);
-		Prn(_fat.bytesPerSector);
-		Prn(_fat.sectorPerCluster);
-		Prn(_fat.reservedSectorCount);
-		Prn(_fat.numberofFATs);
-		Prn(_fat.rootEntCnt);
-		Prn(_fat.totalSectors);
-		Prn(_fat.FATsize);
-		Prn(_fat.hiddenSectors);
-		Prn(_fat.rootSector);
-		Prn(_fat.countofClusters);
-		Prn(_fat.firstDataSector);
-		Prn(_fat.rootDirSectors);
 
 		return true;
 	}

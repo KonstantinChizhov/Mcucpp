@@ -363,7 +363,7 @@ namespace Mcucpp
 
 			float guess = fToInt.f;
 			guess = 0.5f * (guess + value / guess);
-            guess = 0.5f * (guess + value / guess);
+			guess = 0.5f * (guess + value / guess);
 
 			return guess;
 		}

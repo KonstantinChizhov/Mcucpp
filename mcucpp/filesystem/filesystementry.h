@@ -28,18 +28,100 @@
 #pragma once
 
 #include <filesystem/fscommon.h>
+#include <template_utils.h>
+#include <compiler.h>
+#include <new>
 
 namespace Mcucpp
 {
 namespace Fs
 {
-	struct FileSystemEntry
+	class FileSystemEntry
 	{
-		uint8_t *name;
-		FileAttributes attributes;
-		FsNode node;
-		FsNode parent;
-		TFileSize size;
+		mutable uint8_t *_name;
+		FileAttributes _attributes;
+		FsNode _node;
+		FsNode _parent;
+		TFileSize _size;
+	public:
+		FileSystemEntry()
+			:_name(nullptr),
+			_attributes(FsAttributeNormal),
+			_node(0),
+			_parent(0),
+			_size(0)
+		{
+
+		}
+
+		~FileSystemEntry()
+		{
+			if (_name)
+			{
+				delete[] _name;
+			}
+		}
+		// move semantic, like std::auto_ptr
+		// transfers buffers ownership to target object
+		// TODO: use c++11 move constructor
+		FileSystemEntry(const FileSystemEntry &src)
+			:_name(src._name),
+			_attributes(src._attributes),
+			_node(src._node),
+			_parent(src._parent),
+			_size(src._size)
+		{
+			src._name = nullptr;
+		}
+
+		FileSystemEntry & operator=(const FileSystemEntry &src)
+		{
+			_name = src._name;
+			_attributes = src._attributes;
+			_node = src._node,
+			_parent = src._parent;
+			_size = src._size;
+			src._name = nullptr;
+			return *this;
+		}
+
+		const uint8_t *Name() const { return _name; }
+		FileAttributes Attributes() const { return _attributes; }
+		FsNode Node() const { return _node; }
+		FsNode Parent () const { return _parent; }
+		TFileSize Size() const {return _size; }
+
+		void SetName(uint8_t *name, size_t nameSize, bool copy = true)
+		{
+			if (_name)
+			{
+				delete[] _name;
+			}
+			if (name)
+			{
+				if(!copy)
+				{
+					_name = name;
+					return;
+				}
+				_name = new (std::nothrow) uint8_t[nameSize + 1];
+				if (!_name)
+				{
+					return;
+				}
+				Util::copy(name, name + nameSize, _name);
+				_name[nameSize] = 0;
+			}
+			else
+			{
+				_name = nullptr;
+			}
+		}
+
+		void SetAttributes(FileAttributes attributes) { _attributes = attributes; }
+		void SetNode(FsNode node) { _node = node; }
+		void SetParent(FsNode parent ) { _parent = parent; }
+		void SetSize(TFileSize size) { _size = size; }
 	};
 	
 }}

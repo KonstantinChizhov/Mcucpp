@@ -62,7 +62,7 @@ namespace Mcucpp
 		CRC_ON_OFF = 59,
 		SD_SEND_OP_COND = 0x40 | 41 // ACDM41
 	};
-	
+
 	enum SdR1R2ResponseBits
 	{
 		SdR1Idle           = (1 << 0),
@@ -72,7 +72,7 @@ namespace Mcucpp
 		SdR1EraseSeqError  = (1 << 4),
 		SdR1AddressError   = (1 << 5),
 		SdR1ParameterError = (1 << 6),
-		
+
 		CardIsLocked  = (1 << 0),
 		WPEraseSkip   = (1 << 1),
 		Error         = (1 << 2),
@@ -100,7 +100,7 @@ namespace Mcucpp
 		SdDataOutOfRangeError   = 0x08
 	};
 
-	
+
 	template<class SpiModule_, class CsPin>
 	class SdCard
 	{
@@ -110,8 +110,8 @@ namespace Mcucpp
 		};
 		static const bool useCrc = false;
 		SdCardType _type;
-		
-		typedef BinaryStream<SpiModule_> Spi;
+
+		BinaryStream<SpiModule_> Spi;
 	protected:
 		uint16_t SpiCommand(uint8_t index, uint32_t arg, uint8_t crc = 0);
 		uint32_t ReadBlocksCount();
@@ -122,21 +122,21 @@ namespace Mcucpp
 			CsPin::Clear();
 
 			uint8_t resp;
-			resp = Spi::IgnoreWhile(1000, 0xFF);
+			resp = Spi.IgnoreWhile(1000, 0xFF);
 			if(resp != 0xFE)
 			{
 				CsPin::Set();
 				return false;
 			}
-			Spi::template Read<ReadIterator>(iter, size);
-			uint16_t crc = Spi::ReadU16Le();
+			Spi. template Read<ReadIterator>(iter, size);
+			uint16_t crc = Spi.ReadU16Le();
 			if(useCrc)
 			{
 				// TBD
 			}else
 				(void)crc;
 			CsPin::Set();
-			Spi::Read();
+			Spi.Read();
 			return true;
 		}
 	public:
@@ -148,7 +148,7 @@ namespace Mcucpp
 		uint32_t BlocksCount();
 
 		size_t BlockSize();
-		
+
 		template<class WriteIterator>
 		bool WriteBlock(WriteIterator iter, uint32_t logicalBlockAddress)
 		{
@@ -157,21 +157,21 @@ namespace Mcucpp
 			if(SpiCommand(WRITE_BLOCK, logicalBlockAddress) == 0)
 			{
 				CsPin::Clear();
-				if(Spi::Ignore(10000u, 0xff) != 0xff)
+				if(Spi.Ignore(10000u, 0xff) != 0xff)
 				{
 					return false;
 				}
 
-				Spi::Write(0xFE);
-				Spi::template Write<WriteIterator>(iter, 512);
-				Spi::ReadU16Be();
+				Spi.Write(0xFE);
+				Spi.template Write<WriteIterator>(iter, 512);
+				Spi.ReadU16Be();
 				uint8_t resp;
-				if((resp = Spi::Read() & 0x1F) != 0x05)
+				if((resp = Spi.Read() & 0x1F) != 0x05)
 				{
 					return false;
 				}
 				CsPin::Set();
-				Spi::Read();
+				Spi.Read();
 				return true;
 			}
 			return false;
@@ -190,48 +190,47 @@ namespace Mcucpp
 			}
 			return false;
 		}
-			
 	};
 
 
-	template<class SpiModule_, class CsPin> 
+	template<class SpiModule_, class CsPin>
 	uint16_t SdCard<SpiModule_, CsPin>::SpiCommand(uint8_t index, uint32_t arg, uint8_t crc)
 	{
 		CsPin::Clear();
-		Spi::Read();
-		Spi::Write(index | (1 << 6));
-		Spi::WriteU32Be(arg);
-		Spi::Write(crc | 1);
-		uint16_t responce = Spi::IgnoreWhile(1000, 0xff);
+		Spi.Read();
+		Spi.Write(index | (1 << 6));
+		Spi.WriteU32Be(arg);
+		Spi.Write(crc | 1);
+		uint16_t responce = Spi.IgnoreWhile(1000, 0xff);
 		if(index == SEND_STATUS && responce !=0xff)
-			responce |= Spi::Read() << 8;
+			responce |= Spi.Read() << 8;
 		CsPin::Set();
-		Spi::Read();
+		Spi.Read();
 		return responce;
 	}
 
 
-	template<class SpiModule_, class CsPin> 
+	template<class SpiModule_, class CsPin>
 	bool SdCard<SpiModule_, CsPin>::CheckStatus()
 	{
-		 return SpiCommand(SEND_STATUS, 0) == 0;
+		return SpiCommand(SEND_STATUS, 0) == 0;
 	}
 
-	template<class SpiModule_, class CsPin> 
+	template<class SpiModule_, class CsPin>
 	SdCardType SdCard<SpiModule_, CsPin>::Detect()
 	{
 		_type = SdCardNone;
 
 		CsPin::SetDirWrite();
 		CsPin::Set();
-		Spi::Init(Spi::Fastest, Spi::Master | Spi::MsbFirst);
+		SpiModule_::Init(SpiModule_::Fastest, SpiModule_::Master | SpiModule_::MsbFirst);
 
 		for(uint8_t i=0; i<20; i++)
-			Spi::Read();
+			Spi.Read();
 
-		if(SpiCommand(GO_IDLE_STATE, 0, 0x95) > SdR1Idle) 
+		if(SpiCommand(GO_IDLE_STATE, 0, 0x95) > SdR1Idle)
 			return _type;
-	
+
 		uint8_t resp;
 		uint16_t timeout = 50;
 
@@ -239,22 +238,22 @@ namespace Mcucpp
 		if(SpiCommand(SEND_IF_COND, 0x1aa, 0x87) <= SdR1Idle)
 		{
 			CsPin::Clear();
-			uint32_t voltage = Spi::ReadU32Le();
+			uint32_t voltage = Spi.ReadU32Le();
 			CsPin::Set();
-		
+
 			// voltage check
 			if((voltage & 0x00ffff00) == 0x00aa0100)
 			{
 				do
 				{
 					resp = SpiCommand(SEND_OP_COND, 1ul << 30);
-					Util::delay_ms<50, F_CPU>();
+					delay_ms<50, F_CPU>();
 				}while(resp != 0 && --timeout);
 
 				if(resp == 0 && !SpiCommand(READ_OCR, 0))
 				{
 					CsPin::Clear();
-					uint32_t ocr = Spi::ReadU32Le();
+					uint32_t ocr = Spi.ReadU32Le();
 					CsPin::Set();
  					_type = ocr & 0x40 ? SdhcCard : SdCardV2;
 				}
@@ -268,7 +267,7 @@ namespace Mcucpp
 				while(resp != 0 && --timeout)
 				{
 					resp = SpiCommand(SEND_OP_COND, 0);
-					Util::delay_ms<50, F_CPU>();
+					delay_ms<50, F_CPU>();
 				}
 
 				if(resp == 0)
@@ -279,7 +278,7 @@ namespace Mcucpp
 				do
 				{
 					resp = SpiCommand(SEND_OP_COND, 0);
-					Util::delay_ms<50, F_CPU>();
+					delay_ms<50, F_CPU>();
 				}while(resp != 0 && --timeout);
 
 				if(resp == SdR1Idle)
@@ -289,7 +288,7 @@ namespace Mcucpp
 		return _type;
 	}
 
-	template<class SpiModule_, class CsPin> 
+	template<class SpiModule_, class CsPin>
 	uint32_t SdCard<SpiModule_, CsPin>::ReadBlocksCount()
 	{
 		uint8_t csd[16];
@@ -304,31 +303,31 @@ namespace Mcucpp
 				uint32_t c_size = ((((uint32_t)csd[6] << 16) | ((uint32_t)csd[7] << 8) | csd[8]) & 0x0003FFC0) >> 6;
 				uint16_t c_size_mult = ((uint16_t)((csd[9] & 0x03) << 1)) | ((uint16_t)((csd[10] & 0x80) >> 7));
 				uint16_t block_len = csd[5] & 0x0F;
-				block_len = 1u << (block_len - 9); 
+				block_len = 1u << (block_len - 9);
 				return ((c_size + 1u) * (1u << (c_size_mult + 2u)) * block_len) - 1u;
-			}	
+			}
 		}
 		return 0;
 	}
 
-	template<class SpiModule_, class CsPin> 
+	template<class SpiModule_, class CsPin>
 	uint32_t SdCard<SpiModule_, CsPin>::BlocksCount()
 	{
 		// TODO: cache this value
 		return ReadBlocksCount();
 	}
 
-	template<class SpiModule_, class CsPin> 
+	template<class SpiModule_, class CsPin>
 	size_t SdCard<SpiModule_, CsPin>::BlockSize()
 	{
 		return 512;
 	}
 
-	template<class SpiModule_, class CsPin> 
+	template<class SpiModule_, class CsPin>
 	bool SdCard<SpiModule_, CsPin>::WaitWhileBusy()
 	{
 		CsPin::Clear();
-		return Spi::Ignore(10000u, 0xff) == 0xff;
+		return Spi.Ignore(10000u, 0xff) == 0xff;
 	}
 
 } // namespace Mcucpp

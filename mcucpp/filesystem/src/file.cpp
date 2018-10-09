@@ -25,38 +25,68 @@
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
 
-#pragma once
-
 #include <compiler.h>
 #include <template_utils.h>
 #include <filesystem/fscommon.h>
 #include <filesystem/ifsdriver.h>
 #include <filesystem/file.h>
+#include <filesystem/idirectorylister.h>
+#include <filesystem/findnodelister.h>
 #include <new>
-#include <memory.h>
+#include <string.h>
+
 
 namespace Mcucpp
 {
 namespace Fs
 {
+    File::File(IFsDriver &driver)
+		:_driver(driver),
+		_firstNode(0),
+		_current(0),
+		_blockBuffer(nullptr),
+		_flags(FileFlagEof | FileNotExists),
+		_positionInFile(TFileSize(-1)),
+		_size(0),
+		_blockInChunk(0)
+	{
+		_blockSize = _driver.GetParameter(BlockSize);
+		_positionInBuffer = _blockSize;
+	}
+
 	File::File(IFsDriver &driver, FsNode node, TFileSize size)
 		:_driver(driver),
 		_firstNode(node),
 		_current(0),
-		_positionInFile(0),
 		_flags(FileFlagsNone),
-		_blockInChunk(0),
-		_size(size)
+		_positionInFile(TFileSize(-1)),
+		_size(size),
+		_blockInChunk(0)
 	{
 		_blockSize = _driver.GetParameter(BlockSize);
 		_blockBuffer = new (std::nothrow) uint8_t [_blockSize];
 		_positionInBuffer = _blockSize;
 		if(!_blockBuffer)
 		{
-			_flags |= FileFlagEof;
+			_flags |= FileOutOufMem | FileFlagEof;
+		}
+		if (!_firstNode)
+		{
+			_flags |= FileFlagEof | FileNotExists;
 		}
 	}
-		
+
+	File::File(IFsDriver &driver, const char *filePath)
+		:_driver(driver),
+		_current(0),
+		_flags(FileNotExists),
+		_positionInFile(TFileSize(-1)),
+		_size(0),
+		_blockInChunk(0)
+	{
+		Open(filePath);
+	}
+
 	File::~File()
 	{
 		Flush();
@@ -65,61 +95,49 @@ namespace Fs
 			delete[] _blockBuffer;
 		}
 	}
-	
-	File::File(File &moveFromFile)
-		:_driver(moveFromFile._driver),
-		_firstNode(moveFromFile._firstNode),
-		_current(moveFromFile._current),
-		_positionInFile(moveFromFile._positionInFile),
-		_positionInBuffer(moveFromFile._positionInBuffer),
-		_blockInChunk(moveFromFile._blockInChunk),
-		_flags(moveFromFile._flags),
-		_blockBuffer(moveFromFile._blockBuffer),
-		_blockSize(moveFromFile._blockSize)
-	{
-		moveFromFile._blockBuffer = nullptr;
-		moveFromFile._firstNode = EndOfFileNode;
-		moveFromFile._current = EndOfFileNode;
-		moveFromFile._positionInFile = 0;
-		moveFromFile._positionInBuffer = _blockSize;
-		moveFromFile._blockInChunk = 0;
-		moveFromFile._flags = FileFlagsNone;
-	}
-	/*
-	File::File & operator=(File &)
-	{
-		_firstNode = moveFromFile._firstNode;
-		_current = moveFromFile._current;
-		_positionInFile = moveFromFile._positionInFile;
-		_positionInBuffer = moveFromFile._positionInBuffer;
-		_blockInChunk = moveFromFile._blockInChunk;
-		_flags = moveFromFile._flags;
-		_blockBuffer = moveFromFile._blockBuffer;
 
-		moveFromFile._blockBuffer = nullptr;
-		moveFromFile._firstNode = EndOfFileNode;
-		moveFromFile._current = EndOfFileNode;
-		moveFromFile._positionInFile = 0;
-		moveFromFile._positionInBuffer = 0;
-		moveFromFile._blockInChunk = 0;
-		moveFromFile._flags = FileFlagsNone;
-	}*/
-	
+	bool File::Open(const char *filePath)
+	{
+        _blockSize = _driver.GetParameter(BlockSize);
+        if(!_blockBuffer)
+        {
+            _blockBuffer = new (std::nothrow) uint8_t [_blockSize];
+        }
+		_positionInBuffer = _blockSize;
+		if(!_blockBuffer)
+		{
+			_flags |= FileOutOufMem | FileFlagEof;
+			return false;
+		}
+		FindNodeLister lister(_driver);
+        FileSystemEntry fileEntry;
+        lister.Find((uint8_t*)filePath, /*out*/ &fileEntry);
+        _firstNode = fileEntry.Node();
+        _size = fileEntry.Size();
+
+		if (!_firstNode)
+		{
+			_flags |= FileFlagEof | FileNotExists;
+			return false;
+		}
+		return true;
+	}
+
 	void File::Flush()
 	{
 		if(!_blockBuffer)
 		{
 			return;
 		}
-		if(_current && 
-			_driver.EndOfFile(_current) && 
-			(_flags & FileFlagBufferDirty) && 
+		if(_current &&
+			_driver.EndOfFile(_current) &&
+			(_flags & FileFlagBufferDirty) &&
 			(_flags & FileFlagWritable))
 		{
 			_driver.WriteBlock(_current + _blockInChunk, _blockBuffer);
 		}
 	}
-	
+
 	uint8_t File::Read()
 	{
 		if(_positionInBuffer >= _blockSize)
@@ -158,7 +176,7 @@ namespace Fs
 			_driver.ReadBlock(_current + _blockInChunk, _blockBuffer);
 			_positionInBuffer = 0;
 		}
-		
+
 		uint8_t res = _blockBuffer[_positionInBuffer++];
 		if(_positionInBuffer + _positionInFile >= _size)
 		{
@@ -166,14 +184,14 @@ namespace Fs
 		}
 		return res;
 	}
-	
+
 	size_t File::Read(void *buffer, size_t bytesToRead)
 	{
 		if(!_blockBuffer)
 		{
 			return 0;
 		}
-		
+
 		uint32_t totalBytesAvailable = 0;
 		if(_positionInBuffer + _positionInFile < _size)
 		{
@@ -186,11 +204,11 @@ namespace Fs
 		{
 			bytesRead = totalBytesAvailable;
 		}
-		
+
 		memcpy(dest, &_blockBuffer[_positionInBuffer] , bytesRead);
 		_positionInBuffer += bytesRead;
-		
-		while(bytesRead < bytesToRead && 
+
+		while(bytesRead < bytesToRead &&
 			_positionInBuffer + _positionInFile < _size)
 		{
 			if(!_current)
@@ -238,21 +256,25 @@ namespace Fs
 			memcpy(dest, _blockBuffer, chunkSize);
 			bytesRead += chunkSize;
 		}
-		
+
 		if(_positionInBuffer + _positionInFile >= _size)
 		{
 			_flags |= FileFlagEof;
 		}
 		return bytesRead;
 	}
-	
+
 	bool File::Write(uint8_t value)
 	{
+	    if(_flags & FileFlagWritable)
+        {
+
+        }
 		return false;
 	}
-	
-	bool File::Seek(uint32_t pos)
-	{	
+
+	bool File::Seek(TFileSize pos)
+	{
 		if(!_blockBuffer)
 		{
 			return false;
@@ -265,8 +287,8 @@ namespace Fs
 				_positionInFile = 0;
 			}
 			Flush();
-		
-			while(pos > _positionInFile + _blockSize )
+
+			while(pos > _positionInFile + _blockSize)
 			{
 				if(_driver.EndOfFile(_current))
 				{
@@ -289,7 +311,7 @@ namespace Fs
 		_flags &= ~FileFlagEof;
 		return false;
 	}
-	
+
 	bool File::EndOfFile()
 	{
 		return _flags & FileFlagEof;

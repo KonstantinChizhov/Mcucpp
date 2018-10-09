@@ -26,63 +26,27 @@
 //*****************************************************************************
 
 #pragma once
-#include <compiler.h>
+
 #include <stdint.h>
 #include <stddef.h>
 
-namespace Mcucpp
+
+namespace Mcucpp 
 {
-namespace Fs
-{
-	typedef uint32_t FsNode;
-	typedef uint32_t TFileSize;
-
-	const FsNode EndOfFileNode = 0xffffffff;
-	const uint8_t PathDelim = '/';
-	const size_t MaxPath = 260;
-	const size_t DefaultBlockSize = 512;
-
-	enum FileAttributes
+	class IBlockDevice
 	{
-		FsAttributeNormal = 0,
-		FsAttributeReadOnly = 1,
-		FsAttributeHidden = 2,
-		FsAttributeSystem = 4,
-		FsAttributeVolumeId = 8,
-		FsAttributeDirectory = 16,
-		FsAttributeArchive = 32,
-		FsAttributeDevice = 64,
-
-		FsAttributeEntryTypeMask = FsAttributeDevice | FsAttributeDirectory | FsAttributeVolumeId
+	public:
+		typedef uint32_t BlockNumT;
+		typedef uint64_t SizeT;
+	
+		virtual bool Enable()=0;
+		virtual void Disable()=0;
+		virtual SizeT TotalSize()=0;
+		virtual BlockNumT PageCount()=0;
+		virtual SizeT PageAddress(BlockNumT page)=0;
+		virtual SizeT PageSize(BlockNumT page)=0;
+		virtual bool ErasePage(BlockNumT page)=0;
+		virtual bool WritePage(BlockNumT page, void *data, size_t length, size_t offset = 0)=0;
+		virtual bool ReadPage(BlockNumT page, void *data, size_t length, size_t offset = 0)=0;
 	};
-
-
-	enum FsParams
-	{
-		BlockSize,
-		ChunkSize,
-		BlocksInChunk,
-		TotalBlocks,
-		UsedBlocks
-	};
-
-	enum FsSeekMode
-	{
-		FsSeekBegin,
-		FsSeekEnd,
-		FsSeekRelative
-	};
-
-	enum ErrorCode
-	{
-		ErrOK,
-		ErrInvalidNode = 1,
-		ErrInvalidDirectory =2,
-		ErrInvalidFile = 4,
-		ErrDeviceNotReady = 8,
-		ErrIoFailed = 16,
-		ErrInvalidFs = 32,
-		ErrOutOfMemory = 64
-	};
-
-}}
+}
