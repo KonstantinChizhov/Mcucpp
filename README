@@ -1,4 +1,4 @@
- 
+
 Mcucpp - is a C++ hardware abstraction library for microcontrollers.
 
 The aim of the project is to make a high level but extremly efficient C++ hardware abstraction framework for different microcontroller families.
