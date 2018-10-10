@@ -360,7 +360,7 @@ namespace Mcucpp
 	
 
 		typedef ClockResetControl<Ahb1ClockEnableReg, RCC_AHB1ENR_DMA1EN      , Ahb1ResetReg, RCC_AHB1RSTR_DMA1RST, AhbClock> Dma1Clock;
-		typedef ClockResetControl<Ahb1ClockEnableReg, RCC_AHB1ENR_DMA1EN      , Ahb1ResetReg, RCC_AHB1RSTR_DMA1RST, AhbClock> Dma1Clock;
+		typedef ClockResetControl<Ahb1ClockEnableReg, RCC_AHB1ENR_DMA2EN      , Ahb1ResetReg, RCC_AHB1RSTR_DMA2RST, AhbClock> Dma2Clock;
 		typedef ClockResetControl<Ahb1ClockEnableReg, RCC_AHB1ENR_CRCEN       , Ahb1ResetReg, RCC_AHB1RSTR_CRCRST, AhbClock> CrcClock;
 		typedef ClockResetControl<Ahb1ClockEnableReg, RCC_AHB1ENR_FLASHEN     , Ahb1ResetReg, RCC_AHB1RSTR_FLASHRST, AhbClock> FlashClock;
 		typedef ClockResetControl<Ahb1ClockEnableReg, RCC_AHB1ENR_TSCEN       , Ahb1ResetReg, RCC_AHB1RSTR_TSCRST, AhbClock> TscClock;
