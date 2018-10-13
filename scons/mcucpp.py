@@ -2,11 +2,11 @@ import os
 from SCons.Script import *
 import devices
 import extensions
-
+import hashlib
 
 def get_env_id(env, target):
 	allOptions = [str(t.abspath) for t in target]
-	return abs(hash(str(allOptions)))
+	return str(hashlib.sha1(str(allOptions).encode('utf-8')).hexdigest())[:8]
 
 def get_lib_sources(target, source, env):
 	lib_src_to_add = set()
