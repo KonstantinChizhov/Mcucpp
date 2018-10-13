@@ -19,7 +19,7 @@ def SerialOutput(env, target, source):
 		baudRate = env["BAUD_RATE"]
 	baudRate = ARGUMENTS.get('BAUD_RATE', baudRate)
 
-	print "Listening serial port %s:  " % portName, 
+	print( "Listening serial port %s:  " % portName) 
 	port = serial.Serial(portName, baudRate, bytesize=8, parity='N', stopbits=1, timeout=0.2)
 	timeStart = time.time()
 	timeout = 10 # seconds
@@ -45,10 +45,10 @@ def SerialOutput(env, target, source):
 		if len(s) > 0:
 			timeStart = time.time()
 			if gotResponce == False:
-				print "\bOK"
+				print( "\bOK")
 			gotResponce = True
 			if 3 in list(ord(b) for b in s):
-				print "----------- End of transfer ---------------"
+				print("----------- End of transfer ---------------")
 				logFile.write("----------- End of transfer ---------------")
 				break
 			sys.stdout.write(s)
@@ -60,7 +60,7 @@ def SerialOutput(env, target, source):
 			if waitState >= len(wait):
 				waitState = 0
 	if gotResponce == False:
-		print "\bTimeout"
+		print( "\bTimeout")
 		logFile.write("Timeout")
 		return "No responce on %s" % portName
 	return None

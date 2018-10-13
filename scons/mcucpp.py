@@ -65,7 +65,7 @@ def generate(env, **kw):
 	env['ENV'] = os.environ
 	env['SUPPORTED_DEVICES'] = devices.SupportedDevices
 	env['MCUCPP_HOME'] = os.path.abspath(os.path.join( os.path.dirname( os.path.realpath( __file__ ) ), '../'))
-	#print "MCUCPP_HOME = %s" % env['MCUCPP_HOME']
+	print( "MCUCPP_HOME = %s" % env['MCUCPP_HOME'])
 	
 	env['PROGEMITTER'] = mcucpp_program_emitter
 	
@@ -77,10 +77,10 @@ def generate(env, **kw):
 			device = devices.SupportedDevices[deviceName]
 			env['DEVICE'] = device
 		else :
-			print 'Unknown device name: %s' % deviceName
-			print "List of supported devices:"
+			print( 'Unknown device name: %s' % deviceName)
+			print( "List of supported devices:")
 			for devId in sorted(devices.SupportedDevices):
-				print devId
+				print( devId)
 			raise Exception('Unknown device name: %s' % deviceName)
 	else:
 		if 'DEVICE' in env:

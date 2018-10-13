@@ -6,7 +6,7 @@ def get_sources_and_includes(env, node):
 	return sources, includes
 
 def get_sources_and_includes_recursive(env, node, sources, includes):
-	if isinstance(node, basestring):
+	if isinstance(node, str):
 		node = env.File(node)
 	if node.implicit is None or node.sources is None:
 		node.scan()

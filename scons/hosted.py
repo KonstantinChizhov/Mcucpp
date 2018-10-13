@@ -24,7 +24,7 @@ def generate(env, **kw):
 	#else:
 	env.Tool('default')
 	
-	#print 'Used C compiler "%s"' % env['CC']
+	print( 'Used C compiler "%s"' % env['CC'])
 	
 	env.Append(CPPPATH = [\
 		'%s/3rdparty/googletest/googletest/include' % env['MCUCPP_HOME'],

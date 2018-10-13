@@ -9,7 +9,7 @@ import extensions
 
 def generate_vs_project(env, source):
 	projectFileDir = env.Dir('.').srcnode()
-	print projectFileDir
+	print( projectFileDir)
 	
 	sources, includes = extensions.get_sources_and_includes(env, source[0])
 	source_list = []

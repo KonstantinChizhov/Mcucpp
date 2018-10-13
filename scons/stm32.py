@@ -130,10 +130,10 @@ def generate(env, **kw):
 			env.Append(BUILDERS = {'Flash': flashBuilder, 'Run': runBuilder})
 			flasherFound = True
 		else:
-			print "ST-LINK Utility is not found in default location"
+			print ("ST-LINK Utility is not found in default location")
 	
 	if not flasherFound:
-		print "No supported flashing tool found. "
+		print ("No supported flashing tool found. ")
 
 def exists(env):
 	return env.Detect('arm-eabi-gcc')
