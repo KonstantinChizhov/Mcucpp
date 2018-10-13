@@ -37,28 +37,40 @@ namespace Mcucpp
 	typedef IO::Pa4 Dac1Out1;
 	typedef IO::Pa5 Dac1Out2;
 
-	class Dac1
+	class Dac1_1
 	{
 	public:
 		typedef uint16_t DataT;
 
-		static inline void Init();
-		static inline void Write1(DataT value)
+		static inline void Init()
+		{
+			Clock::Dac1Clock::Enable();
+			Dac1Out1::SetConfiguration(Dac1Out1::Port::Analog);
+			DAC->CR |= DAC_CR_EN1;
+		}
+		static inline void Write(DataT value)
 		{
 			DAC->DHR12R1 = value;
 		}
-		static inline void Write2(DataT value)
-		{
-
-		}
 	};
 
-	void Dac1::Init()
+
+	class Dac1_2
 	{
-		Clock::Dac1Clock::Enable();
-		Dac1Out1::SetConfiguration(Dac1Out1::Port::Analog);
-		DAC->CR |= DAC_CR_EN1;
-	}
+	public:
+		typedef uint16_t DataT;
+
+		static inline void Init()
+		{
+			Clock::Dac1Clock::Enable();
+			Dac1Out2::SetConfiguration(Dac1Out1::Port::Analog);
+			DAC->CR |= DAC_CR_EN2;
+		}
+		static inline void Write(DataT value)
+		{
+			DAC->DHR12R2 = value;
+		}
+	};
 
 
 }

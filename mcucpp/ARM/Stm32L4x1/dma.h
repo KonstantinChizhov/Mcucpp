@@ -102,12 +102,13 @@ namespace Mcucpp
 	};
 
 	
-	template<class Module, class ChannelRegs, int Channel, class RequestType, IRQn_Type IRQNumber>
+	template<class Module, class ChannelRegs, int Channel, class RequestT, IRQn_Type IRQNumber>
 	class DmaChannel
 	{
 		STATIC_ASSERT(Channel <= Module::Channels);
 		static DmaChannelData ChannelData;
 	public:
+		typedef RequestT RequestType;
 		
 		static void Transfer(DmaMode mode, const void *buffer, volatile void *periph, uint32_t bufferSize)
 		{
