@@ -430,12 +430,14 @@ namespace Mcucpp
 	
 	enum class Dma2Channel6Request
 	{
-		
+		Usart1_Tx = 2,
+		LpUart_Tx = 4
 	};
 	
 	enum class Dma2Channel7Request
 	{
-		
+		Usart1_Rx = 2,
+		LpUart_Rx = 4
 	};
 	
 	namespace Private
