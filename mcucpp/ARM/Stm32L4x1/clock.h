@@ -88,6 +88,14 @@ namespace Mcucpp
 			Div16 = 0x07,
 		};
 		
+		enum class AdcClockSel
+		{
+			None,
+			PllSai1,
+			PllSai2,
+			SysClock
+		};
+		
 		IO_BITFIELD_WRAPPER(RCC->CFGR, SysClockSwitch, SysClockSource, 0, 2);
 		IO_BITFIELD_WRAPPER(RCC->CFGR, SysClockStatus, SysClockSource, 2, 2);
 		
@@ -247,6 +255,7 @@ namespace Mcucpp
 			static inline void Enable() { Reg::Or(Mask); __DSB(); }
 			static inline void Disable() { Reg::And(~Mask); __DSB(); }
 			static inline void Reset() { ResetReg::Or(ResetMask); __DSB(); ResetReg::And(~ResetMask); }
+			static inline void SelectClockSource(SysClockSource clockSource);
 		};
 		
 
@@ -357,8 +366,24 @@ namespace Mcucpp
 		IO_REG_WRAPPER(RCC->AHB1RSTR, Ahb1ResetReg, uint32_t);
 		IO_REG_WRAPPER(RCC->AHB2RSTR, Ahb2ResetReg, uint32_t);
 		IO_REG_WRAPPER(RCC->AHB3RSTR, Ahb3ResetReg, uint32_t);
-	
+		
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, Usart1Sel,   uint32_t, 0, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, Usart2Sel,   uint32_t, 2, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, Usart3Sel,   uint32_t, 4, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, Usart4Sel,   uint32_t, 6, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, Usart5Sel,   uint32_t, 8, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, LpUsart1Sel, uint32_t, 10, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, I2c1Sel,     uint32_t, 12, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, I2c2Sel,     uint32_t, 14, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, I2c3Sel,     uint32_t, 16, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, LpTim1Sel,   uint32_t, 18, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, LpTim2Sel,   uint32_t, 20, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, Sai1Sel,     uint32_t, 22, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, Sai2Sel,     uint32_t, 24, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, Clk48Sel,    uint32_t, 26, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, AdcSel,      AdcClockSel, 28, 2);
 
+		
 		typedef ClockResetControl<Ahb1ClockEnableReg, RCC_AHB1ENR_DMA1EN      , Ahb1ResetReg, RCC_AHB1RSTR_DMA1RST, AhbClock> Dma1Clock;
 		typedef ClockResetControl<Ahb1ClockEnableReg, RCC_AHB1ENR_DMA2EN      , Ahb1ResetReg, RCC_AHB1RSTR_DMA2RST, AhbClock> Dma2Clock;
 		typedef ClockResetControl<Ahb1ClockEnableReg, RCC_AHB1ENR_CRCEN       , Ahb1ResetReg, RCC_AHB1RSTR_CRCRST, AhbClock> CrcClock;

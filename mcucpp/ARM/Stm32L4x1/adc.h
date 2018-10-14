@@ -159,7 +159,7 @@ namespace Mcucpp
 	{
 	public:
 		typedef InputPins Pins;
-		typedef ClockCtrl Clock;
+		typedef ClockCtrl ClockSrc;
 		
 		static inline void Init();
 		static inline void Init(AdcDivider divider, ClockSource clock, Reference reference);

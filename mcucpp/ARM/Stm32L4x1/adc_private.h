@@ -144,7 +144,9 @@ void ADC_BASE_TEMPLATE_QUALIFIER::Init(
 		Reference
 		)
 {
-	Clock::Enable();
+	ClockCtrl::Enable();
+	Clock::AdcSel::Set(Clock::AdcClockSel::SysClock);
+	
 	Regs()->CR = 0;
 	Regs()->CFGR = 0;
 	__DSB();
@@ -202,7 +204,7 @@ void ADC_BASE_TEMPLATE_QUALIFIER::Disable()
 	Regs()->CR = ADC_CR_DEEPPWD;
 	Regs()->CFGR = 0;
 	//CommonRegs()->CCR = 0;
-	Clock::Disable();
+	ClockCtrl::Disable();
 }
 
 ADC_BASE_TEMPLATE_ARGS
