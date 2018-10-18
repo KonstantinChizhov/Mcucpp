@@ -1,0 +1,2 @@
+
+SConscript('atmega8/SConscript')
