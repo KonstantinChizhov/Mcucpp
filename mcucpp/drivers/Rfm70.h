@@ -395,12 +395,16 @@ namespace Mcucpp
 
 		static void FlushTx()
 		{
+			SlaveSelectPin::Clear();
 			Spi::ReadWrite(FlushTxCmd);
+			SlaveSelectPin::Set();
 		}
 
 		static void FlushRx()
 		{
+			SlaveSelectPin::Clear();
 			Spi::ReadWrite(FlushRxCmd);
+			SlaveSelectPin::Set();
 		}
 
 		static uint8_t RecivedDataLength()
