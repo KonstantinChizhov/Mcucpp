@@ -153,7 +153,7 @@ SupportedDevices = {
 		'manufacturer' : 'ST',
 		'arch' : stm32m4,
 		'flash' : 1024*1024, 'ram' : 112*1024, 'eeprom' : 0,
-		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x','%(MCUCPP_HOME)s/mcucpp/ARM/CortexM4',  '%(MCUCPP_HOME)s/startup' ],
+		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x','%(MCUCPP_HOME)s/mcucpp/ARM/CortexM4',  '%(MCUCPP_HOME)s/startup', '%(MCUCPP_HOME)s/3rdparty/CMSIS/Include' ],
 		'linkerScript' : '%(MCUCPP_HOME)s/linker_scripts/stm32_40x.ld',
 		'clock' : 168000000,
 		'defines' : ['STM32F40_41xxx', 'F_OSC=8000000u', '__FPU_PRESENT=1'],
