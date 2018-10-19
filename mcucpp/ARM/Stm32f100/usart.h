@@ -115,7 +115,7 @@ namespace Mcucpp
 				unsigned brr = ClockCtrl::ClockFreq() / baud;
 				Regs()->BRR = brr;
 				Regs()->CR1 = (((usartMode >> CR1ModeShift) & CR1ModeMask) | USART_CR1_UE );
-				Regs()->CR2 = ((usartMode >> CR2ModeShift) & CR1ModeMask);
+				Regs()->CR2 = ((usartMode >> CR2ModeShift) & CR2ModeMask);
 			}
 
 			static void Write(uint8_t c)
@@ -234,7 +234,7 @@ namespace Mcucpp
 
 				typedef typename RxPins:: template Pin<RxPinNumber> RxPin;
 				RxPin::Port::Enable();
-				RxPin::SetConfiguration(RxPin::Port::AltFunc);
+				RxPin::SetConfiguration(RxPin::Port::In);
 				if(TxPins::Length == 3 && TxPinNumber == 2) // Usart3
 				{
 					RemapField::Set(3);
@@ -252,8 +252,8 @@ namespace Mcucpp
 				TxPins::SetConfiguration(maskTx, TxPins::AltFunc);
 
 				Type maskRx (1 << RxPinNumber);
-				RxPins::SetConfiguration(maskRx, RxPins::AltFunc);
 
+				RxPins::SetConfiguration(maskRx, RxPins::In);
 				if(TxPins::Length == 3 && TxPinNumber == 2) // Usart3
 				{
 					RemapField::Set(3);
