@@ -79,6 +79,12 @@ namespace Mcucpp
 			reinterpret_cast<simple_task_t>(simple_task)();
 		}
 		
+		template<class FunctorT>
+		static void FunctorAdapter(void *functorPtr)
+		{
+			(*reinterpret_cast<FunctorT*>(functorPtr))();
+		}
+		
 	public:
 		Dispatcher(TaskItem *taskStorage, size_t tasksCount, TimerData *timerStorage, size_t timersCount)
 			:_timerSequence(0),
@@ -98,6 +104,12 @@ namespace Mcucpp
 			GetTimerTicksFunc = timerFunc;
 		}
 
+		template<class FunctorT>
+		bool SetTask(FunctorT &functor)
+		{
+			return SetTask(&FunctorAdapter<FunctorT>, (void*)&functor);
+		}
+		
 		template<class ObjectT, void (ObjectT::*Func)()>
 		bool SetTask(ObjectT * object)
 		{
@@ -248,5 +260,8 @@ namespace Mcucpp
 		TimerData *_timers;
 		GetTimerTicksFuncT GetTimerTicksFunc;
 	};
+	
+	
+	Dispatcher &GetCurrentDispatcher();
 }
 

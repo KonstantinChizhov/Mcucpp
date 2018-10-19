@@ -108,8 +108,10 @@ def generate_common_project(target, source, env, projectFile, compiler):
 	return project
 
 def get_cb_compiler_name(env):
+	if "CB_COMPILER" in env:
+		return env["CB_COMPILER"]
 	if "CC" in env:
-		env["CC"]
+		return env["CC"]
 	return "gcc"
 	
 def save_project(projectFileNode, targetFilePath):
@@ -123,9 +125,9 @@ def add_common_debugger_section(xmlExtensionsNode, debuggerPort):
 	optionsNode = ET.SubElement(remoteDebuggingNode, "options", conn_type="0", ip_address="localhost", ip_port=debuggerPort)
 	return remoteDebuggingNode
 
-def add_st_link_debugging_settings(xmlExtensionsNode, debuggerPort):
+def add_st_link_debugging_settings(xmlExtensionsNode, debuggerPort, target):
 	debuggerNode = ET.SubElement(xmlExtensionsNode, "debugger")
-	targetDebuggingSettingsNode = ET.SubElement(debuggerNode, "target_debugging_settings", target="servo_build", active_interface="ST-link")
+	targetDebuggingSettingsNode = ET.SubElement(debuggerNode, "target_debugging_settings", target=target, active_interface="ST-link")
 	debugInterfaceNode = ET.SubElement(targetDebuggingSettingsNode, "debug_interface", 
 			interface_id="ST-link",
 			ip_address="localhost",
@@ -156,12 +158,15 @@ def add_st_link_debugging_settings(xmlExtensionsNode, debuggerPort):
 
 	
 def generate_embitz_project(target, source, env):
+	buildTarget = "Default"
+	if "CURRENT_BUILD_TARGET" in env:
+		buildTarget = env["CURRENT_BUILD_TARGET"]
 	projectFile = ET.Element("EmBitz_project_file")
 	ET.SubElement(projectFile, "EmBitzVersion", attrib={"release" : "1.11", "revision" : "0"})
 	ET.SubElement(projectFile, "FileVersion", attrib={"major":"1", "minor":"0"}) 
 	projectNode = generate_common_project(target, source, env, projectFile, "armgcc_eb")
 	extensionsNode = ET.SubElement(projectNode, "Extensions")
-	add_st_link_debugging_settings(extensionsNode, "4242")
+	add_st_link_debugging_settings(extensionsNode, "4242", buildTarget)
 	save_project(projectFile, target[0].abspath)
 	return None
 

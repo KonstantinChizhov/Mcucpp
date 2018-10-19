@@ -5,7 +5,7 @@
 #include <net/NetDispatch.h>
 #include <net/ether_type.h>
 
-#include <buffer_reader.h>
+#include <memory_reader.h>
 #include <binary_stream.h>
 #include <TestNetworkInterface.h>
 

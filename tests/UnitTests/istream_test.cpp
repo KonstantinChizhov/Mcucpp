@@ -1,7 +1,7 @@
 #include <string>
 #include "tiny_istream.h"
 #include "tiny_iomanip.h"
-#include <gtest.h>
+#include <gtest/gtest.h>
 #include <sstream>
 
 using namespace Mcucpp;

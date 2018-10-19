@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <nlz.h>
+#include <bit_functions.h>
 #include <stdint.h>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ static inline uint32_t div64x32u(uint64_t u, uint32_t v, uint32_t *r)
 		return 0xFFFFFFFF;    // possible quotient.
 	}
 
-	s = nlz(v);               // 0 <= s <= 31.
+	s = Mcucpp::CountLeadingZeros(v); // 0 <= s <= 31.
 	v = v << s;               // Normalize divisor.
 	vn1 = v >> 16;            // Break divisor up into
 	vn0 = v & 0xFFFF;         // two 16-bit digits.

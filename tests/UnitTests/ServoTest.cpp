@@ -1,6 +1,6 @@
 
 
-#include <gtest.h>
+#include <gtest/gtest.h>
 #include <drivers/servo.h>
 #include <timers.h>
 #include <iopins.h>

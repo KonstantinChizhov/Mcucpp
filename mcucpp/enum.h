@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2013
+// Date			: 2018
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification, 
@@ -96,5 +96,19 @@ operator&=(ENUM_NAME& left, ENUM_NAME right)                             \
 TEMPLATE                                                                 \
 inline const ENUM_NAME&                                                  \
 operator^=(ENUM_NAME& left, ENUM_NAME right)                             \
-{ return left = left ^ right; }                                          \
+{ return left = left ^ right; }
 
+namespace Mcucpp
+{
+	template<class Enum>
+	bool HasAllFlags(Enum value, Enum flags)
+	{
+		return (static_cast<int>(value) & static_cast<int>(flags)) == static_cast<int>(flags);
+	}
+	
+	template<class Enum>
+	bool HasAnyFlag(Enum value, Enum flags)
+	{
+		return (static_cast<int>(value) & static_cast<int>(flags)) != 0;
+	}
+}

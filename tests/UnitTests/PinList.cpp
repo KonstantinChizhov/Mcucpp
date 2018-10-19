@@ -2,7 +2,7 @@
 #include <string>
 #include <iopins.h>
 #include <pinlist.h>
-#include <gtest.h>
+#include <gtest/gtest.h>
 
 using namespace std;
 using namespace Mcucpp;

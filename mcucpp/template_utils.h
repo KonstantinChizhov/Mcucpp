@@ -4,24 +4,24 @@
 // Date			: 2013
 // All rights reserved.
 
-// Redistribution and use in source and binary forms, with or without modification, 
+// Redistribution and use in source and binary forms, with or without modification,
 // are permitted provided that the following conditions are met:
-// Redistributions of source code must retain the above copyright notice, 
+// Redistributions of source code must retain the above copyright notice,
 // this list of conditions and the following disclaimer.
 
-// Redistributions in binary form must reproduce the above copyright notice, 
-// this list of conditions and the following disclaimer in the documentation and/or 
+// Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation and/or
 // other materials provided with the distribution.
 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
-// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY 
-// OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+// OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
 
@@ -127,12 +127,12 @@ namespace Mcucpp
 		{
 			template<class T> static bool IsNegative(T v) {return v < 0;}
 		};
-		
+
 		template<> struct NegativeHelper<false>
 		{
 			 template<class T> static bool IsNegative(T) {return false;}
 		};
-		
+
 		template<class T> static inline bool (IsNegative)(T v)
 		{
 			return NegativeHelper<IsSigned<T>::value>::IsNegative(v);
@@ -218,7 +218,7 @@ namespace Mcucpp
 		template<> struct HiResType <int16_t> { typedef  int32_t Result; };
 		template<> struct HiResType<uint32_t> { typedef uint64_t Result; };
 		template<> struct HiResType <int32_t> { typedef uint64_t Result; };
-		
+
 		template<unsigned long x>
 		class PopulatedBits
 		{
@@ -229,7 +229,19 @@ namespace Mcucpp
 		public:
 			static const unsigned long value = (x4 & 0x0000ffff) + ((x4 >> 16) & 0x0000ffff);
 		};
-		
+
+		inline unsigned GetPopulatedBits(uint64_t value)
+		{
+			value = (value & 0x55555555) + ((value >> 1) & 0x55555555);
+			value = (value & 0x33333333) + ((value >> 2) & 0x33333333);
+			value = (value & 0x0f0f0f0f) + ((value >> 4) & 0x0f0f0f0f);
+			value = (value & 0x00ff00ff) + ((value >> 8) & 0x00ff00ff);
+			value = (value & 0x0000ffff) + ((value >> 16) & 0x0000ffff);
+			value = (value & 0xffffffff) + ((value >> 32) & 0xffffffff);
+			return value;
+		}
+
+
 		inline unsigned GetPopulatedBits(uint32_t value)
 		{
 			value = (value & 0x55555555) + ((value >> 1) & 0x55555555);
@@ -239,7 +251,7 @@ namespace Mcucpp
 			value = (value & 0x0000ffff) + ((value >> 16) & 0x0000ffff);
 			return value;
 		}
-		
+
 		inline unsigned GetPopulatedBits(uint16_t value)
 		{
 			value = (value & 0x5555) + ((value >> 1) & 0x5555);
@@ -248,7 +260,7 @@ namespace Mcucpp
 			value = (value & 0x00ff) + ((value >> 8) & 0x00ff);
 			return value;
 		}
-		
+
 		template <class ForwardIterator, class T>
 		void fill (ForwardIterator first, ForwardIterator last, const T& val)
 		{
@@ -258,7 +270,7 @@ namespace Mcucpp
 				++first;
 			}
 		}
-		
+
 		template <class ForwardIterator, class T>
 		void fill_n (ForwardIterator first, size_t count, const T& val)
 		{
@@ -268,31 +280,31 @@ namespace Mcucpp
 				++first;
 			}
 		}
-		
-		
+
+
 		template <class InputIterator, class OutputIterator>
 		void copy (InputIterator source, OutputIterator target, size_t count)
 		{
 			for(size_t i = 0; i < count; i++)
 			{
 				*target = *source;
-				target++;
-				source++;
+				++target;
+				++source;
 			}
 		}
-		
+
 		template<class InputIterator, class OutputIterator>
 		OutputIterator copy (InputIterator first, InputIterator last, OutputIterator target)
 		{
 			while (first!=last)
 			{
 				*target = *first;
-				++target; 
+				++target;
 				++first;
 			}
 			return target;
 		}
-		
+
 		template<class InputIterator1, class InputIterator2>
 		bool equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2)
 		{
@@ -305,7 +317,7 @@ namespace Mcucpp
 			}
 			return true;
 		}
-		
+
 		template<class T> void swap(T &a, T &b)
 		{
 			T tmp = a;
@@ -316,14 +328,14 @@ namespace Mcucpp
 		static inline uint32_t sqrt(uint32_t value)
 		{
 			uint32_t result = 0;
-			uint32_t add = 0x8000;   
+			uint32_t add = 0x8000;
 			for(int i = 0; i < 16; i++)
 			{
 				uint32_t rootGuess = result | add;
 				uint32_t guess = rootGuess * rootGuess;
 				if (value >= guess)
 				{
-					result = rootGuess;           
+					result = rootGuess;
 				}
 				add >>= 1;
 			}
@@ -344,14 +356,14 @@ namespace Mcucpp
 				float f;
 				uint32_t i;
 			}fToInt;
-			
+
 			fToInt.f = value;
 			fToInt.i &= 0x7ffffffful;
 			fToInt.i = InitialGuessConstant + (fToInt.i >> 1);
 
 			float guess = fToInt.f;
 			guess = 0.5f * (guess + value / guess);
-            guess = 0.5f * (guess + value / guess);
+			guess = 0.5f * (guess + value / guess);
 
 			return guess;
 		}

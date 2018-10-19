@@ -1,6 +1,6 @@
 
 #include <saturated.h>
-#include <gtest.h>
+#include <gtest/gtest.h>
 
 using namespace Mcucpp;
 

@@ -1,5 +1,5 @@
 
-#include <gtest.h>
+#include <gtest/gtest.h>
 #include <binary_stream.h>
 
 class BufferReader

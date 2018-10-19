@@ -34,11 +34,11 @@ def setup_gnu_tools(env, prefix):
 		"-Wextra",
 		"-Wpointer-arith",
 		"-Wunused",
+		"-nostdlib"
 	]
 		
 	env['CXXFLAGS'] = [
 		"-fno-exceptions",
-		"-nostdlib",
 		"-fno-threadsafe-statics",
 		"-fno-rtti",
 		"-fuse-cxa-atexit",
@@ -105,7 +105,7 @@ def setup_gnu_tools(env, prefix):
 	env['CXXCOMSTR'] = "Compiling C++ (%s): $TARGET" % prettyPrefix
 	env['ASCOMSTR'] = "Assembling (%s): $TARGET" % prettyPrefix
 	env['ASPPCOMSTR'] = "Assembling (%s): $TARGET" % prettyPrefix
-	#env['LINKCOMSTR'] = "Linking (%s): $TARGET" % prettyPrefix
+	env['LINKCOMSTR'] = "Linking (%s): $TARGET" % prettyPrefix
 
 def generate(env, **kw):
 	prefix = env['TOOL_PREFIX']

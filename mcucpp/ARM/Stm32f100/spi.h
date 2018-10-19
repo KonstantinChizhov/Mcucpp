@@ -1,8 +1,10 @@
 #pragma once
 
-#include "ioreg.h"
-#include "stm32f10x.h"
-#include "clock.h"
+#include <ioreg.h>
+#include <stm32f37x.h>
+#include <clock.h>
+#include <iopins.h>
+#include <pinlist.h>
 
 namespace Mcucpp
 {
@@ -10,7 +12,6 @@ namespace Mcucpp
 	{
 		class SpiBase
 		{
-			static const uint16_t SPI_Mode_Select = 0xF7FF;
 			public:
 			
 			enum ClockDivider
@@ -27,152 +28,246 @@ namespace Mcucpp
 				Fast	= Div8,
 				Medium	= Div32,
 				Slow	= Div128,
-				Slowest = Div256,
+				Slowest = Div256
 			};
 			
-			enum ModeFlags
+			enum SlaveControl
 			{
 				SoftSlaveControl	= SPI_CR1_SSM,
-				HardSlaveControl	= 0,
-				Master				= SPI_CR1_MSTR | SPI_CR1_SSI,
-				Slave				= 0,
-				DataSize16			= SPI_CR1_DFF,
-				DataSize8			= 0,
+				AutoSlaveControl	= 0
+			};
+			
+			enum Mode
+			{
+				Master				= SPI_CR1_MSTR | (SPI_CR2_SSOE << 16),
+				MultiMaster			= SPI_CR1_MSTR,
+				Slave				= 0
+			};
+			
+			enum DataSize
+			{
+				DataSize4	= 0x0300,
+				DataSize5	= 0x0400,
+				DataSize6	= 0x0500,
+				DataSize7	= 0x0600,
+				DataSize8	= 0x0700,
+				DataSize9	= 0x0800,
+				DataSize10	= 0x0900,
+				DataSize11	= 0x0A00,
+				DataSize12	= 0x0B00,
+				DataSize13	= 0x0C00,
+				DataSize14	= 0x0D00,
+				DataSize15	= 0x0E00,
+				DataSize16	= 0x0F00
+			};
+			
+			enum ClockPolarity
+			{
 				ClockPolarityLow	= 0,
-				ClockPolarityHigh	= SPI_CR1_CPOL,
+				ClockPolarityHigh	= SPI_CR1_CPOL
+			};
+			
+			enum ClockPhase
+			{
 				ClockPhase1Edge		= 0,
-				ClockPhase2Edge		= SPI_CR1_CPHA,
+				ClockPhase2Edge		= SPI_CR1_CPHA
+			};
+			
+			enum BitOrder
+			{
 				LsbFirst			= SPI_CR1_LSBFIRST,
 				MsbFirst			= 0
 			};
 		};
 		
-		inline SpiBase::ModeFlags operator|(SpiBase::ModeFlags left, SpiBase::ModeFlags right)
-		{
-			return static_cast<SpiBase::ModeFlags>(static_cast<int>(left) | static_cast<int>(right));
-		}
 		
-		template<class Cr1, class Cr2, class Sr, class Dr, class Crcpr, class RxCrcr, class TxCrcr, class I2SCfgr, class I2Spr, class ClkEnReg, unsigned ClkEnMask>
+		template<class Regs, class Clock, class MosiPins, class MisoPins, class ClockPins, class SsPins>
 		class Spi :public SpiBase
 		{
-			public:
+		public:
 			
 			static void Enable()
 			{
-				ClkEnReg::Or(ClkEnMask);
+				Regs()->CR1 |= SPI_CR1_SPE;
 			}
 			
 			static void Disable()
 			{
-				ClkEnReg::And(~ClkEnMask);
+				Regs()->CR1 &= ~SPI_CR1_SPE;
 			}
 			
-			static void Init(ClockDivider divider, ModeFlags mode = Master | SoftSlaveControl)
+			static void Init(ClockDivider divider = Medium, Mode mode = Master)
 			{
+				Clock::Enable();
+				Regs()->CR1 = 0;
+				Regs()->CR2 = 0;
+				Regs()->CR1 = (unsigned)divider | mode;
+				Regs()->CR2 = (mode >> 16) | SPI_CR2_SSOE;
+				SetDataSize(DataSize8);
+				//SetSlaveControl(SoftSlaveControl);
+				Regs()->I2SCFGR &= (uint16_t)~((uint16_t)SPI_I2SCFGR_I2SMOD);
+				SelectPins<0, 0, 0, 0>();
 				Enable();
-				Cr1::Set((unsigned)divider | SPI_CR1_SPE | mode);
-				Cr2::Or(SPI_CR2_SSOE);
-				I2SCfgr::And(SPI_Mode_Select);
 			}
 			
-			static void Write(uint8_t outValue)
+			static void SetDivider(ClockDivider divider)
 			{
-				while((Sr::Get() & SPI_SR_TXE) == 0);
-				Dr::Set(outValue);
+				Regs()->CR1 = (Regs()->CR1 & ~SPI_CR1_BR) | divider;
 			}
 			
-			static uint8_t Read()
+			static void SetClockPolarity(ClockPolarity clockPolarity)
+			{
+				Regs()->CR1 = (Regs()->CR1 & ~SPI_CR1_CPOL) | clockPolarity;
+			}
+			
+			static void SetClockPhase(ClockPhase clockPhase)
+			{
+				Regs()->CR1 = (Regs()->CR1 & ~SPI_CR1_CPHA) | clockPhase;
+			}
+			
+			static void SetBitOrder(BitOrder bitOrder)
+			{
+				Regs()->CR1 = (Regs()->CR1 & ~SPI_CR1_LSBFIRST) | bitOrder;
+			}
+			
+			static void SetDataSize(DataSize dataSize)
+			{
+				Regs()->CR2 = (Regs()->CR2 & ~SPI_CR2_DS) | dataSize;
+			}
+			
+			static void SetSlaveControl(SlaveControl slaveControl)
+			{
+				Regs()->CR1 = (Regs()->CR1 & ~SPI_CR1_SSM) | slaveControl;
+			}
+			
+			static void SetSS()
+			{
+				//SetSlaveControl(SoftSlaveControl);
+				Regs()->CR1 |= SPI_CR1_SSI;
+			}
+			
+			static void ClearSS()
+			{
+				//SetSlaveControl(SoftSlaveControl);
+				Regs()->CR1 &= ~SPI_CR1_SSI;
+			}
+			
+			static void Write(uint16_t outValue)
+			{
+				while((Regs()->SR & SPI_SR_TXE) == 0);
+				if((Regs()->CR2 & SPI_CR2_DS) > DataSize8)
+					Regs()->DR = outValue;
+				else
+					*((volatile uint8_t*)&Regs()->DR) = (uint8_t)outValue;
+			}
+			
+			static uint16_t Read()
 			{
 				uint16_t timeout = 5000;
-				while((Sr::Get() & SPI_SR_RXNE) == 0 && timeout--);
+				while((Regs()->SR & SPI_SR_RXNE) == 0 && timeout--);
 				if(timeout != 0)
-					return Dr::Get();
+					return Regs()->DR;
 				return 0xff;
 			}
 			
-			static uint8_t ReadWrite(uint8_t outValue)
+			static uint16_t ReadWrite(uint16_t outValue)
 			{
 				Write(outValue);
 				return Read();
 			}
 			
-			static void EnableSoftSSControl()
+			template<int Mosi, int Miso, int Sck, int Nss>
+			static void SelectPins()
 			{
-				Cr1::Or(SPI_CR1_SSM);
-			}
+				typedef typename MosiPins:: template Pin<Mosi> MosiPin;
+				MosiPin::Port::Enable();
+				MosiPin::SetConfiguration(MosiPin::Port::AltFunc);
 			
-			static void SetSS()
-			{
-				Cr1::Or(SPI_CR1_SSI);
+				
+				typedef typename MisoPins:: template Pin<Mosi> MisoPin;
+				MisoPin::Port::Enable();
+				MisoPin::SetConfiguration(MisoPin::Port::AltFunc);
+				
+				typedef typename ClockPins:: template Pin<Mosi> ClockPin;
+				ClockPin::Port::Enable();
+				ClockPin::SetConfiguration(ClockPin::Port::AltFunc);
+				
+				typedef typename SsPins:: template Pin<Mosi> SsPin;
+				SsPin::Port::Enable();
+				SsPin::SetConfiguration(SsPin::Port::AltFunc);
 			}
-			
-			static void ClearSS()
+
+			static void SelectPins(int Mosi, int Miso, int Sck, int Nss)
 			{
-				Cr1::And(~SPI_CR1_SSI);
-			}
-			
-			class Crc
-			{
-				static void Enable(uint16_t  polynom = 0x0007)
+				typedef typename MosiPins::ValueType Type;
+				
+				if(Mosi >= 0)
 				{
-					Crcpr::Set(polynom);
-					Cr1::Or(SPI_CR1_CRCEN);
+					Type maskMosi (1 << Mosi);
+					MosiPins::SetConfiguration(maskMosi, MosiPins::AltFunc);
+				}
+
+				if(Miso >= 0)
+				{
+					Type maskMiso (1 << Miso);
+					MisoPins::SetConfiguration(maskMiso, MisoPins::AltFunc);
 				}
 				
-				static void Transmit()
+				if(Sck >= 0)
 				{
-					Cr1::Or(SPI_CR1_CRCNEXT);
+					Type maskSck (1 << Sck);
+					ClockPins::SetConfiguration(maskSck, ClockPins::AltFunc);
 				}
 				
-				static uint16_t RxCrc()
+				if(Nss >= 0)
 				{
-					return RxCrcr::Get();
+					Type maskNss (1 << Nss);
+					SsPins::SetConfiguration(maskNss, SsPins::AltFunc);
 				}
-				
-				static uint16_t TxCrc()
-				{
-					return TxCrcr::Get();
-				}
-			};
+			}
 		};
 		
+		typedef IO::PinList<IO::Pa4, IO::Pa15> Spi1SsPins;
+		typedef IO::PinList<IO::Pa5, IO::Pb3> Spi1ClockPins;
+		typedef IO::PinList<IO::Pa6, IO::Pb4> Spi1MisoPins;
+		typedef IO::PinList<IO::Pa7, IO::Pb5> Spi1MosiPins;
 		
+		typedef IO::PinList<IO::Pb12> Spi2SsPins;
+		typedef IO::PinList<IO::Pb13> Spi2ClockPins;
+		typedef IO::PinList<IO::Pb14> Spi2MisoPins;
+		typedef IO::PinList<IO::Pb15> Spi2MosiPins;
+		
+	//	typedef IO::PinList<IO::Pa4, IO::Pa15> Spi3SsPins;
+	//	typedef IO::PinList<IO::Pa1, IO::Pb3, IO::Pc10> Spi3ClockPins;
+	//	typedef IO::PinList<IO::Pa2, IO::Pb4, IO::Pc11> Spi3MisoPins;
+	//	typedef IO::PinList<IO::Pa3, IO::Pb5, IO::Pc12> Spi3MosiPins;
+		
+		IO_STRUCT_WRAPPER(SPI1, SPI1_REGS, SPI_TypeDef);
+		IO_STRUCT_WRAPPER(SPI2, SPI2_REGS, SPI_TypeDef);
+//		IO_STRUCT_WRAPPER(SPI3, SPI3_REGS, SPI_TypeDef);
 	}
+	
+	typedef Private::Spi<
+		Private::SPI1_REGS, 
+		Clock::Spi1Clock, 
+		Private::Spi1MosiPins, 
+		Private::Spi1MisoPins,
+		Private::Spi1ClockPins,
+		Private::Spi1SsPins> Spi1;
 
-#define DECLARE_SPI(CR1, CR2, SR, DR, CRCPR, RXCRCR, TXCRCR, I2SCFGR, I2SPR, CLK_EN_REG, CLK_EN_MASK, className) \
-   namespace Private{\
-		IO_REG_WRAPPER(CR1, className ## Cr1, uint32_t);\
-		IO_REG_WRAPPER(CR2, className ## Cr2, uint32_t);\
-		IO_REG_WRAPPER(SR, className ## Sr, uint32_t);\
-		IO_REG_WRAPPER(DR, className ## Dr, uint32_t);\
-		IO_REG_WRAPPER(CRCPR, className ## Crcpr, uint32_t);\
-		IO_REG_WRAPPER(RXCRCR, className ## RxCrcr, uint32_t);\
-		IO_REG_WRAPPER(TXCRCR, className ## TxCrcr, uint32_t);\
-		IO_REG_WRAPPER(I2SCFGR, className ## I2SCfgr, uint32_t);\
-		IO_REG_WRAPPER(I2SPR, className ## I2Spr, uint32_t);\
-	}\
-	  typedef Private::Spi<\
-			Private::className ## Cr1, \
-			Private::className ## Cr2, \
-			Private::className ## Sr, \
-			Private::className ## Dr, \
-			Private::className ## Crcpr, \
-			Private::className ## RxCrcr, \
-			Private::className ## TxCrcr, \
-			Private::className ## I2SCfgr, \
-			Private::className ## I2Spr, \
-			CLK_EN_REG, CLK_EN_MASK\
-			> className; 
-			
-#ifdef USE_SPI1
-	DECLARE_SPI(SPI1->CR1, SPI1->CR2, SPI1->SR, SPI1->DR, SPI1->CRCPR, SPI1->RXCRCR, SPI1->TXCRCR, SPI1->I2SCFGR,  SPI1->I2SPR, Clock::PeriphClockEnable2, RCC_APB2ENR_SPI1EN, Spi1)
-#endif
-
-#ifdef USE_SPI2
-	DECLARE_SPI(SPI2->CR1, SPI2->CR2, SPI2->SR, SPI2->DR, SPI2->CRCPR, SPI2->RXCRCR, SPI2->TXCRCR, SPI2->I2SCFGR,  SPI2->I2SPR, Clock::PeriphClockEnable1, RCC_APB1ENR_SPI2EN, Spi2)
-#endif
-
-#ifdef USE_SPI3
-	DECLARE_SPI(SPI3->CR1, SPI3->CR2, SPI3->SR, SPI3->DR, SPI3->CRCPR, SPI3->RXCRCR, SPI3->TXCRCR, SPI3->I2SCFGR,  SPI3->I2SPR, Clock::PeriphClockEnable1, RCC_APB1ENR_SPI3EN, Spi3)
-#endif
+	typedef Private::Spi<
+		Private::SPI2_REGS, 
+		Clock::Spi2Clock, 
+		Private::Spi2MosiPins, 
+		Private::Spi2MisoPins,
+		Private::Spi2ClockPins,
+		Private::Spi2SsPins> Spi2;
+		
+	// typedef Private::Spi<
+		// Private::SPI3_REGS, 
+		// Clock::Spi3Clock, 
+		// Private::Spi3MosiPins, 
+		// Private::Spi3MisoPins,
+		// Private::Spi3ClockPins,
+		// Private::Spi3SsPins> Spi3;
 }

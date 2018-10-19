@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2016
+// Date			: 2018
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification, 
@@ -110,7 +110,7 @@ namespace Mcucpp
 			static const uint32_t  PllnMax     = 432ul;
 			static const uint32_t  PllnMin     = 192ul;
 			static const uint32_t  UsbFreq     = 48000000ul;
-			static const uint32_t  PllMaxFreq  = 168000000ul;
+			static const uint32_t  PllMaxFreq  = F_CPU;
 			static const uint32_t  PllnMaxFreq = 2000000ul;
 			static const uint32_t  PllnMinFreq = 1000000ul;
 			static inline uint32_t CalcVco(uint32_t vco, uint32_t &resPllm, uint32_t &resPlln);
@@ -149,7 +149,7 @@ namespace Mcucpp
 			};
 			
 		public:
-			static uint32_t MaxFreq() {return 168000000u;}
+			static uint32_t MaxFreq() {return F_CPU;}
 			static inline ErrorCode SelectClockSource(ClockSource clockSource);
 			static inline uint32_t SetClockFreq(uint32_t freq);
 			static inline uint32_t ClockFreq();
@@ -163,6 +163,15 @@ namespace Mcucpp
 		public:
 			static inline void Enable() { Reg::Or(Mask); }
 			static inline void Disable() { Reg::And(~Mask); }
+		};
+		
+		template<class Reg, unsigned Mask, class ClockSrc, class ResetReg, unsigned ResetMask>
+		class ClockResetControl :public ClockSrc
+		{
+		public:
+			static inline void Enable() { Reg::Or(Mask); }
+			static inline void Disable() { Reg::And(~Mask); }
+			static inline void Reset() { ResetReg::Or(ResetMask); __DSB(); ResetReg::And(~ResetMask); }
 		};
 		
 		
@@ -193,7 +202,7 @@ namespace Mcucpp
 				Div512 = 0x0F
 			};
 			
-			static uint32_t MaxFreq() {return 168000000u;}
+			static uint32_t MaxFreq() {return F_CPU;}
 			
 			static uint32_t SrcClockFreq()
 			{
@@ -302,6 +311,8 @@ namespace Mcucpp
 		IO_REG_WRAPPER(RCC->AHB2ENR, Ahb2ClockEnableReg, uint32_t);
 		IO_REG_WRAPPER(RCC->AHB3ENR, Ahb3ClockEnableReg, uint32_t);
 		
+		IO_REG_WRAPPER(RCC->APB1RSTR, Apb1ResetReg, uint32_t);
+		
 		typedef ClockControl<Ahb1ClockEnableReg, RCC_AHB1ENR_GPIOAEN     , AhbClock> GpioaClock;
 		typedef ClockControl<Ahb1ClockEnableReg, RCC_AHB1ENR_GPIOBEN     , AhbClock> GpiobClock;
 		typedef ClockControl<Ahb1ClockEnableReg, RCC_AHB1ENR_GPIOCEN     , AhbClock> GpiocClock;
@@ -331,7 +342,10 @@ namespace Mcucpp
 		typedef ClockControl<Ahb2ClockEnableReg, RCC_AHB2ENR_HASHEN      , AhbClock> HashClock;
 		typedef ClockControl<Ahb2ClockEnableReg, RCC_AHB2ENR_RNGEN       , AhbClock> RngClock;
 		typedef ClockControl<Ahb2ClockEnableReg, RCC_AHB2ENR_OTGFSEN     , AhbClock> OtgFsClock;
-
+		
+#if defined(STM32F429_439xx)
+		typedef ClockControl<Ahb3ClockEnableReg, RCC_AHB3ENR_FMCEN     , AhbClock> FmcClock;
+#endif
 		typedef ClockControl<PeriphClockEnable2, RCC_APB2ENR_TIM1EN      , Apb2Clock> Tim1Clock;
 		typedef ClockControl<PeriphClockEnable2, RCC_APB2ENR_TIM8EN      , Apb2Clock> Tim8Clock;
 		typedef ClockControl<PeriphClockEnable2, RCC_APB2ENR_USART1EN    , Apb2Clock> Usart1Clock;
@@ -367,9 +381,9 @@ namespace Mcucpp
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_USART3EN    , Apb1Clock> Usart3Clock;
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_UART4EN     , Apb1Clock> Uart4Clock;
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_UART5EN     , Apb1Clock> Uart5Clock;
-		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_I2C1EN      , Apb1Clock> I2c1Clock;
-		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_I2C2EN      , Apb1Clock> I2c2Clock;
-        typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_I2C3EN      , Apb1Clock> I2c3Clock;
+		typedef ClockResetControl<PeriphClockEnable1, RCC_APB1ENR_I2C1EN , Apb1Clock, Apb1ResetReg, RCC_APB1RSTR_I2C1RST> I2c1Clock;
+		typedef ClockResetControl<PeriphClockEnable1, RCC_APB1ENR_I2C2EN , Apb1Clock, Apb1ResetReg, RCC_APB1RSTR_I2C2RST> I2c2Clock;
+        typedef ClockResetControl<PeriphClockEnable1, RCC_APB1ENR_I2C3EN , Apb1Clock, Apb1ResetReg, RCC_APB1RSTR_I2C3RST> I2c3Clock;
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_CAN1EN      , Apb1Clock> Can1Clock;
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_CAN2EN      , Apb1Clock> Can2Clock;
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_PWREN       , Apb1Clock> PwrClock;

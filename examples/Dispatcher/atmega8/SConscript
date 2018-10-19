@@ -1,0 +1,22 @@
+Import('McucppHome')
+
+avrEnv = Environment(DEVICE_NAME = 'atmega8', 
+	toolpath = ["%s/scons" % McucppHome], 
+	tools=['mcucpp'])
+
+avrEnv.Append(CPPPATH = ['#/inc', '#/./'])
+avrEnv.Append(CCFLAGS = "-Os")
+
+app_objects = avrEnv.Object(['main.cpp'])
+
+elf = avrEnv.Program('servo_test_atmega8', app_objects)
+lss = avrEnv.Disassembly(elf)
+hex = avrEnv.Hex(elf)
+
+Alias("avr_servo", [lss, hex])
+
+#flash = avrEnv.Flash(hex)
+#run = avrEnv.Run(hex)
+
+#Alias("flash", [lss, hex, flash])
+#Alias("run", [lss, hex, flash, run])

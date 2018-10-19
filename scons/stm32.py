@@ -84,7 +84,7 @@ def generate(env, **kw):
 	flasherFound = False
 	flasher_windows = "C:\Program Files (x86)\STMicroelectronics\STM32 ST-LINK Utility\ST-LINK Utility\ST-LINK_CLI.exe"
 	
-	if not flasherFound and env.Detect("openocd"):
+	if not flasherFound and env.Detect("openocd") and False:
 		if not 'DEVICE_NAME' in env and not 'OCD_INTERFACE' in env:
 			raise Exception("No device name specified. Set DEVICE_NAME with valid device name.")
 		
@@ -130,10 +130,10 @@ def generate(env, **kw):
 			env.Append(BUILDERS = {'Flash': flashBuilder, 'Run': runBuilder})
 			flasherFound = True
 		else:
-			print "ST-LINK Utility is not found in default location"
+			print ("ST-LINK Utility is not found in default location")
 	
 	if not flasherFound:
-		print "No supported flashing tool found. "
+		print ("No supported flashing tool found. ")
 
 def exists(env):
 	return env.Detect('arm-eabi-gcc')

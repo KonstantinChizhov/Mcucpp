@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2013
+// Date			: 2018
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification, 
@@ -26,6 +26,9 @@
 //*****************************************************************************
 
 #pragma once
+
+#include <stddef.h>
+
 namespace Mcucpp
 {
 #define IO_REG_WRAPPER(REG_NAME, CLASS_NAME, DATA_TYPE) \
@@ -55,6 +58,7 @@ namespace Mcucpp
 	struct CLASS_NAME\
 	{\
 		typedef STRUCT_TYPE DataT;\
+		static STRUCT_TYPE* Get(){return STRUCT_PTR;}\
 		STRUCT_TYPE* operator->(){return ((STRUCT_TYPE *)(STRUCT_PTR));}\
 	}
 
@@ -62,9 +66,10 @@ namespace Mcucpp
 	struct CLASS_NAME\
 	{\
 		typedef DATA_TYPE DataT;\
-		static const DataT Mask = ((DataT(1u) << BITFIELD_LENGTH) - 1);\
-		static DataT Get(){return (REG_NAME >> BITFIELD_OFFSET) & Mask;}\
-		static void Set(DataT value){REG_NAME = (REG_NAME & ~(Mask << BITFIELD_OFFSET)) | ((value & Mask) << BITFIELD_OFFSET);}\
+		typedef decltype(REG_NAME) RegT;\
+		static constexpr RegT Mask = ((RegT(1u) << BITFIELD_LENGTH) - 1);\
+		static DataT Get(){return static_cast<DataT>((REG_NAME >> BITFIELD_OFFSET) & Mask);}\
+		static void Set(DataT value){REG_NAME = (REG_NAME & ~(Mask << BITFIELD_OFFSET)) | (((RegT)value & Mask) << BITFIELD_OFFSET);}\
 	}
 	
 
@@ -87,4 +92,39 @@ template<class DATA_TYPE = unsigned char>
 		static bool BitIsClear(){return true;}
 	};
 	
+	template<size_t RegAddr, class DATA_TYPE = unsigned char>
+	struct IoReg
+	{
+		typedef DATA_TYPE DataT;
+		
+		static volatile DataT& Value(){ return *static_cast<DataT*>(RegAddr);}
+		static DataT Get(){return Value();}
+		static void Set(DataT value){Value() = value;}
+		static void Or(DataT value){Value() |= value;}
+		static void And(DataT value){Value() &= value;}
+		static void Xor(DataT value){Value() ^= value;}
+		static void AndOr(DataT andMask, DataT orMask){Value() = (Value() & andMask) | orMask;}
+		template<int Bit>
+		static bool BitIsSet(){return Value() & (1 << Bit);}
+		template<int Bit>
+		static bool BitIsClear(){return !(Value() & (1 << Bit));}
+	};
+	
+	template<size_t RegAddr, class STRUCT_TYPE>
+	struct IoStruct
+	{
+		typedef STRUCT_TYPE DataT;
+		static DataT* Get(){return static_cast<DataT*>(RegAddr);}
+		DataT* operator->(){return Get();}
+	};
+	
+	template<size_t RegAddr, class DATA_TYPE, int BITFIELD_OFFSET, int BITFIELD_LENGTH>
+	struct IoBitfield
+	{
+		typedef DATA_TYPE DataT;
+		static volatile DATA_TYPE& Value(){ return *static_cast<DATA_TYPE*>(RegAddr);}
+		static constexpr DataT Mask = ((DataT(1u) << BITFIELD_LENGTH) - 1);
+		static DataT Get(){return (Value() >> BITFIELD_OFFSET) & Mask;}
+		static void Set(DataT value){Value() = (Value() & ~(Mask << BITFIELD_OFFSET)) | ((value & Mask) << BITFIELD_OFFSET);}
+	};
 }

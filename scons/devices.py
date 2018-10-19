@@ -139,13 +139,13 @@ SupportedDevices = {
 		'manufacturer' : 'ST',
 		'arch' : stm32,
 		'flash' : 128*1024, 'ram' : 8*1024, 'eeprom' : 0,
-		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/CortexM3', '%(MCUCPP_HOME)s/mcucpp/ARM/Stm32f100', '%(MCUCPP_HOME)s/startup' ],
+		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32f100', '%(MCUCPP_HOME)s/mcucpp/ARM/CortexM3', '%(MCUCPP_HOME)s/startup' ],
 		'linkerScript' : '%(MCUCPP_HOME)s/linker_scripts/stm32_100xB.ld',
 		'clock' : 24000000,
 		'defines' : ['STM32F10X_MD_VL', 'F_OSC=8000000u'],
 		'cpu' : 'cortex-m3',
 		'startup' : ['%(MCUCPP_HOME)s/startups/startup_stm32_100xB.c'],
-		'libSources' : []
+		'libSources' : ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
 	},
 	
 	'stm32f407': 
@@ -153,12 +153,39 @@ SupportedDevices = {
 		'manufacturer' : 'ST',
 		'arch' : stm32m4,
 		'flash' : 1024*1024, 'ram' : 112*1024, 'eeprom' : 0,
-		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/CortexM4', '%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x', '%(MCUCPP_HOME)s/startup' ],
+		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x','%(MCUCPP_HOME)s/mcucpp/ARM/CortexM4',  '%(MCUCPP_HOME)s/startup', '%(MCUCPP_HOME)s/3rdparty/CMSIS/Include' ],
 		'linkerScript' : '%(MCUCPP_HOME)s/linker_scripts/stm32_40x.ld',
 		'clock' : 168000000,
 		'defines' : ['STM32F40_41xxx', 'F_OSC=8000000u', '__FPU_PRESENT=1'],
 		'cpu' : 'cortex-m4',
 		'startup' : ['%(MCUCPP_HOME)s/startups/startup_stm32_40x.c'],
-		'libSources' : []
+		'libSources' : ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
+	},
+	
+	'stm32f429': 
+	{
+		'manufacturer' : 'ST',
+		'arch' : stm32m4,
+		'flash' : 2*1024*1024, 'ram' : 256*1024, 'eeprom' : 0,
+		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x','%(MCUCPP_HOME)s/mcucpp/ARM/CortexM4', '%(MCUCPP_HOME)s/3rdparty/CMSIS/Include', '%(MCUCPP_HOME)s/startup' ],
+		'linkerScript' : '%(MCUCPP_HOME)s/linker_scripts/stm32_40x.ld',
+		'clock' : 180000000,
+		'defines' : ['STM32F429_439xx', 'F_OSC=8000000u', '__FPU_PRESENT=1'],
+		'cpu' : 'cortex-m4',
+		'startup' : ['%(MCUCPP_HOME)s/startups/startup_stm32_40x.c'],
+		'libSources' : ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
+	},
+	'stm32l471': 
+	{
+		'manufacturer' : 'ST',
+		'arch' : stm32m4,
+		'flash' : 1*1024*1024, 'ram' : 128*1024, 'eeprom' : 0,
+		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32L4x1', '%(MCUCPP_HOME)s/mcucpp/ARM/CortexM4', '%(MCUCPP_HOME)s/3rdparty/CMSIS/Include', '%(MCUCPP_HOME)s/startup', '%(MCUCPP_HOME)s/3rdparty/CMSIS/Device/ST/STM32L4xx/Include' ],
+		'linkerScript' : '%(MCUCPP_HOME)s/linker_scripts/stm32_471.ld',
+		'clock' : 80000000,
+		'defines' : ['STM32L471xx', 'F_OSC=8000000u', '__FPU_PRESENT=1'],
+		'cpu' : 'cortex-m4',
+		'startup' : ['%(MCUCPP_HOME)s/startups/startup_stm32l471.c'],
+		'libSources' : ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
 	}
 }
