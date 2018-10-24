@@ -66,7 +66,7 @@ namespace Net
 		virtual void Poll()=0;
 		virtual uint32_t GetParameter(NetInterfaceParameter parameterId)=0;
 
-		virtual TransferId Transmit(const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer)=0;
+		virtual TransferId Transmit(const Net::MacAddr &destAddr, uint16_t protocoId, DataBuffer &buffer)=0;
 		virtual bool TxCompleteFor(TransferId txId)=0;
 		
 	public:

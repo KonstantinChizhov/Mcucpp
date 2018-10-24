@@ -30,7 +30,7 @@
 #include <enum.h>
 #include <debug.h>
 #include <data_transfer.h>
-#include <net/net_buffer.h>
+#include <data_buffer.h>
 
 namespace Mcucpp
 {
@@ -279,7 +279,7 @@ namespace Net
 			Descriptors[DescriptorCount - 1].SetEndOfRing();
 		}
 		
-		bool EnqueueBuffer(NetBuffer &buffer, uint32_t seqNumber)
+		bool EnqueueBuffer(DataBuffer &buffer, uint32_t seqNumber)
 		{
 			size_t partsCount = buffer.Parts();
 			size_t descriptorsRequired = (partsCount + 1) / 2;

@@ -36,13 +36,13 @@ namespace Net
 	class IIpSubProtocol
 	{
 	public:
-		virtual void ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, Net::NetBuffer &buffer)=0;
+		virtual void ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, DataBuffer &buffer)=0;
 	};
 	
 	class IIpIncapsulatingSubProtocol :public IIpSubProtocol
 	{
 	public:
-		virtual bool SendMessage(const Net::IpAddr &destAddr, uint16_t srcPort, uint16_t destPort, Net::NetBuffer &buffer)=0;
+		virtual bool SendMessage(const Net::IpAddr &destAddr, uint16_t srcPort, uint16_t destPort, DataBuffer &buffer)=0;
 	};
 	
 	

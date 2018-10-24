@@ -125,7 +125,7 @@ namespace Net
 		ArpPendingRequest _pendingRequests[PendingRequestsCount];
 		void ProcessPendingRequests();
 	public: // INetProtocol
-		virtual void ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, Net::NetBuffer &buffer);
+		virtual void ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, DataBuffer &buffer);
 	public: // IAddressResolve
 		virtual bool AddressResolve(const Net::IpAddr &ip, Net::MacAddr &result);
 	public:

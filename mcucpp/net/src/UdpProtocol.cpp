@@ -17,7 +17,7 @@ _nextTempPort(UdpTempPortStart)
 	}
 }
 
-void UdpProtocol::ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, Net::NetBuffer &buffer)
+void UdpProtocol::ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, DataBuffer &buffer)
 {
 	Ip4Checksum checksumCalc;
 		
@@ -76,7 +76,7 @@ void UdpProtocol::ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &
 }
 
 
-bool UdpProtocol::SendMessage(const Net::IpAddr &destAddr, uint16_t srcPort, uint16_t destPort, Net::NetBuffer &buffer)
+bool UdpProtocol::SendMessage(const Net::IpAddr &destAddr, uint16_t srcPort, uint16_t destPort, DataBuffer &buffer)
 {
 	Ip4Checksum checksumCalc;
 	

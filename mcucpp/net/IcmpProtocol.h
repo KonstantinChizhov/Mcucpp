@@ -63,7 +63,7 @@ namespace Net
 			
 		}
 		
-		virtual void ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, Net::NetBuffer &buffer)
+		virtual void ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, DataBuffer &buffer)
 		{
 			(void)destAddr;
 			Ip4Checksum checksumCalc;
@@ -87,11 +87,11 @@ namespace Net
 			}
 		}
 		
-		void EchoReply(const Net::IpAddr &destAddr, uint16_t id, uint16_t seq, Net::NetBuffer &buffer)
+		void EchoReply(const Net::IpAddr &destAddr, uint16_t id, uint16_t seq, DataBuffer &buffer)
 		{
 			Ip4Checksum checksumCalc;
 			size_t dataSize = buffer.Size() - buffer.Tell() - 4;
-			Net::NetBuffer reply;
+			DataBuffer reply;
 			reply.InsertFront(8 + dataSize);
 			reply.Seek(0);
 			reply.WriteU8(IcmpEchoReply); // type

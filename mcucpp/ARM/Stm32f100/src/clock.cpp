@@ -186,7 +186,7 @@ namespace Mcucpp
 			clockSelectMask = RCC_CFGR_SW_HSE;
 			if (!HseClock::Enable())
 				return ClockSourceFailed;
-		}if(clockSource == Pll)
+		}else if(clockSource == Pll)
 		{
 			clockStatusValue = RCC_CFGR_SWS_PLL;
 			clockSelectMask = RCC_CFGR_SW_PLL;

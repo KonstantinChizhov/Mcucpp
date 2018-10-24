@@ -97,8 +97,8 @@ namespace Net
 		bool EnqueuePacket(const PendingPacket &packet);
 		void ProcessPendingPackets();
 	public:
-		virtual void ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, Net::NetBuffer &buffer);
-		virtual bool SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocolId, Net::NetBuffer &buffer);
+		virtual void ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, DataBuffer &buffer);
+		virtual bool SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocolId, DataBuffer &buffer);
 	public:
 		IP4Protocol(Dispatcher &dispatcher, INetDispatch &netDispatch, NetInterface &iface);
 		void AddProtocol(uint16_t protocolId, IIpSubProtocol *protocol);

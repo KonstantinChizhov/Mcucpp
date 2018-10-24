@@ -37,7 +37,7 @@ namespace Net
 	class INetProtocol
 	{
 	public:
-		virtual void ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, Net::NetBuffer &buffer)=0;
+		virtual void ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, DataBuffer &buffer)=0;
 	};
 
 	class INetIncapsulatingProtocol :public INetProtocol
@@ -47,7 +47,7 @@ namespace Net
 		Net::IpAddr _netMask;
 		Net::IpAddr _ipDefaultGateway;
 	public:
-		virtual bool SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocolId, Net::NetBuffer &buffer)=0;
+		virtual bool SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocolId, DataBuffer &buffer)=0;
 	public:
 		Net::IpAddr GetIpAddr(){ return _ipAddr; }
 		Net::IpAddr GetNetMask(){ return _netMask; }

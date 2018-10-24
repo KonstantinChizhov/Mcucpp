@@ -12,7 +12,7 @@ namespace Test
 	{
 	public:
 		Net::MacAddr _macaddr;
-		Net::NetBuffer LastTransmittedFrame;
+		DataBuffer LastTransmittedFrame;
 		unsigned txSequence;
 		
 		TestNetworkInterface()
@@ -52,7 +52,7 @@ namespace Test
 			return 0;
 		}
 
-		virtual Net::TransferId Transmit(const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer)
+		virtual Net::TransferId Transmit(const Net::MacAddr &destAddr, uint16_t protocoId, DataBuffer &buffer)
 		{
 			LastTransmittedFrame = buffer;
 			LastTransmittedFrame.InsertFront(6+6+2);

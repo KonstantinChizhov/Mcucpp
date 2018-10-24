@@ -17,17 +17,17 @@ static uint32_t GetTicks(){ return currentTicks;}
 		
 		Net::IpAddr _srcAddr;
 		Net::IpAddr _destAddr;
-		Net::NetBuffer _buffer;
+		DataBuffer _buffer;
 		int _hitCount;
 		
-		void ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, Net::NetBuffer &buffer);
-		bool SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocolId, Net::NetBuffer &buffer)
+		void ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, DataBuffer &buffer);
+		bool SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocolId, DataBuffer &buffer)
 		{
 			return false;
 		}
 	};
 	
-	void TestSubIpProtocol::ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, Net::NetBuffer &buffer)
+	void TestSubIpProtocol::ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, DataBuffer &buffer)
 	{
 		_srcAddr = srcAddr;
 		_destAddr = destAddr;
@@ -69,7 +69,7 @@ TEST(Ip4, SendPacket)
 	currentTicks = 100;
 	net.dispatcher.SetTimerFunc(GetTicks);
 	
-	Net::NetBuffer buffer;
+	DataBuffer buffer;
 	buffer.InsertFront(42);
 	
 	EXPECT_TRUE(net.ip.SendMessage(IpAddr(192,168,1,5), UDP, buffer));
@@ -95,7 +95,7 @@ TEST(Ip4, SendPacket)
 	EXPECT_EQ(IpAddr(192,168,1,2), net.iface.LastTransmittedFrame.ReadIp());
 	EXPECT_EQ(IpAddr(192,168,1,5), net.iface.LastTransmittedFrame.ReadIp());
 	
-	Net::NetBuffer buffer2;
+	DataBuffer buffer2;
 	buffer2.InsertFront(33);
 	
 	net.arp.AddAddress(IpAddr(192,168,1,5), MacAddr(0x1c, 0x6f, 0x65, 0x8a, 0x07, 0x02));
@@ -156,7 +156,7 @@ TEST(Ip4, RecivePacket)
 	TestSubIpProtocol protocol;
 	net.ip.AddProtocol(UDP, &protocol);
 
-	NetBuffer buffer;
+	DataBuffer buffer;
 	buffer.AttachFront(DataBuffer::GetNew(ipPacket, sizeof(ipPacket)));
 	buffer.Seek(14);
 	

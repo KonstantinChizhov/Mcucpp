@@ -146,7 +146,8 @@ namespace Mcucpp
 			return 0x4000;
 		if(page == 4)
 			return 0x10000;
-		return 0x20000;
+        if(page == 5)
+            return 0x20000;
 		// bank 2
 		if(page < 16)
 			return 0x4000;

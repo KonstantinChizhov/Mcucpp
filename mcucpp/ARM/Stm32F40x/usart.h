@@ -215,7 +215,7 @@ namespace Mcucpp
 				Regs()->CR2 |= cr2Mask;
 				Regs()->CR3 |= cr3Mask;
 					
-				if(interruptFlags)
+				if(interruptFlags != NoInterrupt)
 					NVIC_EnableIRQ(IQRNumber);
 			}
 			

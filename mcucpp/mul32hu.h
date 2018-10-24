@@ -55,7 +55,7 @@ static inline uint32_t mul32hu(uint32_t u, uint32_t v)
 			uint32_t u32[2];
 		};
 		
-		u8.w0 = u8.w1 = u8.w2 = u8.w3 = u8.w4 = u8.w5 = u8.w6 = u8.w7 = 0;
+		u8.w0 = u8.w1 = u8.w2 = u8.w3 = 0;
 
 		uint8_t k = 0;
 		uint16_t t;

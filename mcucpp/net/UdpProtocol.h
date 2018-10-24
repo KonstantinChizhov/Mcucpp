@@ -45,8 +45,8 @@ namespace Net
 	public:
 		UdpProtocol(INetIncapsulatingProtocol &netProtocol);
 		
-		void ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, Net::NetBuffer &buffer);
-		bool SendMessage(const Net::IpAddr &destAddr, uint16_t srcPort, uint16_t destPort, Net::NetBuffer &buffer);
+		void ProcessMessage(const Net::IpAddr &srcAddr, const Net::IpAddr &destAddr, DataBuffer &buffer);
+		bool SendMessage(const Net::IpAddr &destAddr, uint16_t srcPort, uint16_t destPort, DataBuffer &buffer);
 		void AddListener(IPortListner *listner);
 		uint16_t GetTempPort();
 	};

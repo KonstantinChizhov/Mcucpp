@@ -128,7 +128,7 @@ namespace Mcucpp
 		virtual bool SetMacAddress(unsigned addrNumber, const Net::MacAddr &macaddr);
 		virtual unsigned MaxAddresses(){return 4;}
 		virtual const Net::MacAddr& GetMacAddress(unsigned addrNumber);
-		virtual Net::TransferId Transmit(const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer);
+		virtual Net::TransferId Transmit(const Net::MacAddr &destAddr, uint16_t protocoId, DataBuffer &buffer);
 		virtual bool IsLinked();
 		virtual void PauseCommand(uint16_t time);
 		virtual void Poll();

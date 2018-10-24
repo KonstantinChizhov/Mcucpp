@@ -44,7 +44,7 @@ bool IP4Protocol::EnqueuePacket(const PendingPacket &packet)
 }
 
 
-void IP4Protocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, Net::NetBuffer &buffer)
+void IP4Protocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, DataBuffer &buffer)
 {
 	Ip4Checksum checksumCalc;
 	unsigned ipVerHLen = buffer.Read();
@@ -119,7 +119,7 @@ void IP4Protocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr
 	}
 }
 
-bool IP4Protocol::SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocolId, Net::NetBuffer &buffer)
+bool IP4Protocol::SendMessage(const Net::IpAddr &destAddr, IpProtocolId protocolId, DataBuffer &buffer)
 {
 	if(!buffer.InsertFront(Ip4HeaderSize))
 	{
@@ -178,7 +178,7 @@ void IP4Protocol::AddressResolved(const Net::IpAddr &ipAddr, const Net::MacAddr 
 	{
 		if(!_pendingPackets[i].IsFree() && _pendingPackets[i].destAddr == ipAddr)
 		{
-			NetBuffer buffer(_pendingPackets[i].buffer);
+			DataBuffer buffer(_pendingPackets[i].buffer);
 			_pendingPackets[i].Reset();
 			TransferId txId = _iface.Transmit(macAddr, EtherIPv4, buffer);
 			if(!txId)
@@ -200,7 +200,7 @@ void IP4Protocol::ProcessPendingPackets()
 			Net::MacAddr destMacAddr;
 			if(_adresssResolve->AddressResolve(_pendingPackets[i].destAddr, destMacAddr))
 			{
-				NetBuffer buffer(_pendingPackets[i].buffer);
+				DataBuffer buffer(_pendingPackets[i].buffer);
 				_pendingPackets[i].Reset();
 				TransferId txId = _iface.Transmit(destMacAddr, EtherIPv4, buffer);
 				if(!txId)

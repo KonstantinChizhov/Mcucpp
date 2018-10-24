@@ -130,7 +130,7 @@ namespace Mcucpp
 		
 		static void Write(uint8_t outValue)
 		{
-			ReadWrite(outValue);
+			(void)ReadWrite(outValue);
 		}
 
 		static void InterruptEnable()

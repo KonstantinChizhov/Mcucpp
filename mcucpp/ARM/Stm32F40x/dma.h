@@ -48,7 +48,9 @@ namespace Mcucpp
 	struct DmaChannelData
 	{
 		DmaChannelData()
-			:transferCallback(VoidDmaCallback)
+			:transferCallback(VoidDmaCallback),
+            data(nullptr),
+            size(0)
 		{}
 		TransferCallback transferCallback;
 		

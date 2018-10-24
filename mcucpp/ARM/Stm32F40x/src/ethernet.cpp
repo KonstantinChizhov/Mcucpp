@@ -69,7 +69,7 @@ namespace Mcucpp
 		return true;
 	}
 	
-	Net::TransferId EthernetMac::Transmit(const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer)
+	Net::TransferId EthernetMac::Transmit(const Net::MacAddr &destAddr, uint16_t protocoId, DataBuffer &buffer)
 	{
 		if(!IsLinked())
 		{

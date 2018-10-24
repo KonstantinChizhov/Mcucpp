@@ -28,7 +28,7 @@
 
 #include <stdint.h>
 #include <enum.h>
-#include <net/net_buffer.h>
+#include <data_buffer.h>
 #include <ring_buffer.h>
 #include <net/INetDispatch.h>
 #include <ARM/Stm32F40x/mac_descriptors.h>
@@ -45,7 +45,7 @@ namespace Net
 		Net::EthTxPool _txPool;
 		Net::EthRxPool _rxPool;
 			
-		Containers::RingBuffer<Net::EthRxPool::DescriptorCount, Net::DataBuffer *> _rxQueue;
+		Containers::RingBuffer<Net::EthRxPool::DescriptorCount, DataBuffer *> _rxQueue;
 		
 		struct TxQueueItem
 		{
@@ -74,7 +74,7 @@ namespace Net
 			return (sizeof(_txPool.Descriptors[0]) + 3) / 4 - 4;
 		}
 	
-		bool EnqueueBuffer(NetBuffer &buffer, uint32_t seqNumber)
+		bool EnqueueBuffer(DataBuffer &buffer, uint32_t seqNumber)
 		{
 			return _txPool.EnqueueBuffer(buffer, seqNumber);
 		}
@@ -158,7 +158,7 @@ namespace Net
 			}
 			
 			bool frameError = false;
-			NetBuffer netBuffer;
+			DataBuffer netBuffer;
 			size_t currentFrameSize = 0;
 			
 			for(unsigned i = 0; i < Net::EthRxPool::DescriptorCount; i++)
@@ -263,7 +263,7 @@ namespace Net
 		{
 			while(!_rxQueue.empty())
 			{
-				Net::NetBuffer buffer(_rxQueue.front()); // move buffer chain from queue
+				DataBuffer buffer(_rxQueue.front()); // move buffer chain from queue
 				_rxQueue.pop_front();
 				buffer.Seek(0);
 				Net::MacAddr dest = buffer.ReadMac();

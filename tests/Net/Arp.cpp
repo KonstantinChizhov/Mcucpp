@@ -60,7 +60,7 @@ TEST(Arp, Resolve)
 		0xc0, 0xa8, 0x01, 0x02              // ARP dest IP
 	};
 	
-	NetBuffer responceBuffer;
+	DataBuffer responceBuffer;
 	responceBuffer.AttachFront(DataBuffer::GetNew(arpResponce, sizeof(arpResponce)));
 	responceBuffer.Seek(6+6+2);
 	
@@ -97,7 +97,7 @@ TEST(Arp, Respond)
 	};
 	
 		
-	NetBuffer requestBuffer;
+	DataBuffer requestBuffer;
 	requestBuffer.AttachFront(DataBuffer::GetNew(arpRequest, sizeof(arpRequest)));
 	requestBuffer.Seek(6+6+2);
 	

@@ -39,8 +39,7 @@ void DataChunk::ReleaseRecursive(DataChunk * buffer)
 	while(buffer)
 	{
 		next = buffer->Next();
-		if(buffer)
-			DataChunk::Release(buffer);
+		DataChunk::Release(buffer);
 		buffer = next;
 	}
 }

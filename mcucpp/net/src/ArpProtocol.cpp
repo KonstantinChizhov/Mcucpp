@@ -96,7 +96,7 @@ void  ArpProtocol::SetIp4Protocol(class IP4Protocol *ipProtocol)
 	_ipProtocol = ipProtocol;
 }
 
-void ArpProtocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, Net::NetBuffer &buffer)
+void ArpProtocol::ProcessMessage(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, DataBuffer &buffer)
 {
 	(void)srcAddr;
 	(void)destAddr;
@@ -251,7 +251,7 @@ void ArpProtocol::ProcessPendingRequests()
 void ArpProtocol::SendMessage(const Net::IpAddr &destIp, const MacAddr &destAddr, bool request)
 {
 	const size_t ArpRequestSize = 28;
-	NetBuffer buffer;
+	DataBuffer buffer;
 	if(!buffer.InsertFront(ArpRequestSize))
 	{
 		// TODO: Handle out of memory

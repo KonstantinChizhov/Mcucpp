@@ -11,12 +11,12 @@ namespace Private
 	<
 		Pc0, Pc1, Pc2, Pc3,  Pa0, Pa1, Pa2, Pa3, Pa4, Pa5, Pa6, Pa7, Pc4, Pc5, Pb0, Pb1
 	> Adc1Pins;
-	
+
 	typedef PinList
 	<
 		Pc0, Pc1, Pc2, Pc3,  Pa0, Pa1, Pa2, Pa3, Pa4, Pa5, Pa6, Pa7, Pc4, Pc5, Pb0, Pb1
 	> Adc2Pins;
-	
+
 	typedef PinList
 	<
 		Pc0, Pc1, Pc2, Pc3, NullPin, Pf3, Pf4, Pf5, Pf6, Pf7, Pf8, Pf9, Pf10
@@ -55,9 +55,9 @@ unsigned ADC_BASE_TEMPLATE_QUALIFIER::ConvertionTimeCycles(uint8_t channel)
 		unsigned shift = channel * 3;
 		sampleTimeBits = (Regs()->SMPR2 >> shift) & 0x07;
 	}
-	
+
 	static const uint16_t sampleTimes[] = {2, 6, 12, 24, 47, 92, 247, 640};
-	
+
 	return ResolutionBits() + sampleTimes[sampleTimeBits] + 1;
 }
 
@@ -112,12 +112,12 @@ void ADC_BASE_TEMPLATE_QUALIFIER::SetSampleTime(uint8_t channel, unsigned sample
 {
 	if(channel > 18)
 		return;
-		
+
 	if(!VerifyReady(ADC_CR_JADSTART | ADC_CR_ADSTART))
 		return;
-	
+
 	unsigned bitFieldValue = SampleTimeToReg(sampleTime);
-	
+
 	if(channel <= 9)
 	{
 		unsigned shift = channel * 3;
@@ -139,25 +139,25 @@ void ADC_BASE_TEMPLATE_QUALIFIER::Init()
 
 ADC_BASE_TEMPLATE_ARGS
 void ADC_BASE_TEMPLATE_QUALIFIER::Init(
-		AdcDivider divider, 
-		ClockSource, 
+		AdcDivider divider,
+		ClockSource,
 		Reference
 		)
 {
 	ClockCtrl::Enable();
 	Clock::AdcSel::Set(Clock::AdcClockSel::SysClock);
-	
+
 	Regs()->CR = 0;
 	Regs()->CFGR = 0;
 	__DSB();
 	Regs()->CR = ADC_CR_ADVREGEN;
 	delay_us<T_ADCVREG_STUP, F_CPU>();
-	
+
 	SetDivider(divider);
 	SetSampleTime(TempSensorChannel, 247);
 	SetSampleTime(Battery, 247);
 	SetSampleTime(ReferenceChannel, 247);
-	
+
 	Regs()->CR |= ADC_CR_ADCAL;
 	if(!VerifyReady(ADC_CR_ADCAL))
 	{
@@ -169,11 +169,11 @@ void ADC_BASE_TEMPLATE_QUALIFIER::Init(
 	{
 		_adcData.error = HardwareError;
 	}
-	
+
 	Regs()->CR |= ADC_CR_ADEN;
 	CommonRegs()->CCR |= ADC_CCR_VREFEN;
 	_adcData.vRef = 0;
-	
+
 	NVIC_EnableIRQ(ADC1_2_IRQn);
 	NVIC_EnableIRQ(ADC3_IRQn);
 }
@@ -209,7 +209,7 @@ void ADC_BASE_TEMPLATE_QUALIFIER::Disable()
 
 ADC_BASE_TEMPLATE_ARGS
 void  ADC_BASE_TEMPLATE_QUALIFIER::SetImmediateTrigger(
-	ImmediateTrigger trigger, 
+	ImmediateTrigger trigger,
 	TriggerMode mode)
 {
 	Regs()->CR |= ADC_CR_JADSTP;
@@ -249,7 +249,7 @@ static inline unsigned GetJsqr(const uint8_t *channels, uint8_t count, uint32_t 
 {
 	jsqr &= (ADC_JSQR_JEXTEN | ADC_JSQR_JEXTSEL);
 	jsqr |= ((count-1) << ADC_JSQR_JL_Pos) | (channels[0] << ADC_JSQR_JSQ1_Pos);
-	
+
 	if(count > 1) jsqr |= channels[1] << ADC_JSQR_JSQ2_Pos;
 	if(count > 2) jsqr |= channels[2] << ADC_JSQR_JSQ3_Pos;
 	if(count > 3) jsqr |= channels[3] << ADC_JSQR_JSQ4_Pos;
@@ -270,13 +270,13 @@ bool ADC_BASE_TEMPLATE_QUALIFIER::StartImmediate(const uint8_t *channels, uint16
 		_adcData.error = HardwareError;
 		return false;
 	}
-	
+
 	_adcData.immCallback = callback;
 	_adcData.immData = data;
 
 	for(unsigned i =0; i< count; i++)
 		EnableChannel<Pins, CommonRegs>(channels[i]);
-	
+
 	Regs()->JSQR = GetJsqr(channels, count, Regs()->JSQR);
 	if(callback)
 	{
@@ -286,9 +286,9 @@ bool ADC_BASE_TEMPLATE_QUALIFIER::StartImmediate(const uint8_t *channels, uint16
 	{
 		Regs()->IER &= ~ADC_IER_JEOSIE;
 	}
-	
+
 	Regs()->CR |= ADC_CR_JADSTART;
-	
+
 	return true;
 }
 
@@ -313,7 +313,7 @@ bool ADC_BASE_TEMPLATE_QUALIFIER::ReadImmediate(const uint8_t *channels, uint16_
 		{
 			status = Regs()->ISR;
 		}while(((status & ADC_ISR_JEOS) == 0) && --timeout);
-		
+
 		if((status & ADC_ISR_JEOS) == 0 || !timeout)
 		{
 			_adcData.error = HardwareError;
@@ -372,7 +372,7 @@ void ADC_BASE_TEMPLATE_QUALIFIER::IrqHandler()
 			if(count > 1) data[index++] = Regs()->JDR3;
 			data[index] = Regs()->JDR4;
 			_adcData.error = NoError;
-				
+
 			if(_adcData.immCallback)
 				_adcData.immCallback(data, count);
 		}
@@ -386,12 +386,12 @@ bool ADC_BASE_TEMPLATE_QUALIFIER::StartImmediate(uint8_t channel)
 {
 	if(channel > ChannelsCount())
 		return false;
-	
+
 	Regs()->ISR |= (ADC_ISR_JEOS | ADC_ISR_JEOC);
 	Regs()->JSQR = (unsigned)channel << ADC_JSQR_JSQ1_Pos;
-	
+
 	EnableChannel<Pins, CommonRegs>(channel);
-	
+
 	Regs()->CR |= ADC_CR_JADSTART;
 	return true;
 }
@@ -405,7 +405,7 @@ uint16_t ADC_BASE_TEMPLATE_QUALIFIER::ReadImmediate()
 	{
 		status = Regs()->ISR;
 	}while(((status & ADC_ISR_JEOC) == 0) && --timeout);
-	
+
 	if((status & ADC_ISR_JEOC) == 0)
 	{
 		_adcData.error = HardwareError;
@@ -450,7 +450,7 @@ void ADC_BASE_TEMPLATE_QUALIFIER::SetSequenceTrigger(SequenceTrigger trigger, Tr
 	{
 		mode = TriggerNone;
 	}
-	Regs()->CFGR = (Regs()->CFGR & ~(ADC_CFGR_EXTSEL | ADC_CFGR_EXTEN) ) | ((trigger&0x0f) << ADC_CFGR_EXTSEL_Pos) | (mode << ADC_CFGR_EXTEN_Pos); 
+	Regs()->CFGR = (Regs()->CFGR & ~(ADC_CFGR_EXTSEL | ADC_CFGR_EXTEN) ) | ((trigger&0x0f) << ADC_CFGR_EXTSEL_Pos) | (mode << ADC_CFGR_EXTEN_Pos);
 }
 
 ADC_BASE_TEMPLATE_ARGS
@@ -464,11 +464,11 @@ bool ADC_BASE_TEMPLATE_QUALIFIER::StartSequence(std::initializer_list<uint8_t> c
 {
 	if(scanCount == 0 || channels.size() == 0)
 		return false;
-	
+
 	if(!VerifyReady(ADC_CR_ADSTART))
 		return false;
 	Regs()->ISR |= ADC_ISR_OVR | ADC_ISR_EOC | ADC_ISR_EOS;
-	
+
 	if(channels.size() <= 16)
 	{
 		Regs()->SQR1 = ((channels.size() - 1) << ADC_SQR1_L_Pos);
@@ -493,24 +493,24 @@ bool ADC_BASE_TEMPLATE_QUALIFIER::StartSequence(std::initializer_list<uint8_t> c
 			}
 			i++;
 		}
-		
+
 		DmaChannel::SetTransferCallback(DmaHandler);
 		DmaChannel::SetRequest(channelNum);
 		DmaChannel::Transfer(DmaMode::Periph2Mem | DmaMode::MemIncriment | DmaMode::PriorityHigh | DmaMode::PSize16Bits | DmaMode::MSize16Bits,
 				dataBuffer, &Regs()->DR, channels.size() * scanCount);
-		
+
 		_adcData.error = NoError;
-		
+
 		uint32_t controlReg = Regs()->CFGR;
 		controlReg |= ADC_CFGR_DMAEN;
 		if(scanCount > 1)
 			controlReg |= ADC_CFGR_CONT;
 		Regs()->CFGR = controlReg;
-		
+
 		// start conversion now if no external trigger selected
 		if((controlReg & ADC_CFGR_EXTEN) == 0)
 			Regs()->CR |= ADC_CR_ADSTART;
-		
+
 		return true;
 	}
 	else
@@ -525,16 +525,17 @@ bool ADC_BASE_TEMPLATE_QUALIFIER::StartSequence(const uint8_t *channels, uint8_t
 {
 	if(scanCount == 0 || channelsCount == 0)
 		return false;
-	
+
 	if(!VerifyReady(ADC_CR_ADSTART))
 		return false;
 	Regs()->ISR |= ADC_ISR_OVR | ADC_ISR_EOC | ADC_ISR_EOS;
-	
+
 	if(channelsCount <= 16)
 	{
 		Regs()->SQR1 = ((channelsCount - 1) << ADC_SQR1_L_Pos);
 		Regs()->SQR3 = 0;
 		Regs()->SQR2 = 0;
+		Regs()->SQR4 = 0;
 		for(unsigned i = 0; i < channelsCount; i++)
 		{
 			Pins::SetConfiguration(1u << channels[i], Pins::Analog);
@@ -552,24 +553,24 @@ bool ADC_BASE_TEMPLATE_QUALIFIER::StartSequence(const uint8_t *channels, uint8_t
 				Regs()->SQR4 |= (channels[i] & 0x1f) << 6*(i-14);
 			}
 		}
-		
+
 		DmaChannel::SetTransferCallback(DmaHandler);
 		DmaChannel::SetRequest(channelNum);
 		DmaChannel::Transfer(DmaMode::Periph2Mem | DmaMode::MemIncriment | DmaMode::PriorityHigh | DmaMode::PSize16Bits | DmaMode::MSize16Bits,
 				dataBuffer, &Regs()->DR, channelsCount * scanCount);
-		
+
 		_adcData.error = NoError;
-		
+
 		uint32_t controlReg = Regs()->CFGR;
 		controlReg |= ADC_CFGR_DMAEN;
 		if(scanCount > 1)
 			controlReg |= ADC_CFGR_CONT;
 		Regs()->CFGR = controlReg;
-		
+
 		// start conversion now if no external trigger selected
 		if((controlReg & ADC_CFGR_EXTEN) == 0)
 			Regs()->CR |= ADC_CR_ADSTART;
-		
+
 		return true;
 	}
 	else
@@ -608,7 +609,7 @@ namespace Private
 	IO_STRUCT_WRAPPER(ADC1, Adc1Regs, ADC_TypeDef);
 	IO_STRUCT_WRAPPER(ADC2, Adc2Regs, ADC_TypeDef);
 	IO_STRUCT_WRAPPER(ADC3, Adc3Regs, ADC_TypeDef);
-	
+
 	IO_STRUCT_WRAPPER(ADC123_COMMON, AdcRegs, ADC_Common_TypeDef);
 }
 

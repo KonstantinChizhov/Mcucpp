@@ -57,8 +57,8 @@ namespace Net
 		
 	public: // INetDispatch
 		virtual void TxComplete(TransferId txId, bool success);
-		virtual void RxComplete(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer);
-		virtual bool SendMesage(const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer);
+		virtual void RxComplete(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, uint16_t protocoId, DataBuffer &buffer);
+		virtual bool SendMesage(const Net::MacAddr &destAddr, uint16_t protocoId, DataBuffer &buffer);
 	public:
 		NetDispatch(Dispatcher &dispatcher);
 		void AddInterface(NetInterface *interface);

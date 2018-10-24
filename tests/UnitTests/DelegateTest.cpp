@@ -8,6 +8,9 @@ public:
 	Foo()
 	{
 		barCalled = 0;
+        arg1 = 0;
+		arg2 = 0;
+		arg3 = 0;
 	}
 
 	void Bar()

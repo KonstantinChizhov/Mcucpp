@@ -48,8 +48,8 @@ namespace Net
 		IpAddr DestAddr(){return _destAddr; }
 		void SetDestAddr(IpAddr value){ _destAddr = value; }
 		
-		virtual void ProcessMessage(const Net::IpAddr &srcAddr, uint16_t srcPort, uint16_t dataLen, Net::NetBuffer &buffer)=0;
-		void Reply(Net::NetBuffer &buffer);
+		virtual void ProcessMessage(const Net::IpAddr &srcAddr, uint16_t srcPort, uint16_t dataLen, DataBuffer &buffer)=0;
+		void Reply(DataBuffer &buffer);
 	};
 	
 	

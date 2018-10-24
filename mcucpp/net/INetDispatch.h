@@ -29,7 +29,7 @@
 
 #pragma once
 #include <net/net_addr.h>
-#include <net/net_buffer.h>
+#include <data_buffer.h>
 
 namespace Mcucpp
 {
@@ -42,8 +42,8 @@ namespace Net
 	{
 	public:
 		virtual void TxComplete(TransferId txId, bool success)=0;
-		virtual void RxComplete(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer)=0;
-		virtual bool SendMesage(const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer)=0;
+		virtual void RxComplete(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, uint16_t protocoId, DataBuffer &buffer)=0;
+		virtual bool SendMesage(const Net::MacAddr &destAddr, uint16_t protocoId, DataBuffer &buffer)=0;
 	};
 	
 }}

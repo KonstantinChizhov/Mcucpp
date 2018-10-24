@@ -11,7 +11,7 @@ void NetDispatch::TxComplete(TransferId txId, bool success)
 	(void)success;
 }
 
-void NetDispatch::RxComplete(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer)
+void NetDispatch::RxComplete(const Net::MacAddr &srcAddr, const Net::MacAddr &destAddr, uint16_t protocoId, DataBuffer &buffer)
 {	
 	for(unsigned i = 0; i < _protocols.size(); i++)
 	{
@@ -23,7 +23,7 @@ void NetDispatch::RxComplete(const Net::MacAddr &srcAddr, const Net::MacAddr &de
 	}
 }
 
-bool NetDispatch::SendMesage(const Net::MacAddr &destAddr, uint16_t protocoId, Net::NetBuffer &buffer)
+bool NetDispatch::SendMesage(const Net::MacAddr &destAddr, uint16_t protocoId, DataBuffer &buffer)
 {
 	for(unsigned i = 0; i < _interfaces.size(); i++)
 	{
