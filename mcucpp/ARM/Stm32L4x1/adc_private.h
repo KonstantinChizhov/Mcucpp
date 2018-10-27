@@ -170,6 +170,7 @@ void ADC_BASE_TEMPLATE_QUALIFIER::Init(
 		_adcData.error = HardwareError;
 	}
 
+    Regs()->CR &= ~ADC_CR_ADCALDIF;
 	Regs()->CR |= ADC_CR_ADEN;
 	CommonRegs()->CCR |= ADC_CCR_VREFEN;
 	_adcData.vRef = 0;
@@ -250,26 +251,29 @@ static inline unsigned GetJsqr(const uint8_t *channels, uint8_t count, uint32_t 
 	jsqr &= (ADC_JSQR_JEXTEN | ADC_JSQR_JEXTSEL);
 	jsqr |= ((count-1) << ADC_JSQR_JL_Pos) | (channels[0] << ADC_JSQR_JSQ1_Pos);
 
-	if(count > 1) jsqr |= channels[1] << ADC_JSQR_JSQ2_Pos;
-	if(count > 2) jsqr |= channels[2] << ADC_JSQR_JSQ3_Pos;
-	if(count > 3) jsqr |= channels[3] << ADC_JSQR_JSQ4_Pos;
+	if(count > 1) jsqr |= (channels[1] << ADC_JSQR_JSQ2_Pos);
+	if(count > 2) jsqr |= (channels[2] << ADC_JSQR_JSQ3_Pos);
+	if(count > 3) jsqr |= (channels[3] << ADC_JSQR_JSQ4_Pos);
 	return jsqr;
 }
 
 ADC_BASE_TEMPLATE_ARGS
-bool ADC_BASE_TEMPLATE_QUALIFIER::StartImmediate(const uint8_t *channels, uint16_t *data, uint8_t count, AdcCallback callback)
+bool ADC_BASE_TEMPLATE_QUALIFIER::StartImmediate(const uint8_t *channels, uint16_t *data, uint8_t count, AdcCallbackType callback)
 {
 	if(count == 0 || count > 4)
 	{
 		_adcData.error = ArgumentError;
 		return false;
 	}
-	Regs()->CR |= ADC_CR_JADSTP;
-	if(!VerifyReady(ADC_CR_JADSTP))
+
+	//Regs()->CR |= ADC_CR_JADSTP;
+	if(!VerifyReady(ADC_CR_JADSTP | ADC_CR_JADSTART))
 	{
 		_adcData.error = HardwareError;
 		return false;
 	}
+
+    Regs()->CFGR |= ADC_CFGR_JQDIS;
 
 	_adcData.immCallback = callback;
 	_adcData.immData = data;
@@ -320,11 +324,11 @@ bool ADC_BASE_TEMPLATE_QUALIFIER::ReadImmediate(const uint8_t *channels, uint16_
 		}else
 		{
 			result = true;
-			unsigned index=0;
-			if(count > 3) data[index++] = Regs()->JDR1;
-			if(count > 2) data[index++] = Regs()->JDR2;
-			if(count > 1) data[index++] = Regs()->JDR3;
-			data[index] = Regs()->JDR4;
+
+			data[0] = Regs()->JDR1;
+			if(count > 1) data[1] = Regs()->JDR2;
+			if(count > 2) data[2] = Regs()->JDR3;
+			if(count > 3)data[3] = Regs()->JDR4;
 			_adcData.error = NoError;
 		}
 		Regs()->ISR |= ADC_ISR_JEOS | ADC_ISR_JEOC;
@@ -366,11 +370,10 @@ void ADC_BASE_TEMPLATE_QUALIFIER::IrqHandler()
 		uint16_t *data = _adcData.immData;
 		if(data)
 		{
-			unsigned index=0;
-			if(count > 3) data[index++] = Regs()->JDR1;
-			if(count > 2) data[index++] = Regs()->JDR2;
-			if(count > 1) data[index++] = Regs()->JDR3;
-			data[index] = Regs()->JDR4;
+			data[0] = Regs()->JDR1;
+			if(count > 1) data[1] = Regs()->JDR2;
+			if(count > 2) data[2] = Regs()->JDR3;
+			if(count > 3) data[3] = Regs()->JDR4;
 			_adcData.error = NoError;
 
 			if(_adcData.immCallback)
@@ -385,9 +388,19 @@ ADC_BASE_TEMPLATE_ARGS
 bool ADC_BASE_TEMPLATE_QUALIFIER::StartImmediate(uint8_t channel)
 {
 	if(channel > ChannelsCount())
-		return false;
+    {
+        _adcData.error = ArgumentError;
+        return false;
+    }
 
-	Regs()->ISR |= (ADC_ISR_JEOS | ADC_ISR_JEOC);
+    if(!VerifyReady(ADC_CR_JADSTP | ADC_CR_JADSTART))
+	{
+		_adcData.error = HardwareError;
+		return false;
+	}
+
+    Regs()->CFGR |= ADC_CFGR_JQDIS;
+	Regs()->ISR |= (ADC_ISR_JEOS | ADC_ISR_JEOC | ADC_ISR_JQOVF);
 	Regs()->JSQR = (unsigned)channel << ADC_JSQR_JSQ1_Pos;
 
 	EnableChannel<Pins, CommonRegs>(channel);
@@ -404,9 +417,9 @@ uint16_t ADC_BASE_TEMPLATE_QUALIFIER::ReadImmediate()
 	do
 	{
 		status = Regs()->ISR;
-	}while(((status & ADC_ISR_JEOC) == 0) && --timeout);
+	}while(((status & (ADC_ISR_JEOS | ADC_ISR_JEOC)) == 0) && --timeout);
 
-	if((status & ADC_ISR_JEOC) == 0)
+	if((status & (ADC_ISR_JEOS | ADC_ISR_JEOC)) == 0)
 	{
 		_adcData.error = HardwareError;
 	}else
@@ -414,7 +427,8 @@ uint16_t ADC_BASE_TEMPLATE_QUALIFIER::ReadImmediate()
 		result = Regs()->JDR1;
 		_adcData.error = NoError;
 	}
-	Regs()->ISR |= (ADC_ISR_JEOS | ADC_ISR_JEOC);
+
+	Regs()->ISR |= (ADC_ISR_JEOS | ADC_ISR_JEOC | ADC_ISR_JQOVF);
 	return result;
 }
 
@@ -454,7 +468,7 @@ void ADC_BASE_TEMPLATE_QUALIFIER::SetSequenceTrigger(SequenceTrigger trigger, Tr
 }
 
 ADC_BASE_TEMPLATE_ARGS
-void ADC_BASE_TEMPLATE_QUALIFIER::SetSequenceCallback(AdcCallback callback)
+void ADC_BASE_TEMPLATE_QUALIFIER::SetSequenceCallback(AdcCallbackType callback)
 {
 	_adcData.seqCallback = callback;
 }

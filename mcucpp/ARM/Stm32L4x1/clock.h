@@ -4,24 +4,24 @@
 // Date			: 2018
 // All rights reserved.
 
-// Redistribution and use in source and binary forms, with or without modification, 
+// Redistribution and use in source and binary forms, with or without modification,
 // are permitted provided that the following conditions are met:
-// Redistributions of source code must retain the above copyright notice, 
+// Redistributions of source code must retain the above copyright notice,
 // this list of conditions and the following disclaimer.
 
-// Redistributions in binary form must reproduce the above copyright notice, 
-// this list of conditions and the following disclaimer in the documentation and/or 
+// Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation and/or
 // other materials provided with the distribution.
 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
-// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY 
-// OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+// OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
 
@@ -31,7 +31,7 @@
 #include "mcu_header.h"
 
 #ifndef F_OSC
-#warning F_OSC is not defined. F_OSC is in its default value 8 MHZ. Verify that external cristal freq is correct.  
+#warning F_OSC is not defined. F_OSC is in its default value 8 MHZ. Verify that external cristal freq is correct.
 #define F_OSC 8000000u
 #endif
 
@@ -49,7 +49,7 @@ namespace Mcucpp
 			Internal = 2,
 			External = 3
 		};
-		
+
 		enum class SysClockSource
 		{
 			Msi = 0,
@@ -57,7 +57,7 @@ namespace Mcucpp
 			External = 2,
 			Pll = 3
 		};
-		
+
 		enum class ClockErrorCode
 		{
 			Success = 0,
@@ -65,7 +65,7 @@ namespace Mcucpp
 			InvalidClockSource = 2,
 			ClockSelectFailed = 3
 		};
-		
+
 		enum class AhbPrescaller
 		{
 			Div1 = 0,
@@ -78,7 +78,7 @@ namespace Mcucpp
 			Div256 = 0x0E,
 			Div512 = 0x0F
 		};
-		
+
 		enum class ApbPrescaller
 		{
 			Div1 = 0,
@@ -87,7 +87,7 @@ namespace Mcucpp
 			Div8 = 0x06,
 			Div16 = 0x07,
 		};
-		
+
 		enum class AdcClockSel
 		{
 			None,
@@ -95,27 +95,27 @@ namespace Mcucpp
 			PllSai2,
 			SysClock
 		};
-		
+
 		IO_BITFIELD_WRAPPER(RCC->CFGR, SysClockSwitch, SysClockSource, 0, 2);
 		IO_BITFIELD_WRAPPER(RCC->CFGR, SysClockStatus, SysClockSource, 2, 2);
-		
+
 		IO_BITFIELD_WRAPPER(RCC->CFGR, AhbPrescalerBitField, AhbPrescaller, 4, 4);
 		IO_BITFIELD_WRAPPER(RCC->CFGR, Apb1PrescalerBitField, ApbPrescaller, 8, 3);
 		IO_BITFIELD_WRAPPER(RCC->CFGR, Apb2PrescalerBitField, ApbPrescaller, 11, 3);
-		
+
 		IO_BITFIELD_WRAPPER(RCC->CFGR, McoSelBitField, uint32_t, 24, 3);
 		IO_BITFIELD_WRAPPER(RCC->CFGR, McoPreBitField, uint32_t, 28, 3);
-		
+
 		IO_BITFIELD_WRAPPER(RCC->CR, MsiPange, uint32_t, 4, 4);
-		
+
 		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllSrc, PllClockSource, 0, 2);
 		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllM, uint32_t, 4, 3);
 		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllN, uint32_t, 8, 7);
 		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllP, uint32_t, 17, 1);
 		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllQ, uint32_t, 21, 2);
 		IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllR, uint32_t, 25, 2);
-		
-		
+
+
 		class ClockBase
 		{
 		protected:
@@ -123,54 +123,54 @@ namespace Mcucpp
 			static inline bool EnableClockSource(unsigned turnOnMask,  unsigned waitReadyMask);
 			static inline bool DisablelockSource(unsigned turnOnMask,  unsigned waitReadyMask);
 		};
-		
+
 		class HseClock :public ClockBase
 		{
 		public:
 			static uint32_t SrcClockFreq(){ return F_OSC; }
 			static uint32_t SetClockFreq(uint32_t) { return  ClockFreq(); }
 			static uint32_t ClockFreq() { return SrcClockFreq(); }
-			
+
 			static bool Enable()
 			{
 				return ClockBase::EnableClockSource(RCC_CR_HSEON, RCC_CR_HSERDY);
 			}
-			
+
 			static bool Disable()
 			{
 				return ClockBase::DisablelockSource(RCC_CR_HSEON, RCC_CR_HSERDY);
 			}
 		};
-		
+
 		class HsiClock :public ClockBase
 		{
 		public:
 			static uint32_t SrcClockFreq() { return 16000000u; }
 			static uint32_t SetClockFreq(uint32_t) { return  ClockFreq(); }
 			static uint32_t ClockFreq() { return SrcClockFreq(); }
-			
+
 			static bool Enable()
 			{
 				return ClockBase::EnableClockSource(RCC_CR_HSION, RCC_CR_HSIRDY);
 			}
-			
+
 			static bool Disable()
 			{
 				return ClockBase::DisablelockSource(RCC_CR_HSION, RCC_CR_HSIRDY);
 			}
 		};
-		
+
 		static const uint16_t msiFreqTable[] = {1, 2, 4, 8, 10, 20, 40, 80, 160, 240, 320, 480};
-		
+
 		class MsiClock :public ClockBase
 		{
 		public:
-			static uint32_t SrcClockFreq() 
+			static uint32_t SrcClockFreq()
 			{
 				uint32_t range = MsiPange::Get();
 				return msiFreqTable[range] * 100000;
 			}
-			
+
 			static uint32_t SetClockFreq(uint32_t clockFreq)
 			{
 				if((RCC->CR & (RCC_CR_MSION | RCC_CR_MSIRGSEL)) != (RCC_CR_MSION | RCC_CR_MSIRGSEL))
@@ -194,21 +194,21 @@ namespace Mcucpp
 				MsiPange::Set(range);
 				return ClockFreq();
 			}
-			
+
 			static uint32_t ClockFreq() { return SrcClockFreq(); }
-			
+
 			static bool Enable()
 			{
 				return ClockBase::EnableClockSource(RCC_CR_MSION, RCC_CR_MSIRDY);
 			}
-			
+
 			static bool Disable()
 			{
 				return ClockBase::DisablelockSource(RCC_CR_MSION, RCC_CR_MSIRDY);
 			}
 		};
-		
-		
+
+
 		class PllClock :public ClockBase
 		{
 			static const uint32_t  VcoMaxFreq  = 344000000ul;
@@ -219,15 +219,15 @@ namespace Mcucpp
 			static const uint32_t  PllmMin     = 1ul;
 			static const uint32_t  PllrMax     = 8ul;
 			static const uint32_t  PllrMin     = 2ul;
-			
+
 			static const uint32_t  Freq48Mhz   = 48000000ul;
 			static const uint32_t  PllMaxFreq  = 80000000;
 			static const uint32_t  PllnMaxFreq = 16000000ul;
 			static const uint32_t  PllnMinFreq = 4000000ul;
-			
+
 			static inline uint32_t CalcVco(uint32_t vco, uint32_t &resPllm, uint32_t &resPlln);
 		public:
-			
+
 			static inline uint32_t SrcClockFreq();
 			static inline void SelectClockSource(PllClockSource clockSource);
 			static inline uint32_t SetClockFreq(uint32_t freq);
@@ -235,8 +235,8 @@ namespace Mcucpp
 			static inline bool Enable();
 			static inline void Disable();
 		};
-		
-		
+
+
 		class SysClock
 		{
 		public:
@@ -246,8 +246,8 @@ namespace Mcucpp
 			static inline uint32_t ClockFreq();
 			static inline uint32_t SrcClockFreq();
 		};
-		
-		
+
+
 		template<class Reg, unsigned Mask, class ResetReg, unsigned ResetMask, class ClockSrc>
 		class ClockResetControl :public ClockSrc
 		{
@@ -257,20 +257,20 @@ namespace Mcucpp
 			static inline void Reset() { ResetReg::Or(ResetMask); __DSB(); ResetReg::And(~ResetMask); }
 			static inline void SelectClockSource(SysClockSource clockSource);
 		};
-		
 
-		
+
+
 		class AhbClock
 		{
 		public:
-			
+
 			static uint32_t MaxFreq() {return F_CPU;}
-			
+
 			static uint32_t SrcClockFreq()
 			{
 				return SysClock::ClockFreq();
 			}
-			
+
 			static uint32_t ClockFreq()
 			{
 				uint32_t clock = SysClock::ClockFreq();
@@ -279,19 +279,19 @@ namespace Mcucpp
 				clock >>= shiftBits;
 				return clock;
 			}
-			
+
 			static void SetPrescaller(AhbPrescaller prescaller)
 			{
 				AhbPrescalerBitField::Set(prescaller);
 			}
 		};
-		
+
 		class Apb1Clock
 		{
 		public:
-			
+
 			static uint32_t MaxFreq() {return 80000000u;}
-			
+
 			static uint32_t SrcClockFreq(){ return AhbClock::ClockFreq(); }
 			static uint32_t ClockFreq()
 			{
@@ -301,10 +301,10 @@ namespace Mcucpp
 				clock >>= shiftBits;
 				return clock;
 			}
-			
+
 			static void SetPrescaller(ApbPrescaller prescaller) { Apb1PrescalerBitField::Set(prescaller); }
 			static ApbPrescaller GetPrescaller() { return Apb2PrescalerBitField::Get(); }
-			
+
 			static void AdjustMaxFreq(uint32_t targetFreq)
 			{
 				ApbPrescaller presc = ApbPrescaller::Div1;
@@ -317,15 +317,15 @@ namespace Mcucpp
 				SetPrescaller(presc);
 			}
 		};
-		
+
 		class Apb2Clock
 		{
 		public:
-			
+
 			static uint32_t MaxFreq() {return 80000000u;}
-			
+
 			static uint32_t SrcClockFreq() { return AhbClock::ClockFreq(); }
-			
+
 			static uint32_t ClockFreq()
 			{
 				uint32_t clock = AhbClock::ClockFreq();
@@ -334,10 +334,10 @@ namespace Mcucpp
 				clock >>= shiftBits;
 				return clock;
 			}
-			
+
 			static void SetPrescaller(ApbPrescaller prescaller) { Apb2PrescalerBitField::Set(prescaller); }
 			static ApbPrescaller GetPrescaller() { return Apb2PrescalerBitField::Get(); }
-			
+
 			static void AdjustMaxFreq(uint32_t targetFreq)
 			{
 				ApbPrescaller presc = ApbPrescaller::Div1;
@@ -348,31 +348,39 @@ namespace Mcucpp
 				SetPrescaller(presc);
 			}
 		};
-		
-		
+
+
 		IO_REG_WRAPPER(RCC->APB1ENR1, Apb1ClockReg1, uint32_t);
 		IO_REG_WRAPPER(RCC->APB1ENR2, Apb1ClockReg2, uint32_t);
 		IO_REG_WRAPPER(RCC->APB2ENR, Apb2ClockReg, uint32_t);
-		
+
 		IO_REG_WRAPPER(RCC->AHB1ENR, Ahb1ClockEnableReg, uint32_t);
 		IO_REG_WRAPPER(RCC->AHB2ENR, Ahb2ClockEnableReg, uint32_t);
 		IO_REG_WRAPPER(RCC->AHB3ENR, Ahb3ClockEnableReg, uint32_t);
-		
+
 		IO_REG_WRAPPER(RCC->APB1RSTR1, Apb1ResetReg1, uint32_t);
 		IO_REG_WRAPPER(RCC->APB1RSTR2, Apb1ResetReg2, uint32_t);
-	
+
 		IO_REG_WRAPPER(RCC->APB2RSTR, Apb2ResetReg, uint32_t);
-		
+
 		IO_REG_WRAPPER(RCC->AHB1RSTR, Ahb1ResetReg, uint32_t);
 		IO_REG_WRAPPER(RCC->AHB2RSTR, Ahb2ResetReg, uint32_t);
 		IO_REG_WRAPPER(RCC->AHB3RSTR, Ahb3ResetReg, uint32_t);
-		
+
+        enum class LpUsartClockSrc
+        {
+            Pclk,
+            SysClock,
+            Hsi,
+            Lse
+        };
+
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, Usart1Sel,   uint32_t, 0, 2);
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, Usart2Sel,   uint32_t, 2, 2);
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, Usart3Sel,   uint32_t, 4, 2);
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, Usart4Sel,   uint32_t, 6, 2);
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, Usart5Sel,   uint32_t, 8, 2);
-		IO_BITFIELD_WRAPPER(RCC->CCIPR, LpUsart1Sel, uint32_t, 10, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, LpUsart1Sel, LpUsartClockSrc, 10, 2);
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, I2c1Sel,     uint32_t, 12, 2);
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, I2c2Sel,     uint32_t, 14, 2);
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, I2c3Sel,     uint32_t, 16, 2);
@@ -383,14 +391,14 @@ namespace Mcucpp
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, Clk48Sel,    uint32_t, 26, 2);
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, AdcSel,      AdcClockSel, 28, 2);
 
-		
+
 		typedef ClockResetControl<Ahb1ClockEnableReg, RCC_AHB1ENR_DMA1EN      , Ahb1ResetReg, RCC_AHB1RSTR_DMA1RST, AhbClock> Dma1Clock;
 		typedef ClockResetControl<Ahb1ClockEnableReg, RCC_AHB1ENR_DMA2EN      , Ahb1ResetReg, RCC_AHB1RSTR_DMA2RST, AhbClock> Dma2Clock;
 		typedef ClockResetControl<Ahb1ClockEnableReg, RCC_AHB1ENR_CRCEN       , Ahb1ResetReg, RCC_AHB1RSTR_CRCRST, AhbClock> CrcClock;
 		typedef ClockResetControl<Ahb1ClockEnableReg, RCC_AHB1ENR_FLASHEN     , Ahb1ResetReg, RCC_AHB1RSTR_FLASHRST, AhbClock> FlashClock;
 		typedef ClockResetControl<Ahb1ClockEnableReg, RCC_AHB1ENR_TSCEN       , Ahb1ResetReg, RCC_AHB1RSTR_TSCRST, AhbClock> TscClock;
-		
-		
+
+
 		typedef ClockResetControl<Ahb2ClockEnableReg, RCC_AHB2ENR_GPIOAEN, Ahb2ResetReg, RCC_AHB2RSTR_GPIOARST, AhbClock> GpioaClock;
 		typedef ClockResetControl<Ahb2ClockEnableReg, RCC_AHB2ENR_GPIOBEN, Ahb2ResetReg, RCC_AHB2RSTR_GPIOBRST, AhbClock> GpiobClock;
 		typedef ClockResetControl<Ahb2ClockEnableReg, RCC_AHB2ENR_GPIOCEN, Ahb2ResetReg, RCC_AHB2RSTR_GPIOCRST, AhbClock> GpiocClock;
@@ -401,11 +409,11 @@ namespace Mcucpp
 		typedef ClockResetControl<Ahb2ClockEnableReg, RCC_AHB2ENR_GPIOHEN, Ahb2ResetReg, RCC_AHB2RSTR_GPIOHRST, AhbClock> GpiohClock;
 		typedef ClockResetControl<Ahb2ClockEnableReg, RCC_AHB2ENR_RNGEN  , Ahb2ResetReg, RCC_AHB2RSTR_RNGRST, AhbClock> RngClock;
 		typedef ClockResetControl<Ahb2ClockEnableReg, RCC_AHB2ENR_ADCEN  , Ahb2ResetReg, RCC_AHB2RSTR_ADCRST, AhbClock> AdcClock;
-		
+
 		typedef ClockResetControl<Ahb3ClockEnableReg, RCC_AHB3ENR_QSPIEN , Ahb3ResetReg, RCC_AHB3RSTR_QSPIRST, AhbClock> QspiClock;
 		typedef ClockResetControl<Ahb3ClockEnableReg, RCC_AHB3ENR_FMCEN  , Ahb3ResetReg, RCC_AHB3RSTR_FMCRST, AhbClock>  FmcClock;
-		
-		
+
+
 		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_LPTIM1EN, Apb1ResetReg1, RCC_APB1RSTR1_LPTIM1RST, Apb1Clock>  LpTim1Clock;
 		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_OPAMPEN , Apb1ResetReg1, RCC_APB1RSTR1_OPAMPRST , Apb1Clock>  OpampClock;
 		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_DAC1EN  , Apb1ResetReg1, RCC_APB1RSTR1_DAC1RST  , Apb1Clock>  Dac1Clock;
@@ -427,12 +435,12 @@ namespace Mcucpp
 		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_TIM4EN  , Apb1ResetReg1, RCC_APB1RSTR1_TIM4RST  , Apb1Clock>  Tim4Clock;
 		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_TIM3EN  , Apb1ResetReg1, RCC_APB1RSTR1_TIM3RST  , Apb1Clock>  Tim3Clock;
 		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_TIM2EN  , Apb1ResetReg1, RCC_APB1RSTR1_TIM2RST  , Apb1Clock>  Tim2Clock;
-		
-		
+
+
 		typedef ClockResetControl<Apb1ClockReg2, RCC_APB1ENR2_LPTIM2EN  , Apb1ResetReg2, RCC_APB1RSTR2_LPTIM2RST  , Apb1Clock>  LpTim2Clock;
 		typedef ClockResetControl<Apb1ClockReg2, RCC_APB1ENR2_SWPMI1EN  , Apb1ResetReg2, RCC_APB1RSTR2_SWPMI1RST  , Apb1Clock>  Swpmi1Clock;
-		typedef ClockResetControl<Apb1ClockReg2, RCC_APB1ENR2_LPUART1EN  , Apb1ResetReg2, RCC_APB1RSTR2_LPUART1RST  , Apb1Clock>  LpUart1Clock;
-		
+		typedef ClockResetControl<Apb1ClockReg2, RCC_APB1ENR2_LPUART1EN  , Apb1ResetReg2, RCC_APB1RSTR2_LPUART1RST  , Apb1Clock>  LpUart1ClockBase;
+
 		typedef ClockResetControl<Apb2ClockReg, RCC_APB2ENR_DFSDM1EN, Apb2ResetReg, RCC_APB2RSTR_DFSDM1RST, Apb1Clock>  Dfsdm1Clock;
 		typedef ClockResetControl<Apb2ClockReg, RCC_APB2ENR_SAI2EN  , Apb2ResetReg, RCC_APB2RSTR_SAI2RST  , Apb1Clock>  Sai2Clock;
 		typedef ClockResetControl<Apb2ClockReg, RCC_APB2ENR_SAI1EN  , Apb2ResetReg, RCC_APB2RSTR_SAI1RST  , Apb1Clock>  Sai1Clock;
@@ -445,8 +453,33 @@ namespace Mcucpp
 		typedef ClockResetControl<Apb2ClockReg, RCC_APB2ENR_TIM1EN  , Apb2ResetReg, RCC_APB2RSTR_TIM1RST, Apb1Clock>  Tim1Clock;
 		typedef ClockResetControl<Apb2ClockReg, RCC_APB2ENR_SDMMC1EN  , Apb2ResetReg, RCC_APB2RSTR_SDMMC1RST, Apb1Clock>  Sdmmc1Clock;
 		typedef ClockResetControl<Apb2ClockReg, RCC_APB2ENR_SYSCFGEN  , Apb2ResetReg, RCC_APB2RSTR_SYSCFGRST, Apb1Clock>  SyscfgClock;
-		
-	
+
+        struct LpUart1Clock: public LpUart1ClockBase
+        {
+            static inline void SelectClockSource(LpUsartClockSrc clockSource)
+            {
+                LpUsart1Sel::Set(clockSource);
+            }
+
+            static inline uint32_t ClockFreq()
+            {
+                switch(LpUsart1Sel::Get())
+                {
+                    case LpUsartClockSrc::Pclk:
+                        return Apb1Clock::ClockFreq();
+                    case LpUsartClockSrc::SysClock:
+                        return SysClock::ClockFreq();
+                    case LpUsartClockSrc::Hsi:
+                        return HsiClock::ClockFreq();
+                    case LpUsartClockSrc::Lse:
+                        // TODO: implement
+                        //return LseClock::ClockFreq();
+                        return 0;
+                }
+                return 0;
+            }
+        };
+
 		bool ClockBase::EnableClockSource(unsigned turnOnMask,  unsigned waitReadyMask)
 		{
 			uint32_t timeoutCounter = 0;
@@ -457,7 +490,7 @@ namespace Mcucpp
 			}
 			return (RCC->CR & waitReadyMask) != 0;
 		}
-		
+
 		bool ClockBase::DisablelockSource(unsigned turnOnMask,  unsigned waitReadyMask)
 		{
 			uint32_t timeoutCounter = 0;
@@ -468,7 +501,7 @@ namespace Mcucpp
 			}
 			return (RCC->CR & waitReadyMask) == 0;
 		}
-		
+
 		uint32_t PllClock::CalcVco(uint32_t vco, uint32_t &resPllm, uint32_t &resPlln)
 		{
 			const uint32_t inputClock = SrcClockFreq();
@@ -506,7 +539,7 @@ namespace Mcucpp
 			}
 			return bestVco;
 		}
-		
+
 		uint32_t PllClock::SrcClockFreq()
 		{
 			switch(PllSrc::Get())
@@ -518,17 +551,17 @@ namespace Mcucpp
 				case PllClockSource::External: return HseClock::ClockFreq();
 			}
 		}
-		
+
 		void PllClock::SelectClockSource(PllClockSource clockSource)
 		{
 			PllSrc::Set(clockSource);
 		}
-		
+
 		uint32_t PllClock::SetClockFreq(uint32_t freq)
 		{
 			if(freq > PllMaxFreq)
 				freq = PllMaxFreq;
-			
+
 			uint32_t	resPllr = 0,
 						resPllm = 0,
 						resPlln = 0,
@@ -544,7 +577,7 @@ namespace Mcucpp
 				if(vco == 0)
 					continue;
 				uint32_t pllr = (vco + freq/2) / freq;
-				if(pllr == 0 || ((pllr & 1) != 0))
+				if((pllr & 1) != 0)
 					continue;
 				if(pllr < 2)
 					continue;
@@ -556,7 +589,7 @@ namespace Mcucpp
 				uint32_t err;
 				if(realFreq > freq)
 					err = realFreq - freq;
-				else 
+				else
 					err = freq - realFreq;
 				if(err < minErr)
 				{
@@ -571,12 +604,12 @@ namespace Mcucpp
 			if(resPllr == 0 || resPlln == 0 || resPllm == 0 )
 				return 0;
 			PllN::Set(resPlln);
-			PllM::Set(resPllm);
-			PllP::Set((resPllr - 2) / 2);
+			PllM::Set(resPllm-1);
+			PllR::Set((resPllr - 2) / 2);
 
 			return bestFreq;
 		}
-		
+
 		uint32_t PllClock::ClockFreq()
 		{
 			uint32_t plln = PllN::Get();
@@ -587,7 +620,7 @@ namespace Mcucpp
 				return 0;
 			return SrcClockFreq() / div * plln;
 		}
-		
+
 		bool PllClock::Enable()
 		{
 			if ((RCC->PLLCFGR & RCC_PLLCFGR_PLLSRC) == 0)
@@ -598,19 +631,21 @@ namespace Mcucpp
 			else
 				if (!HseClock::Enable())
 					return false;
+            RCC->PLLCFGR |= RCC_PLLCFGR_PLLREN;
+
 			return ClockBase::EnableClockSource(RCC_CR_PLLON, RCC_CR_PLLRDY);
 		}
-		
+
 		void PllClock::Disable()
 		{
 			ClockBase::DisablelockSource(RCC_CR_PLLON, RCC_CR_PLLRDY);
 		}
-		
+
 		ClockErrorCode SysClock::SelectClockSource(SysClockSource clockSource)
 		{
 			uint32_t currentFreq = ClockFreq();
 			uint32_t targetFreq;
-			
+
 			if(clockSource == SysClockSource::Msi)
 			{
 				if (!MsiClock::Enable())
@@ -641,7 +676,7 @@ namespace Mcucpp
 				targetFreq = PllClock::ClockFreq();
 			}else
 				return ClockErrorCode::InvalidClockSource;
-				
+
 			PwrClock::Enable();
 			PWR->CR1 |= PWR_CR1_VOS;
 			AhbClock::SetPrescaller(AhbPrescaller::Div1);
@@ -652,10 +687,10 @@ namespace Mcucpp
 			{
 				Flash::ConfigureFreq(targetFreq);
 			}
-			
+
 			SysClockSwitch::Set(clockSource);
-			
-			uint32_t timeout = 10000;
+
+			uint32_t timeout = 100000;
 			while (SysClockStatus::Get() != clockSource && --timeout)
 			{
 			}
@@ -669,7 +704,7 @@ namespace Mcucpp
 			}
 			return ClockErrorCode::Success;
 		}
-		
+
 		uint32_t SysClock::SetClockFreq(uint32_t freq)
 		{
 			SelectClockSource(SysClockSource::Internal);
@@ -685,10 +720,10 @@ namespace Mcucpp
 				MsiClock::SetClockFreq(freq);
 				SelectClockSource(SysClockSource::Msi);
 			}
-			
+
 			return ClockFreq();
 		}
-		
+
 		uint32_t SysClock::ClockFreq()
 		{
 			switch (SysClockStatus::Get())
@@ -700,7 +735,7 @@ namespace Mcucpp
 			}
 			return 0;
 		}
-		
+
 		uint32_t SysClock::SrcClockFreq()
 		{
 			return ClockFreq();
