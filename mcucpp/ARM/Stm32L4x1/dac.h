@@ -43,7 +43,7 @@ class Dac1_1
 {
 public:
     typedef uint16_t DataT;
-    static constexpr DataT MaxValue = 4096;
+    static constexpr DataT MaxValue = 4095;
 
     static inline void Init()
     {
