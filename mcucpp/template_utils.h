@@ -217,8 +217,10 @@ namespace Mcucpp
 		template<> struct HiResType<uint16_t> { typedef uint32_t Result; };
 		template<> struct HiResType <int16_t> { typedef  int32_t Result; };
 		template<> struct HiResType<uint32_t> { typedef uint64_t Result; };
-		template<> struct HiResType <int32_t> { typedef uint64_t Result; };
-
+		template<> struct HiResType <int32_t> { typedef  int64_t Result; };
+		template<> struct HiResType <float>   { typedef    float Result; };
+		template<> struct HiResType <double>  { typedef   double Result; };
+		
 		template<unsigned long x>
 		class PopulatedBits
 		{

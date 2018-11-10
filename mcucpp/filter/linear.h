@@ -28,8 +28,49 @@
 #pragma once
 #include <stddef.h>
 #include <template_utils.h>
+#include <algorithm>
+#include <numeric>
+#include <iterator>
 
 namespace Mcucpp
 {
-	// TODO: implement
+	template <class DataT, class AFactorsT, class BFactorsT>
+	class LinearFilter
+	{
+		typedef typename Util::HiResType<DataT>::Result AccumT;
+		AFactorsT _a;
+		BFactorsT _b;
+		AccumT _scale;
+		
+	public:
+		template<class T>
+		LinearFilter(std::initializer_list<T> a, std::initializer_list<T> b)
+			:_a(a),
+			_b(b)
+		{
+			_scale = std::accumulate(std::begin(_a), std::end(_a), AccumT(0));
+			_scale += std::accumulate(std::begin(_b), std::end(_b), AccumT(0));
+		}
+		
+		template<class InputIterator, class OutputIterator>
+		void Filter(InputIterator first, InputIterator last, OutputIterator dest)
+		{
+			InputIterator current = first;
+			OutputIterator out = dest;
+			auto asize = std::distance(std::begin(_a), std::end(_a));
+			auto bsize = std::distance(std::begin(_b), std::end(_b));
+			
+			while (current != last)
+			{
+				AccumT aAccum = std::inner_product(std::max(first, current - asize + 1), current + 1, std::begin(_a), AccumT(0));
+				AccumT bAccum = std::inner_product(std::max(dest, out - bsize), out, std::begin(_b), AccumT(0));
+				
+				*out = static_cast<DataT>( (bAccum + aAccum) / _scale);
+				std::cout << std::dec << *current << "\t" <<  bAccum << "\t" << aAccum << "\t" << *out << std::endl;
+				
+				++current;
+				++out;
+			}
+		}
+	};
 }

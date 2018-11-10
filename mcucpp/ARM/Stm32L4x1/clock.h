@@ -367,13 +367,20 @@ namespace Mcucpp
 		IO_REG_WRAPPER(RCC->AHB2RSTR, Ahb2ResetReg, uint32_t);
 		IO_REG_WRAPPER(RCC->AHB3RSTR, Ahb3ResetReg, uint32_t);
 
-        enum class LpUsartClockSrc
-        {
-            Pclk,
-            SysClock,
-            Hsi,
-            Lse
-        };
+		enum class LpUsartClockSrc
+		{
+			Pclk,
+			SysClock,
+			Hsi,
+			Lse
+		};
+		
+		enum class I2cClockSrc
+		{
+			Pclk,
+			SysClock,
+			Hsi
+		};
 
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, Usart1Sel,   uint32_t, 0, 2);
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, Usart2Sel,   uint32_t, 2, 2);
@@ -381,9 +388,9 @@ namespace Mcucpp
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, Usart4Sel,   uint32_t, 6, 2);
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, Usart5Sel,   uint32_t, 8, 2);
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, LpUsart1Sel, LpUsartClockSrc, 10, 2);
-		IO_BITFIELD_WRAPPER(RCC->CCIPR, I2c1Sel,     uint32_t, 12, 2);
-		IO_BITFIELD_WRAPPER(RCC->CCIPR, I2c2Sel,     uint32_t, 14, 2);
-		IO_BITFIELD_WRAPPER(RCC->CCIPR, I2c3Sel,     uint32_t, 16, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, I2c1Sel,     I2cClockSrc, 12, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, I2c2Sel,     I2cClockSrc, 14, 2);
+		IO_BITFIELD_WRAPPER(RCC->CCIPR, I2c3Sel,     I2cClockSrc, 16, 2);
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, LpTim1Sel,   uint32_t, 18, 2);
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, LpTim2Sel,   uint32_t, 20, 2);
 		IO_BITFIELD_WRAPPER(RCC->CCIPR, Sai1Sel,     uint32_t, 22, 2);
@@ -419,9 +426,9 @@ namespace Mcucpp
 		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_DAC1EN  , Apb1ResetReg1, RCC_APB1RSTR1_DAC1RST  , Apb1Clock>  Dac1Clock;
 		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_PWREN   , Apb1ResetReg1, RCC_APB1RSTR1_PWRRST   , Apb1Clock>  PwrClock;
 		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_CAN1EN  , Apb1ResetReg1, RCC_APB1RSTR1_CAN1RST  , Apb1Clock>  Can1Clock;
-		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_I2C3EN  , Apb1ResetReg1, RCC_APB1RSTR1_I2C3RST  , Apb1Clock>  I2c3Clock;
-		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_I2C2EN  , Apb1ResetReg1, RCC_APB1RSTR1_I2C2RST  , Apb1Clock>  I2c2Clock;
-		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_I2C1EN  , Apb1ResetReg1, RCC_APB1RSTR1_I2C1RST  , Apb1Clock>  I2c1Clock;
+		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_I2C3EN  , Apb1ResetReg1, RCC_APB1RSTR1_I2C3RST  , Apb1Clock>  I2c3ClockBase;
+		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_I2C2EN  , Apb1ResetReg1, RCC_APB1RSTR1_I2C2RST  , Apb1Clock>  I2c2ClockBase;
+		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_I2C1EN  , Apb1ResetReg1, RCC_APB1RSTR1_I2C1RST  , Apb1Clock>  I2c1ClockBase;
 		//typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_USART5EN, Apb1ResetReg1, RCC_APB1RSTR1_USART5RST, Apb1Clock>  Usart5Clock;
 		//typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_USART4EN, Apb1ResetReg1, RCC_APB1RSTR1_USART4RST, Apb1Clock>  Usart4Clock;
 		typedef ClockResetControl<Apb1ClockReg1, RCC_APB1ENR1_USART3EN, Apb1ResetReg1, RCC_APB1RSTR1_USART3RST, Apb1Clock>  Usart3Clock;
@@ -454,31 +461,58 @@ namespace Mcucpp
 		typedef ClockResetControl<Apb2ClockReg, RCC_APB2ENR_SDMMC1EN  , Apb2ResetReg, RCC_APB2RSTR_SDMMC1RST, Apb1Clock>  Sdmmc1Clock;
 		typedef ClockResetControl<Apb2ClockReg, RCC_APB2ENR_SYSCFGEN  , Apb2ResetReg, RCC_APB2RSTR_SYSCFGRST, Apb1Clock>  SyscfgClock;
 
-        struct LpUart1Clock: public LpUart1ClockBase
-        {
-            static inline void SelectClockSource(LpUsartClockSrc clockSource)
-            {
-                LpUsart1Sel::Set(clockSource);
-            }
+		struct LpUart1Clock: public LpUart1ClockBase
+		{
+			static inline void SelectClockSource(LpUsartClockSrc clockSource)
+			{
+				LpUsart1Sel::Set(clockSource);
+			}
 
-            static inline uint32_t ClockFreq()
-            {
-                switch(LpUsart1Sel::Get())
-                {
-                    case LpUsartClockSrc::Pclk:
-                        return Apb1Clock::ClockFreq();
-                    case LpUsartClockSrc::SysClock:
-                        return SysClock::ClockFreq();
-                    case LpUsartClockSrc::Hsi:
-                        return HsiClock::ClockFreq();
-                    case LpUsartClockSrc::Lse:
-                        // TODO: implement
-                        //return LseClock::ClockFreq();
-                        return 0;
-                }
-                return 0;
-            }
-        };
+			static inline uint32_t ClockFreq()
+			{
+				switch(LpUsart1Sel::Get())
+				{
+					case LpUsartClockSrc::Pclk:
+						return Apb1Clock::ClockFreq();
+					case LpUsartClockSrc::SysClock:
+						return SysClock::ClockFreq();
+					case LpUsartClockSrc::Hsi:
+						return HsiClock::ClockFreq();
+					case LpUsartClockSrc::Lse:
+						// TODO: implement
+						//return LseClock::ClockFreq();
+						return 0;
+				}
+				return 0;
+			}
+		};
+		
+		template<class Base, class ClockSel>
+		struct I2c1ClockTemplate: public Base
+		{
+			static inline void SelectClockSource(I2cClockSrc clockSource)
+			{
+				ClockSel::Set(clockSource);
+			}
+
+			static inline uint32_t ClockFreq()
+			{
+				switch(ClockSel::Get())
+				{
+					case I2cClockSrc::Pclk:
+						return Apb1Clock::ClockFreq();
+					case I2cClockSrc::SysClock:
+						return SysClock::ClockFreq();
+					case I2cClockSrc::Hsi:
+						return HsiClock::ClockFreq();
+				}
+				return 0;
+			}
+		};
+		
+		typedef I2c1ClockTemplate<I2c1ClockBase, I2c1Sel> I2c1Clock;
+		typedef I2c1ClockTemplate<I2c2ClockBase, I2c2Sel> I2c2Clock;
+		typedef I2c1ClockTemplate<I2c3ClockBase, I2c3Sel> I2c3Clock;
 
 		bool ClockBase::EnableClockSource(unsigned turnOnMask,  unsigned waitReadyMask)
 		{

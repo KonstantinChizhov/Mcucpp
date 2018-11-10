@@ -206,8 +206,6 @@ namespace Mcucpp
 		template<class ... Inpunts>
         static inline bool StartSequence(uint16_t *dataBuffer, uint16_t scanCount)
         {
-            static_assert(Pins::template PinIndex<Inpunts>::Value >= 0, "This input is not available for ADC");
-
              return StartSequence( {Pins::template PinIndex<Inpunts>::Value... }, dataBuffer, scanCount);
         }
 
