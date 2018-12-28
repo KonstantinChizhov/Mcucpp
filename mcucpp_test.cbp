@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="mcucpp_test.exe" />
+		<Option makefile="SConstruct" />
+		<Option compiler="gcc" />
+		<MakeCommands>
+			<Build command="scons.bat -f $makefile $target" />
+			<CompileFile command="scons.bat -f $makefile $file" />
+			<Clean command="scons.bat -f $makefile $target -c" />
+			<DistClean command="scons.bat -f $makefile $target -c" />
+			<AskRebuildNeeded command="echo 1" />
+			<SilentBuild command="scons.bat -f $makefile $target &gt; $(CMD_NULL)" />
+		</MakeCommands>
+		<Build>
+			<Target title="UnitTests">
+				<Option output="build/tests/UnitTests/mcucpp_test.exe" prefix_auto="0" extension_auto="0" />
+				<Option object_output="build/tests/UnitTests" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="3rdparty/include" />
+					<Add directory="3rdparty/googletest/googletest/include" />
+					<Add directory="3rdparty/googletest/googlemock/include" />
+					<Add directory="3rdparty/googletest/googletest" />
+					<Add directory="3rdparty/googletest/googlemock" />
+					<Add directory="mcucpp" />
+					<Add directory="mcucpp/Test" />
+					<Add directory="." />
+				</Compiler>
+				<MakeCommands>
+					<Build command="scons.bat -f $makefile $target" />
+					<CompileFile command="scons.bat -f $makefile $file" />
+					<Clean command="scons.bat -f $makefile $target -c" />
+					<DistClean command="scons.bat -f $makefile $target -c" />
+					<AskRebuildNeeded command="echo 1" />
+					<SilentBuild command="scons.bat -f $makefile $target" />
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/gmock-actions.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/gmock-cardinalities.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/gmock-function-mocker.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/gmock-generated-actions.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/gmock-generated-function-mockers.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/gmock-generated-matchers.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/gmock-matchers.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/gmock-more-actions.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/gmock-more-matchers.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/gmock-nice-strict.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/gmock-spec-builders.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/gmock.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/internal/custom/gmock-generated-actions.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/internal/custom/gmock-matchers.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/internal/custom/gmock-port.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/internal/gmock-generated-internal-utils.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/internal/gmock-internal-utils.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/internal/gmock-port.h" />
+		<Unit filename="3rdparty/googletest/googlemock/include/gmock/internal/gmock-pp.h" />
+		<Unit filename="3rdparty/googletest/googlemock/src/gmock-cardinalities.cc">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="3rdparty/googletest/googlemock/src/gmock-internal-utils.cc">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="3rdparty/googletest/googlemock/src/gmock-matchers.cc">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="3rdparty/googletest/googlemock/src/gmock-spec-builders.cc">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="3rdparty/googletest/googlemock/src/gmock.cc">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="3rdparty/googletest/googlemock/src/gmock_main.cc">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/gtest-death-test.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/gtest-matchers.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/gtest-message.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/gtest-param-test.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/gtest-printers.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/gtest-spi.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/gtest-test-part.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/gtest-typed-test.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/gtest.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/gtest_pred_impl.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/gtest_prod.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/internal/custom/gtest-port.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/internal/custom/gtest-printers.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/internal/custom/gtest.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/internal/gtest-death-test-internal.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/internal/gtest-filepath.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/internal/gtest-internal.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/internal/gtest-param-util-generated.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/internal/gtest-param-util.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/internal/gtest-port-arch.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/internal/gtest-port.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/internal/gtest-string.h" />
+		<Unit filename="3rdparty/googletest/googletest/include/gtest/internal/gtest-type-util.h" />
+		<Unit filename="3rdparty/googletest/googletest/src/gtest-death-test.cc">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="3rdparty/googletest/googletest/src/gtest-filepath.cc">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="3rdparty/googletest/googletest/src/gtest-internal-inl.h" />
+		<Unit filename="3rdparty/googletest/googletest/src/gtest-matchers.cc">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="3rdparty/googletest/googletest/src/gtest-port.cc">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="3rdparty/googletest/googletest/src/gtest-printers.cc">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="3rdparty/googletest/googletest/src/gtest-test-part.cc">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="3rdparty/googletest/googletest/src/gtest-typed-test.cc">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="3rdparty/googletest/googletest/src/gtest.cc">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="3rdparty/include/loki/NullType.h" />
+		<Unit filename="3rdparty/include/loki/TypeManip.h" />
+		<Unit filename="3rdparty/include/loki/Typelist.h" />
+		<Unit filename="3rdparty/include/loki/TypelistMacros.h" />
+		<Unit filename="mcucpp/Dispatcher.h" />
+		<Unit filename="mcucpp/DividerSelector.h" />
+		<Unit filename="mcucpp/Test/_atomic.h" />
+		<Unit filename="mcucpp/Test/_debug.h" />
+		<Unit filename="mcucpp/Test/clock.h" />
+		<Unit filename="mcucpp/Test/ports.h" />
+		<Unit filename="mcucpp/Test/saturated_impl.h" />
+		<Unit filename="mcucpp/Test/timers.h" />
+		<Unit filename="mcucpp/Test/usart.h" />
+		<Unit filename="mcucpp/Timeout.h" />
+		<Unit filename="mcucpp/allocators/bitmap_alloc.h" />
+		<Unit filename="mcucpp/allocators/src/bitmap_alloc.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="mcucpp/array.h" />
+		<Unit filename="mcucpp/atomic.h" />
+		<Unit filename="mcucpp/binary_stream.h" />
+		<Unit filename="mcucpp/bit_functions.h" />
+		<Unit filename="mcucpp/buffered_output.h" />
+		<Unit filename="mcucpp/char_trates.h" />
+		<Unit filename="mcucpp/compiler.h" />
+		<Unit filename="mcucpp/crc.h" />
+		<Unit filename="mcucpp/data_buffer.h" />
+		<Unit filename="mcucpp/data_transfer.h" />
+		<Unit filename="mcucpp/debug.h" />
+		<Unit filename="mcucpp/delegate.h" />
+		<Unit filename="mcucpp/div.h" />
+		<Unit filename="mcucpp/drivers/7segments.h" />
+		<Unit filename="mcucpp/drivers/servo.h" />
+		<Unit filename="mcucpp/enum.h" />
+		<Unit filename="mcucpp/fastdiv10.h" />
+		<Unit filename="mcucpp/filter/linear.h" />
+		<Unit filename="mcucpp/fixedpoint.h" />
+		<Unit filename="mcucpp/flashptr.h" />
+		<Unit filename="mcucpp/format_parser.h" />
+		<Unit filename="mcucpp/impl/fixedpointimpl.h" />
+		<Unit filename="mcucpp/impl/format_parser.h" />
+		<Unit filename="mcucpp/impl/ftoa_engine.h" />
+		<Unit filename="mcucpp/impl/iopin.h" />
+		<Unit filename="mcucpp/impl/modbus_impl.h" />
+		<Unit filename="mcucpp/impl/pinlist.h" />
+		<Unit filename="mcucpp/impl/tiny_ios.h" />
+		<Unit filename="mcucpp/impl/tiny_ostream.h" />
+		<Unit filename="mcucpp/iopin.h" />
+		<Unit filename="mcucpp/iopins.h" />
+		<Unit filename="mcucpp/ioports.h" />
+		<Unit filename="mcucpp/iterator.h" />
+		<Unit filename="mcucpp/memory_reader.h" />
+		<Unit filename="mcucpp/mempool.h" />
+		<Unit filename="mcucpp/modbus.h" />
+		<Unit filename="mcucpp/mul32hu.h" />
+		<Unit filename="mcucpp/net/net_addr.h" />
+		<Unit filename="mcucpp/pinlist.h" />
+		<Unit filename="mcucpp/ring_buffer.h" />
+		<Unit filename="mcucpp/saturated.h" />
+		<Unit filename="mcucpp/select_size.h" />
+		<Unit filename="mcucpp/soft_saturated.h" />
+		<Unit filename="mcucpp/src/data_buffer.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="mcucpp/src/dispatcher.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="mcucpp/src/modbus.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="mcucpp/stack.h" />
+		<Unit filename="mcucpp/static_assert.h" />
+		<Unit filename="mcucpp/static_if.h" />
+		<Unit filename="mcucpp/string_util.h" />
+		<Unit filename="mcucpp/template_utils.h" />
+		<Unit filename="mcucpp/timer_utils.h" />
+		<Unit filename="mcucpp/tiny_iomanip.h" />
+		<Unit filename="mcucpp/tiny_ios.h" />
+		<Unit filename="mcucpp/tiny_istream.h" />
+		<Unit filename="mcucpp/tiny_ostream.h" />
+		<Unit filename="mcucpp/utf8.h" />
+		<Unit filename="tests/UnitTests/7Segments.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/BinaryStream.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/DataBuffer.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/DelegateTest.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/DispatcherTest.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/DivTest.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/FormatWriter.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/ModbusTests.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/PinList.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/ServoTest.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/UsartTests.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/bitmap_alloc.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/containers.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/crc.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/div64x32sTests.h" />
+		<Unit filename="tests/UnitTests/div64x32uTests.h" />
+		<Unit filename="tests/UnitTests/encoding.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/filter.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/first_zero_bit.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/fixedpoint.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/istream_test.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/mem_pool.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/memory_reader.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/saturated.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/UnitTests/timers.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<debugger>
+				<remote_debugging>
+					<options conn_type="0" serial_baud="115200" ip_address="localhost" ip_port="4242" />
+				</remote_debugging>
+				<remote_debugging target="UnitTests">
+					<options conn_type="0" serial_baud="115200" ip_address="localhost" ip_port="4242" />
+				</remote_debugging>
+			</debugger>
+			<code_completion />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
