@@ -19,10 +19,10 @@ def unit_test_emitter(target, source, env):
 	
 def generate(env, **kw):
 	env['ENV'] = os.environ 
-	# if env.Detect('mingw32-gcc'):
-		# env.Tool('mingw')
-	# else:
-	env.Tool('default')
+	if env.Detect('mingw32-gcc'):
+		env.Tool('mingw')
+	else:
+		env.Tool('default')
 	
 	print( 'Used C compiler "%s"' % env['CC'])
 	
@@ -41,9 +41,12 @@ def generate(env, **kw):
 		env.Append(CPPPATH=['%s/tests/include' % env['MCUCPP_HOME']])
 	
 	if env['CC'] == 'gcc':
-		env.Append(CXXFLAGS = ['-std=c++14'])
+		env.Append(CXXFLAGS = ['-std=gnu++14'])
+		env.Append(CXXFLAGS = ['-static-libgcc', '-static-libstdc++' ])
 		
-		
+	
+	env.Append(CPPDEFINES={'GTEST_OS_WINDOWS':'1', 'GTEST_HAS_PTHREAD':'0', 'EMULATE_GLIBC':'1', '_EMULATE_GLIBC':'1'})
+	
 	programBuilder = env['BUILDERS']['Program']
 	
 	testBuilder = Builder(action = [programBuilder.action, unit_test_run], 

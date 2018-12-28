@@ -74,14 +74,14 @@ namespace Mcucpp
 			
 			enum {MaxDivider = 0xffff};
 			
-			static ClockDivider DividerValue(unsigned number)
+			static ClockDivider DividerValue(unsigned num)
 			{
-				return (ClockDivider)(number+1);
+				return (ClockDivider)(num+1);
 			}
 			
-			static uint32_t DividerCoeff(unsigned number)
+			static uint32_t DividerCoeff(unsigned num)
 			{
-				return number + 1;
+				return num + 1;
 			}
 			
 			static uint32_t ClockFreq()      { return Clock::SysClock::ClockFreq(); }

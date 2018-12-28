@@ -2,8 +2,12 @@
 testEnv = Environment(toolpath = ['#/scons'], tools=['mcucpp'])
 
 testEnv.Append(CPPPATH = '#/./')
+testEnv.Tool('code-blocks')
 
 tests = testEnv.Object(testEnv.Glob('*.cpp'))
+testEnv['CURRENT_BUILD_TARGET'] = 'UnitTests'
 
 test_result = testEnv.Test('mcucpp_test', tests)
-testEnv.Alias("UnitTests", test_result)
+proj = testEnv.CodeBlocksProject('#/mcucpp_test.cbp', test_result)
+
+testEnv.Alias("UnitTests", [test_result])

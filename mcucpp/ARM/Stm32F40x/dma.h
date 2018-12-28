@@ -42,31 +42,28 @@ namespace Mcucpp
 	};
 	
 	DECLARE_ENUM_OPERATIONS(DmaBase::Mode)
-	
-	static inline void VoidDmaCallback(void *, size_t, bool){}
-	
+		
 	struct DmaChannelData
 	{
 		DmaChannelData()
-			:transferCallback(VoidDmaCallback),
+			:transferCallback(nullptr),
             data(nullptr),
             size(0)
 		{}
-		TransferCallback transferCallback;
+		TransferCallbackFunc transferCallback;
 		
 		void *data;
 		uint16_t size;
 		
 		inline void NotifyTransferComplete()
 		{
-			TransferCallback callback = transferCallback;
-			//transferCallback = VoidDmaCallback;
+			TransferCallbackFunc callback = transferCallback;
 			callback(data, size, true);
 		}
 		
 		inline void NotifyError()
 		{
-			TransferCallback callback = transferCallback;
+			TransferCallbackFunc callback = transferCallback;
 			//errorCallback = VoidDmaCallback;
 			callback(data, size, false);
 		}
@@ -100,13 +97,13 @@ namespace Mcucpp
 			//ChannelRegs()->FCR
 			ChannelData.data = const_cast<void*>(buffer);
 			ChannelData.size = bufferSize;
-			if(ChannelData.transferCallback != VoidDmaCallback)
+			if(ChannelData.transferCallback)
 				mode = mode | TransferCompleteInterrupt | TransferErrorInterrupt;
 			ChannelRegs()->CR = mode | DMA_SxCR_EN | ((channel & 0x07) << 25);
 			NVIC_EnableIRQ(IQRNumber);
 		}
 		
-		static void SetTransferCallback(TransferCallback callback)
+		static void SetTransferCallback(TransferCallbackFunc callback)
 		{
 			ChannelData.transferCallback = callback;
 		}

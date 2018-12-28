@@ -351,12 +351,12 @@ namespace Mcucpp
 				}
 			}
 			
-			static void SetTxCompleteCallback(TransferCallback callback)
+			static void SetTxCompleteCallback(TransferCallbackFunc callback)
 			{
 				DmaTxChannel::SetTransferCallback(callback);
 			}
 			
-			static void SetRxCompleteCallback(TransferCallback callback)
+			static void SetRxCompleteCallback(TransferCallbackFunc callback)
 			{
 				DmaRxChannel::SetTransferCallback(callback);
 			}

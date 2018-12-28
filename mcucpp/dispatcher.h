@@ -71,20 +71,20 @@ namespace Mcucpp
 		{
 			return (static_cast<ObjectT*>(object)->* Func)();
 		}
-		Dispatcher(const Dispatcher&);
-		Dispatcher &operator=(const Dispatcher&);
-		
+		Dispatcher(const Dispatcher&)=delete;
+		Dispatcher &operator=(const Dispatcher&)=delete;
+
 		static void SimpleTaskAdapter(void *simple_task)
 		{
 			reinterpret_cast<simple_task_t>(simple_task)();
 		}
-		
+
 		template<class FunctorT>
 		static void FunctorAdapter(void *functorPtr)
 		{
 			(*reinterpret_cast<FunctorT*>(functorPtr))();
 		}
-		
+
 	public:
 		Dispatcher(TaskItem *taskStorage, size_t tasksCount, TimerData *timerStorage, size_t timersCount)
 			:_timerSequence(0),
@@ -105,17 +105,23 @@ namespace Mcucpp
 		}
 
 		template<class FunctorT>
+		bool SetTask(const FunctorT &functor)
+		{
+			return SetTask(&FunctorAdapter<FunctorT>, (void*)&functor);
+		}
+
+		template<class FunctorT>
 		bool SetTask(FunctorT &functor)
 		{
 			return SetTask(&FunctorAdapter<FunctorT>, (void*)&functor);
 		}
-		
+
 		template<class ObjectT, void (ObjectT::*Func)()>
 		bool SetTask(ObjectT * object)
 		{
 			return SetTask(&Invoke<ObjectT, Func>, object);
 		}
-		
+
 		bool SetTask(simple_task_t task)
 		{
 			return SetTask(SimpleTaskAdapter, (void*)task);
@@ -139,7 +145,7 @@ namespace Mcucpp
 		{
 			return SetTimer(time, &Invoke<ObjectT, Func>, object);
 		}
-		
+
 		uint32_t SetTimer(uint32_t period, simple_task_t timerTask)
 		{
 			return SetTimer(period, SimpleTaskAdapter, (void*)timerTask);
@@ -203,7 +209,7 @@ namespace Mcucpp
 				}
 			}
 		}
-		
+
 		void StopTimer(uint32_t id)
 		{
 			for(size_t i=0; i < _timersLen; i++)
@@ -260,8 +266,8 @@ namespace Mcucpp
 		TimerData *_timers;
 		GetTimerTicksFuncT GetTimerTicksFunc;
 	};
-	
-	
+
+
 	Dispatcher &GetCurrentDispatcher();
 }
 

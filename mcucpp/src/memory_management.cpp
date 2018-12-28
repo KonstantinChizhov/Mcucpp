@@ -63,6 +63,18 @@ namespace Mcucpp
 		return allocator.GetUsedSize();
 	}
 }
-	
+
 #endif
 
+#if defined (__GNUC__)
+void* __dso_handle;
+
+namespace std
+{
+	void __throw_bad_function_call()
+	{
+		while(1);
+	}
+}
+
+#endif

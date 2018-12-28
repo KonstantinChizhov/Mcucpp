@@ -56,4 +56,6 @@ namespace Mcucpp
 			NVIC_EnableIRQ(SysTick_IRQn);
 		}
 	};
+	
+	uint32_t GetTickCount();
 }

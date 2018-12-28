@@ -8,13 +8,13 @@ uint8_t DataBufferBase::_dummy = 0;
 
 DataChunk* DataChunk::GetNew(size_t size)
 {
-	size_t sizeRequired = (size + sizeof(DataChunk) + 15) & ~0x0f;
+	size_t sizeRequired = (size + sizeof(DataChunk) + 16) & ~0x0f;
 	void * ptr = new (std::nothrow) uint8_t[sizeRequired];
 	size_t storage = sizeRequired - sizeof(DataChunk);
 	if(!ptr)
 		return nullptr;
 	uint8_t *data = (uint8_t *)ptr + sizeof(DataChunk);
-	
+
 	DataChunk * dataChunk = new (ptr)DataChunk(data, size, storage);
 	return dataChunk;
 }
@@ -44,16 +44,29 @@ void DataChunk::ReleaseRecursive(DataChunk * buffer)
 	}
 }
 
+DataChunk* DataChunk::Prev(DataChunk* first) const
+{
+	while(first)
+	{
+	    if(first->Next() == this)
+        {
+            return first;
+        }
+		first = first->Next();
+	}
+	return nullptr;
+}
+
 
 DataBufferBase::DataBufferBase()
 	:_first(0),
 	_current(0),
 	_pos(0)
 {
-	
+
 }
 
-DataBufferBase::DataBufferBase(DataBufferBase &rhs)
+DataBufferBase::DataBufferBase(DataBufferBase &&rhs) noexcept
 {
 	_first = rhs._first;
 	_current = rhs._current;
@@ -61,12 +74,11 @@ DataBufferBase::DataBufferBase(DataBufferBase &rhs)
 	rhs._first = 0;
 	rhs._current = 0;
 	rhs._pos = 0;
-	
 }
 
-DataBufferBase & DataBufferBase::operator=(DataBufferBase &rhs)
+DataBufferBase& DataBufferBase::operator=(DataBufferBase&& rhs) noexcept
 {
-	Clear();
+    Clear();
 	_first = rhs._first;
 	_current = rhs._current;
 	_pos = rhs._pos;
@@ -75,6 +87,7 @@ DataBufferBase & DataBufferBase::operator=(DataBufferBase &rhs)
 	rhs._pos = 0;
 	return *this;
 }
+
 
 DataBufferBase::~DataBufferBase()
 {
@@ -101,7 +114,7 @@ bool DataBufferBase::InsertFront(size_t size)
 		next = _first;
 		buffer->_next = next;
 	}while(!Atomic::CompareExchange(&_first, next, buffer));
-	
+
 	return true;
 }
 
@@ -130,6 +143,7 @@ bool DataBufferBase::InsertBack(size_t size)
 			uint16_t lastSize = last->Size();
 			if(last->Capacity() >= lastSize + size)
 			{
+
 				if(!Atomic::CompareExchange(&last->_size, lastSize, (uint16_t)(lastSize + size)))
 					continue;
 				if(buffer)
@@ -142,7 +156,7 @@ bool DataBufferBase::InsertBack(size_t size)
 		if(!buffer)
 			return false;
 	}while(!Atomic::CompareExchange(pnext, (DataChunk *)0, buffer));
-	
+
 	return true;
 }
 
@@ -182,7 +196,7 @@ DataChunk* DataBufferBase::DetachFront()
 bool DataBufferBase::Seek(size_t pos)
 {
 	DataChunk *current = _first;
-	while(current && current->Size() < pos)
+	while(current && current->Size() <= pos)
 	{
 		pos -= current->Size();
 		current = current->Next();
