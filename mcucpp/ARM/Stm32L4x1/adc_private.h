@@ -9,17 +9,17 @@ namespace Private
 	using namespace IO;
 	typedef PinList
 	<
-		Pc0, Pc1, Pc2, Pc3,  Pa0, Pa1, Pa2, Pa3, Pa4, Pa5, Pa6, Pa7, Pc4, Pc5, Pb0, Pb1
+		NullPin, Pc0, Pc1, Pc2, Pc3,  Pa0, Pa1, Pa2, Pa3, Pa4, Pa5, Pa6, Pa7, Pc4, Pc5, Pb0, Pb1
 	> Adc1Pins;
 
 	typedef PinList
 	<
-		Pc0, Pc1, Pc2, Pc3,  Pa0, Pa1, Pa2, Pa3, Pa4, Pa5, Pa6, Pa7, Pc4, Pc5, Pb0, Pb1
+		NullPin, Pc0, Pc1, Pc2, Pc3,  Pa0, Pa1, Pa2, Pa3, Pa4, Pa5, Pa6, Pa7, Pc4, Pc5, Pb0, Pb1
 	> Adc2Pins;
 
 	typedef PinList
 	<
-		Pc0, Pc1, Pc2, Pc3, NullPin, Pf3, Pf4, Pf5, Pf6, Pf7, Pf8, Pf9, Pf10
+		NullPin, Pc0, Pc1, Pc2, Pc3, NullPin, Pf3, Pf4, Pf5, Pf6, Pf7, Pf8, Pf9, Pf10
 	> Adc3Pins;
 }
 
@@ -30,6 +30,19 @@ bool ADC_BASE_TEMPLATE_QUALIFIER::VerifyReady(unsigned readyMask)
 	while(Regs()->CR & readyMask && --timeout)
 		;
 	return timeout != 0;
+}
+ADC_BASE_TEMPLATE_ARGS
+void ADC_BASE_TEMPLATE_QUALIFIER::EnableOversampling(unsigned bits, unsigned shift)
+{
+    if(bits > 8)
+        bits = 8;
+
+    if(shift > 8)
+        shift = 8;
+
+	Regs()->CFGR2 = ADC_CFGR2_ROVSE
+        | (bits << ADC_CFGR2_OVSR_Pos)
+        | (shift << ADC_CFGR2_OVSS_Pos);
 }
 
 ADC_BASE_TEMPLATE_ARGS

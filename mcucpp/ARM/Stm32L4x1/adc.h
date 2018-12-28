@@ -170,10 +170,11 @@ namespace Mcucpp
 		static inline void SelectClockSource(ClockSource);
 		static inline void SetReference(Reference reference);
 		static inline uint8_t ChannelsCount();
+		static inline void EnableOversampling(unsigned bits, unsigned shift);
 
 		// immediate
 		static inline void SetImmediateTrigger(ImmediateTrigger trigger, TriggerMode mode);
-		// Start async conversionon group max MaxImmediate channels
+		// Start async conversion group max MaxImmediate channels
 		static inline bool StartImmediate(const uint8_t *channels, uint16_t *data, uint8_t count, AdcCallbackType callback = nullptr);
 		// Blocking conversion
 		static inline bool ReadImmediate(const uint8_t *channels, uint16_t *data, uint8_t count);
@@ -195,7 +196,7 @@ namespace Mcucpp
 		static inline bool ImmediateReady();
 		static inline void StopImmediate();
 
-		// continiuos
+		// continues
 		static inline void SetSequenceTrigger(SequenceTrigger trigger, TriggerMode mode);
 		static inline void SetSequenceCallback(AdcCallbackType callback);
 		/// start conversion sequence of channelsCount channels (maximum MaxSequence (16))

@@ -4,24 +4,24 @@
 // Date			: 2018
 // All rights reserved.
 
-// Redistribution and use in source and binary forms, with or without modification, 
+// Redistribution and use in source and binary forms, with or without modification,
 // are permitted provided that the following conditions are met:
-// Redistributions of source code must retain the above copyright notice, 
+// Redistributions of source code must retain the above copyright notice,
 // this list of conditions and the following disclaimer.
 
-// Redistributions in binary form must reproduce the above copyright notice, 
-// this list of conditions and the following disclaimer in the documentation and/or 
+// Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation and/or
 // other materials provided with the distribution.
 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
-// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY 
-// OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+// OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
 
@@ -39,36 +39,36 @@ namespace Mcucpp
 
 	enum class I2cError :uint8_t
 	{
-		NoError, Overflow, Timeout, BusError, ArbitrationError, ArgumentError, Nack, Busy, 
+		NoError, Overflow, Timeout, BusError, ArbitrationError, ArgumentError, Nack, Busy,
 	};
 
 	enum class I2cState :uint8_t
 	{
-		Idle = 0, 
-		Start = 1, 
-		DevAddr = 2, 
+		Idle = 0,
+		Start = 1,
+		DevAddr = 2,
 		RegAddrNextByte = 4,
-		RegAddr = 5, 
-		Restart = 8, 
+		RegAddr = 5,
+		Restart = 8,
 		DevAddrRead = 16,
-		Data = 32, 
+		Data = 32,
 		Stop = 64,
 	};
 
 	enum class I2cMode :uint8_t
 	{
-		Idle = 0, 
+		Idle = 0,
 		Read = 1,
 		Write = 2,
 	};
 
 	enum class I2cOpts :uint8_t
 	{
-		None = 0, 
-		
+		None = 0,
+
 		DevAddr7Bit = 0,
 		DevAddr10Bit = 1,
-		
+
 		RegAddrNone = 0,
 		RegAddr8Bit = 2,
 		RegAddr16Bit = 4,
@@ -77,7 +77,7 @@ namespace Mcucpp
 
 	typedef void (* I2cCallback)(uint16_t addr, void *data, size_t count, I2cError status);
 
-	
+
 	struct I2cData
 	{
 		I2cData()
@@ -94,7 +94,7 @@ namespace Mcucpp
 			opts(I2cOpts::None)
 		{
 		}
-		
+
 		void Reset()
 		{
 			timeoutSpins = 10000;
@@ -108,7 +108,7 @@ namespace Mcucpp
 			state = I2cState::Idle;
 			opts = I2cOpts::None;
 		}
-		
+
 		void operator ()()
 		{
 			if(callback)
@@ -140,15 +140,15 @@ namespace Mcucpp
 	};
 
 
-	template< 
-		class I2Cx, 
-		IRQn_Type EvIQRNumber, 
-		IRQn_Type ErIQRNumber, 
-		class ClockCtrl, 
-		class SclPins, 
-		class SdaPins, 
-		class DmaTxChannel, 
-		class DmaRxChannel, 
+	template<
+		class I2Cx,
+		IRQn_Type EvIQRNumber,
+		IRQn_Type ErIQRNumber,
+		class ClockCtrl,
+		class SclPins,
+		class SdaPins,
+		class DmaTxChannel,
+		class DmaRxChannel,
 		uint8_t DmaTxChannelNum,
 		uint8_t DmaRxChannelNum>
 	class I2cBase
@@ -157,27 +157,30 @@ namespace Mcucpp
 		static I2cData _data;
 	public:
 		static const uint8_t AltFuncNum = 4;
-		
+
 		static inline I2cError GetError(){return _data.error; }
-		
+
 		static void Init(uint32_t i2cClockSpeed = 100000U);
-		
+
 		static I2cError WriteU8(uint16_t devAddr, uint8_t regAddr, uint8_t data, I2cOpts opts = I2cOpts::RegAddr8Bit);
-		
+
 		static int ReadU8(uint16_t devAddr, uint16_t regAddr, I2cOpts opts = I2cOpts::RegAddr8Bit);
 
+		static int ReadU8(uint16_t devAddr, I2cOpts opts);
+
+
 		static I2cError Read(uint16_t devAddr, uint16_t regAddr, uint8_t *data, int size, I2cOpts opts = I2cOpts::RegAddr8Bit);
-		
+
 		static bool Write(uint16_t devAddr, uint16_t regAddr, const uint8_t *data, int size, I2cOpts opts = I2cOpts::RegAddr8Bit);
-		
+
 		static bool WriteAsync(uint16_t addr, uint16_t regAddr, const void *data, size_t size, I2cOpts opts = I2cOpts::RegAddr8Bit, I2cCallback callback = nullptr);
-		
+
 		static bool ReadAsync(uint16_t addr, uint16_t regAddr, void *data, size_t size, I2cOpts opts = I2cOpts::RegAddr8Bit, I2cCallback callback = nullptr);
-		
+
 		static void EventIrqHandler();
-		
+
 		static void ErrorIrqHandler();
-		
+
 
 		template<uint8_t SclPinNumber, uint8_t SdaPinNumber>
 		static void SelectPins()
@@ -187,7 +190,7 @@ namespace Mcucpp
 			SclPin::SetConfiguration(SclPin::Port::AltFunc);
 			SclPin::AltFuncNumber(AltFuncNum);
 			SclPin::SetDriverType(SclPin::Port::OpenDrain);
-			
+
 			typedef typename SdaPins:: template Pin<SdaPinNumber> SdaPin;
 			SdaPin::Port::Enable();
 			SdaPin::SetConfiguration(SdaPin::Port::AltFunc);
@@ -203,14 +206,14 @@ namespace Mcucpp
 			SclPins::SetConfiguration(maskScl, SclPins::AltFunc);
 			SclPins::AltFuncNumber(maskScl, AltFuncNum);
 			SclPins::SetDriverType(maskScl, SclPins::OpenDrain);
-			
+
 			SdaPins::Enable();
 			Type maskSda (1 << sdaPinNumber);
 			SdaPins::SetConfiguration(maskSda, SdaPins::AltFunc);
 			SdaPins::AltFuncNumber(maskSda, AltFuncNum);
 			SdaPins::SetDriverType(maskSda, SdaPins::OpenDrain);
 		}
-		
+
 		template<class SclPin, class SdaPin>
 		static void SelectPins()
 		{
@@ -220,20 +223,20 @@ namespace Mcucpp
 			STATIC_ASSERT(sdaPinIndex >= 0);
 			SelectPins<sclPinIndex, sclPinIndex>();
 		}
-		
+
 	//protected:
-		
-		static bool WriteRegAddr(uint16_t regAddr, I2cOpts opts);
-		
+
+		static bool WriteRegAddr(uint16_t regAddr, I2cOpts opts, uint32_t i2c_event = I2C_ISR_TXIS);
+
 		static bool WaitEvent(uint32_t i2c_event);
-		
-		static bool WriteDevAddr(uint16_t devAddr, bool read, I2cOpts opts, uint16_t nbytes);
-	
+
+		static bool WriteDevAddr(uint16_t devAddr, bool read, I2cOpts opts, uint16_t nbytes, uint32_t i2c_event = I2C_ISR_TXIS);
+
 		static bool Busy();
-		
+
 		static bool WaitWhileBusy();
-		
-		static I2cError GetErorFromLastEvent(uint32_t lastevent);
+
+		static I2cError GetErrorFromLastEvent(uint32_t lastevent);
 	};
 
 
@@ -260,16 +263,16 @@ namespace Mcucpp
 			DmaRxChannel, \
 			DmaTxChannelNum,\
 			DmaRxChannelNum>
-	
-	I2C_TEMPLATE_ARGS 
+
+	I2C_TEMPLATE_ARGS
 	I2cData I2C_TEMPLATE_QUALIFIER::_data;
 
 	typedef IO::PinList<IO::Pb6, IO::Pb8, IO::Pg14> I2C1SclPins;
 	typedef IO::PinList<IO::Pb7, IO::Pb9, IO::Pg13> I2C1SdaPins;
-	
+
 	typedef IO::PinList<IO::Pb10, IO::Pb13, IO::Pf1> I2C2SclPins;
 	typedef IO::PinList<IO::Pb11, IO::Pb14, IO::Pf0> I2C2SdaPins;
-	
+
 	typedef IO::PinList<IO::Pc0, IO::Pg7> I2C3SclPins;
 	typedef IO::PinList<IO::Pc1, IO::Pg8> I2C3SdaPins;
 
@@ -318,45 +321,45 @@ namespace Mcucpp
 		return (scll) | (sclh << 8) | (scldel << 20) | (presc << 28);
 	}
 
-	
+
 	I2C_TEMPLATE_ARGS
 	void I2C_TEMPLATE_QUALIFIER::Init(uint32_t i2cClockSpeed)
 	{
 		ClockCtrl::Reset();
 		ClockCtrl::Enable();
 		I2Cx()->CR1 &= ~I2C_CR1_PE;
-		
+
 		uint32_t srcClock = ClockCtrl::ClockFreq();
 		I2Cx()->TIMINGR = CalcTiming(srcClock, i2cClockSpeed);
-		
+
 		I2Cx()->CR1 |= I2C_CR1_PE;
-		
+
 		I2Cx()->OAR1 = 2;
 		I2Cx()->OAR2 = 0;
-		
+
 		NVIC_EnableIRQ(EvIQRNumber);
 		NVIC_EnableIRQ(ErIQRNumber);
 		//NVIC_SetPriority(EvIQRNumber, 1);
 		//NVIC_SetPriority(ErIQRNumber, 1);
 	}
-	
+
 	I2C_TEMPLATE_ARGS
 	I2cError I2C_TEMPLATE_QUALIFIER::WriteU8(uint16_t devAddr, uint8_t regAddr, uint8_t data, I2cOpts opts)
 	{
 		if(!WaitWhileBusy()) return _data.error;
 		_data.error = I2cError::NoError;
 		I2Cx()->ICR = I2Cx()->ISR;
-		
+
 		if(!WriteDevAddr(devAddr, false, opts, 2))return _data.error;
 
 		if(!WriteRegAddr(regAddr, opts))return _data.error;
-		
+
 		I2Cx()->TXDR = data;
 		if(!WaitEvent(I2C_ISR_STOPF))return _data.error;
 
 		return I2cError::NoError;
 	}
-	
+
 	I2C_TEMPLATE_ARGS
 	int I2C_TEMPLATE_QUALIFIER::ReadU8(uint16_t devAddr, uint16_t regAddr, I2cOpts opts)
 	{
@@ -366,63 +369,94 @@ namespace Mcucpp
 			_data.error = I2cError::ArgumentError;
 			return -(int)_data.error;
 		}
-		
+
 		if(!WaitWhileBusy()) return -(int)_data.error;
-		
-		if(!WriteDevAddr(devAddr, false, opts, 1)) return -(int)_data.error;
 
-		if(!WriteRegAddr(regAddr, opts)) return -(int)_data.error;
-		
-		if(!WriteDevAddr(devAddr, true, opts, 1)) return -(int)_data.error;
-		
-		if(!WaitEvent(I2C_ISR_RXNE))return -(int)_data.error;
+		//if(!WriteDevAddr(devAddr, false, opts, 1)) return -(int)_data.error;
 
-		uint8_t tmp = (uint8_t)I2Cx()->RXDR;
+		I2Cx()->CR2 = (devAddr << 1)
+			| (1 << I2C_CR2_NBYTES_Pos)
+			//| I2C_CR2_AUTOEND
+			| (HasAnyFlag(opts, I2cOpts::DevAddr10Bit) ? I2C_CR2_ADD10 : 0)
+			| I2C_CR2_START;
+
+        if(! WaitEvent(I2C_ISR_TXIS)) return -(int)_data.error;
+
+		if(!WriteRegAddr(regAddr, opts, I2C_ISR_TC)) return -(int)_data.error;
+
+		if(!WriteDevAddr(devAddr, true, opts, 1, I2C_ISR_RXNE)) return -(int)_data.error;
+
+		int tmp = I2Cx()->RXDR;
+
+        I2Cx()->CR2|=I2C_CR2_STOP;
+
+		if(! WaitEvent(I2C_ISR_STOPF)) return -(int)_data.error;
 
 		return tmp;
 	}
-	
+
 	I2C_TEMPLATE_ARGS
-	bool I2C_TEMPLATE_QUALIFIER::WriteDevAddr(uint16_t devAddr, bool read, I2cOpts opts, uint16_t nbytes)
+	int I2C_TEMPLATE_QUALIFIER::ReadU8(uint16_t devAddr, I2cOpts opts)
 	{
-		I2Cx()->CR2 = (devAddr << 1) 
-			| (read ? I2C_CR2_RD_WRN : 0) 
+		_data.error = I2cError::NoError;
+		if(devAddr > 1023)
+		{
+			_data.error = I2cError::ArgumentError;
+			return -(int)_data.error;
+		}
+
+		if(!WaitWhileBusy()) return -(int)_data.error;
+
+		if(!WriteDevAddr(devAddr, true, opts, 1, I2C_ISR_RXNE)) return -(int)_data.error;
+
+		int tmp = I2Cx()->RXDR;
+
+        I2Cx()->CR2|=I2C_CR2_STOP;
+
+		if(! WaitEvent(I2C_ISR_STOPF)) return -(int)_data.error;
+
+		return tmp;
+	}
+
+	I2C_TEMPLATE_ARGS
+	bool I2C_TEMPLATE_QUALIFIER::WriteDevAddr(uint16_t devAddr, bool read, I2cOpts opts, uint16_t nbytes, uint32_t i2c_event)
+	{
+		I2Cx()->CR2 = (devAddr << 1)
+			| (read ? I2C_CR2_RD_WRN : 0)
 			| (nbytes << I2C_CR2_NBYTES_Pos)
 			| I2C_CR2_AUTOEND
 			| (HasAnyFlag(opts, I2cOpts::DevAddr10Bit) ? I2C_CR2_ADD10 : 0)
 			| I2C_CR2_START;
-			
-		cout << "I2C2->CR2(s) = " << hex << I2C2->CR2 << "\n";
-		
-		return WaitEvent(I2C_ISR_TXIS);
+
+		return WaitEvent(i2c_event);
 	}
-	
+
 	I2C_TEMPLATE_ARGS
-	bool I2C_TEMPLATE_QUALIFIER::WriteRegAddr(uint16_t regAddr, I2cOpts opts)
+	bool I2C_TEMPLATE_QUALIFIER::WriteRegAddr(uint16_t regAddr, I2cOpts opts, uint32_t i2c_event)
 	{
 		if(HasAnyFlag(opts, I2cOpts::RegAddr16Bit))
 		{
 			I2Cx()->TXDR = (uint8_t)regAddr;
 			if(!WaitEvent(I2C_ISR_TXIS)) return false;
-		
+
 			I2Cx()->TXDR = (uint8_t)(regAddr >> 8);
-			return WaitEvent(I2C_ISR_TXIS);
+			return WaitEvent(i2c_event);
 		}else if(HasAnyFlag(opts, I2cOpts::RegAddr8Bit))
 		{
 			I2Cx()->TXDR = (uint8_t)regAddr;
-			return WaitEvent(I2C_ISR_TXIS);
+			return WaitEvent(i2c_event);
 		}
-		
+
 		return true;
 	}
-	
+
 	I2C_TEMPLATE_ARGS
 	bool I2C_TEMPLATE_QUALIFIER::WaitWhileBusy()
 	{
 		uint32_t timeout = _data.timeoutSpins;
 		for(uint32_t i = 0; i < timeout && Busy(); i++)
 		{
-			
+
 		}
 		if(Busy())
 		{
@@ -431,7 +465,7 @@ namespace Mcucpp
 		}
 		return true;
 	}
-	
+
 	I2C_TEMPLATE_ARGS
 	I2cError I2C_TEMPLATE_QUALIFIER::Read(uint16_t devAddr, uint16_t regAddr, uint8_t *data, int size, I2cOpts opts)
 	{
@@ -441,20 +475,20 @@ namespace Mcucpp
 			_data.error = I2cError::ArgumentError;
 			return (I2cError) _data.error;
 		}
-		
+
 		if(!WaitWhileBusy()) return _data.error;
-		
+
 		if(!Start()) return _data.error;
 
 		if(!WriteDevAddr(devAddr, false, opts)) return _data.error;
 
 		if(!WriteRegAddr(regAddr, opts)) return _data.error;
-		
+
 
 		I2Cx()->CR1 |= I2C_CR1_ACK;
 
 		if(!WriteDevAddr(devAddr, true, opts)) return _data.error;
-		
+
 		for(int i = 0; i < size; i++)
 		{
 			if(!WaitEvent(0x00030040)) return _data.error;
@@ -462,12 +496,12 @@ namespace Mcucpp
 			//if(!WaitEvent(0x00030040)) return _data.error;
 			data[i] = tmp;
 		}
-		
+
 		I2Cx()->CR1 &= ~I2C_CR1_ACK;
 		I2Cx()->CR1 |= I2C_CR1_STOP; */
 		return _data.error;
 	}
-	
+
 	I2C_TEMPLATE_ARGS
 	bool I2C_TEMPLATE_QUALIFIER::Write(uint16_t devAddr, uint16_t regAddr, const uint8_t *data, int size, I2cOpts opts)
 	{
@@ -476,34 +510,34 @@ namespace Mcucpp
 			_data.error = I2cError::ArgumentError;
 			return 0xff;
 		}
-		
+
 		if(!WaitWhileBusy()) return false;
 
 		I2Cx()->CR1 |= I2C_CR1_ACK;
-		
-		
+
+
 		I2Cx()->DR = devAddr & 0xfffe;
 		if(!WaitEvent(0x00070082)) return false; // BUSY, MSL, ADDR, TXE TRA
 
 		I2Cx()->DR = (uint8_t)regAddr;
-		if(!WaitEvent(0x00070084)) return false;  // TRA, BUSY, MSL, TXE and BTF flags 
+		if(!WaitEvent(0x00070084)) return false;  // TRA, BUSY, MSL, TXE and BTF flags
 
 		WriteRegAddr(regAddr, opts);
-		
+
 		int i = 0;
-		
+
 		for(; i < size; i++)
 		{
 			if(!WaitEvent(0x00030040))return false; // I2C_EVENT_MASTER_BYTE_RECEIVED
 			uint8_t tmp = (uint8_t)I2Cx()->DR;
 			data[i] = tmp;
 		}
-		
+
 		I2Cx()->CR1 &= ~I2C_CR1_ACK;
 		I2Cx()->CR1 |= I2C_CR1_STOP; */
 		return true;
 	}
-	
+
 	I2C_TEMPLATE_ARGS
 	bool I2C_TEMPLATE_QUALIFIER::WaitEvent(uint32_t i2c_event)
 	{
@@ -515,11 +549,12 @@ namespace Mcucpp
 			result = (lastevent & i2c_event) == i2c_event;
 		}
 		while(!result && timer-- > 0);
-		cout << "lastevent = " << hex << i2c_event << "\t"<< lastevent << "\n";
-		
+
 		if(!result)
 		{
-			_data.error = GetErorFromLastEvent(lastevent);
+		    //cout << "lastevent = " << hex << i2c_event << "\t"<< lastevent << "\n";
+
+			_data.error = GetErrorFromLastEvent(lastevent);
 			if(_data.error == I2cError::NoError)
 			{
 				_data.error = I2cError::Timeout;
@@ -543,14 +578,14 @@ namespace Mcucpp
 		{
 			return false;
 		}
-		
+
 		if(!Mcucpp::Atomic::CompareExchange(&_data.buffer, (uint8_t*)nullptr, static_cast<uint8_t*>(data)))
 		{
 			_data.error = I2cError::Busy;
 			return false;
 		}
 		I2Cx()->CR2 |= I2C_CR2_ITBUFEN | I2C_CR2_ITEVTEN | I2C_CR2_ITERREN;
-		
+
 		_data.size = size;
 		_data.bytesTransfered = 0;
 		_data.addr = addr;
@@ -558,12 +593,12 @@ namespace Mcucpp
 		_data.callback = callback;
 		_data.state = I2cState::Start;
 		_data.opts = opts;
-		
+
 		I2Cx()->CR1 |= I2C_CR1_START; */
-		
+
 		return true;
 	}
-	
+
 	I2C_TEMPLATE_ARGS
 	bool I2C_TEMPLATE_QUALIFIER::ReadAsync(uint16_t addr, uint16_t regAddr, void *data, size_t size, I2cOpts opts, I2cCallback callback)
 	{
@@ -572,13 +607,13 @@ namespace Mcucpp
 		{
 			return false;
 		}
-		
+
 		if(!Mcucpp::Atomic::CompareExchange(&_data.state, I2cState::Idle, I2cState::Start))
 		{
 			_data.error = I2cError::Busy;
 			return false;
 		}
-		
+
 		_data.buffer = static_cast<uint8_t*>(data);
 		_data.size = size;
 		_data.bytesTransfered = 0;
@@ -587,21 +622,21 @@ namespace Mcucpp
 		_data.callback = callback;
 		_data.mode = I2cMode::Read;
 		_data.opts = opts;
-		
+
 		I2Cx()->CR1 |= I2C_CR1_ACK;
-		I2Cx()->CR2 = (I2Cx()->CR2 & ~(I2C_CR2_ITBUFEN | I2C_CR2_ITEVTEN | I2C_CR2_ITERREN)) 
+		I2Cx()->CR2 = (I2Cx()->CR2 & ~(I2C_CR2_ITBUFEN | I2C_CR2_ITEVTEN | I2C_CR2_ITERREN))
 				| I2C_CR2_ITEVTEN | I2C_CR2_ITERREN;
-		
+
 		I2Cx()->CR1 |= I2C_CR1_START; */
-		
+
 		return true;
 	}
-	
+
 	I2C_TEMPLATE_ARGS
 	void I2C_TEMPLATE_QUALIFIER::EventIrqHandler()
 	{
 		/* uint32_t lastevent = (I2Cx()->SR1 | (I2Cx()->SR2 << 16)) & 0x00FFFFFF;
-	
+
 		if(!_data.buffer)
 		{
 			I2Cx()->CR1 &= ~I2C_CR1_ACK;
@@ -678,7 +713,7 @@ namespace Mcucpp
 				_data.state = I2cState::Restart;
 			}
 		break;
-		case I2cState::Restart: 
+		case I2cState::Restart:
 			if(lastevent & I2C_SR1_SB)
 			{
 				I2Cx()->DR = (_data.addr << 1) | 1;
@@ -688,7 +723,7 @@ namespace Mcucpp
 				_data.state = I2cState::DevAddrRead;
 			}
 		break;
-		case I2cState::DevAddrRead: 
+		case I2cState::DevAddrRead:
 			if(lastevent & (I2C_SR1_SB | I2C_SR1_STOPF))
 			{
 				_data.error = I2cError::BusError;
@@ -742,13 +777,13 @@ namespace Mcucpp
 			I2Cx()->CR2 &= ~(I2C_CR2_ITBUFEN | I2C_CR2_ITEVTEN | I2C_CR2_ITERREN);
 		break;
 		}
-		
+
 		if(_data.error != I2cError::NoError)
 		{
 			I2Cx()->CR1 &= ~I2C_CR1_ACK;
 			I2Cx()->CR1 |= I2C_CR1_STOP;
 			I2Cx()->CR2 &= ~(I2C_CR2_ITBUFEN | I2C_CR2_ITEVTEN | I2C_CR2_ITERREN);
-			
+
 			if(_data.callback)
 			{
 				GetCurrentDispatcher().SetTask(_data);
@@ -761,19 +796,19 @@ namespace Mcucpp
 		NVIC_ClearPendingIRQ(EvIQRNumber);
 		__DSB();
 	}
-	
-	
+
+
 	I2C_TEMPLATE_ARGS
 	void I2C_TEMPLATE_QUALIFIER::ErrorIrqHandler()
 	{
 		/* uint32_t lastevent = (I2Cx()->SR1 | (I2Cx()->SR2 << 16)) & 0x00FFFFFF;
-		
+
 		I2Cx()->CR1 &= ~I2C_CR1_ACK;
 		I2Cx()->CR1 |= I2C_CR1_STOP;
 		I2Cx()->CR2 &= ~(I2C_CR2_ITBUFEN | I2C_CR2_ITEVTEN | I2C_CR2_ITERREN);
-		
-		_data.error = GetErorFromLastEvent(lastevent);
-		
+
+		_data.error = GetErrorFromLastEvent(lastevent);
+
 		if(_data.callback)
 		{
 			GetCurrentDispatcher().SetTask(_data);
@@ -785,9 +820,9 @@ namespace Mcucpp
 		NVIC_ClearPendingIRQ(ErIQRNumber);
 		__DSB();
 	}
-	
+
 	I2C_TEMPLATE_ARGS
-	I2cError I2C_TEMPLATE_QUALIFIER::GetErorFromLastEvent(uint32_t lastevent)
+	I2cError I2C_TEMPLATE_QUALIFIER::GetErrorFromLastEvent(uint32_t lastevent)
 	{
 		if(lastevent & I2C_ISR_TIMEOUT)
 		{
