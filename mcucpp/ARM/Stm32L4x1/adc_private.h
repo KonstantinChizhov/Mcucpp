@@ -35,10 +35,14 @@ ADC_BASE_TEMPLATE_ARGS
 void ADC_BASE_TEMPLATE_QUALIFIER::EnableOversampling(unsigned bits, unsigned shift)
 {
     if(bits > 8)
-        bits = 8;
+    {
+         bits = 8;
+    }
 
     if(shift > 8)
+    {
         shift = 8;
+    }
 
 	Regs()->CFGR2 = ADC_CFGR2_ROVSE
         | (bits << ADC_CFGR2_OVSR_Pos)

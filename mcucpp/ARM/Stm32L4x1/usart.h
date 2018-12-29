@@ -122,14 +122,16 @@ namespace Mcucpp
 		{
         public:
 			UsartData()
-				:rxTimeoutMs(0),
+				:rxTimeoutChars(0),
+				data(nullptr),
 				rxSize(0)
 			{
 			}
 
 			//TransferCallbackFunc txCallback;
 			TransferCallbackFunc rxCallback;
-			unsigned rxTimeoutMs;
+			unsigned rxTimeoutChars;
+			void *data;
 			size_t rxSize;
 		};
 
@@ -164,7 +166,7 @@ namespace Mcucpp
 		class Usart :public UsartBase
 		{
 			static UsartData _data;
-			static void OnReadTimeout(void *);
+
 
 		public:
 			template<unsigned long baud>
@@ -201,7 +203,9 @@ namespace Mcucpp
 
 			static void Break();
 
-			static void SetRxTimeout(unsigned rxTimeoutMs) { _data.rxTimeoutMs = rxTimeoutMs; }
+			static void SetRxTimeout(unsigned rxTimeoutChars) { _data.rxTimeoutChars = rxTimeoutChars; }
+
+            static void OnReadTimeout();
 
 			template<uint8_t TxPinNumber, uint8_t RxPinNumber>
 			static void SelectTxRxPins()
@@ -422,26 +426,37 @@ namespace Mcucpp
 			Regs()->CR3 |= USART_CR3_DMAR;
 			_data.rxCallback = callback;
 			_data.rxSize = size;
+			_data.data = data;
 			DmaRxChannel::SetTransferCallback(callback);
             DmaRxChannel::SetRequest(DmaRxChannelNum);
             DmaRxChannel::Transfer(DmaMode::Periph2Mem | DmaMode::MemIncriment, ptr, &Regs()->RDR, size);
-            if(_data.rxTimeoutMs > 0)
+            if(_data.rxTimeoutChars > 0)
             {
-                GetCurrentDispatcher().SetTimer(_data.rxTimeoutMs, OnReadTimeout, data);
+                if(&(Regs()->CR1) == &LPUART1->CR1)
+                {
+                    // LPUART has no rx timeout feature so use just IDLE detection
+                    Regs()->CR1 |= USART_CR1_IDLEIE;
+                    NVIC_EnableIRQ(IQRNumber);
+                }else
+                {
+                    Regs()->CR1 |= USART_CR1_RTOIE;
+                    Regs()->RTOR = _data.rxTimeoutChars * 10;
+                    NVIC_EnableIRQ(IQRNumber);
+                }
             }
 
             return true;
 		}
 
 		USART_TEMPLATE_ARGS
-		void USART_TEMPLATE_QUALIFIER::OnReadTimeout(void *data)
+		void USART_TEMPLATE_QUALIFIER::OnReadTimeout()
 		{
 		    DmaRxChannel::Disable();
 		    DmaRxChannel::ClearFlags();
-            if(_data.rxCallback)
+            if(_data.rxCallback && _data.data)
             {
                 size_t bytesTransfered = _data.rxSize - DmaRxChannel::RemainingTransfers();
-                _data.rxCallback(data, bytesTransfered, false);
+                _data.rxCallback(_data.data, bytesTransfered, false);
             }
 		}
 

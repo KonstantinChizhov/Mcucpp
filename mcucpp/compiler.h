@@ -35,3 +35,27 @@
 #endif
 
 #define MCUCPP_WEAK __attribute__((weak))
+
+
+#if __cplusplus <= 199711L || defined(__AVR__) // check for c++11 of avr-gcc compiler
+
+namespace std;
+{
+
+    template< class T > struct remove_const          { typedef T type; };
+    template< class T > struct remove_const<const T> { typedef T type; };
+
+    template< class T > struct remove_volatile             { typedef T type; };
+    template< class T > struct remove_volatile<volatile T> { typedef T type; };
+
+    template< class T >
+    struct remove_cv {
+        typedef typename std::remove_volatile<typename std::remove_const<T>::type>::type type;
+    };
+}
+
+#else
+    #include <type_traits>
+#endif
+
+

@@ -112,7 +112,7 @@ ModbusError ModbusSlave::WriteMultipleCoils(DataBuffer &buffer)
     uint16_t start = buffer.ReadU16Be();
     uint16_t count = buffer.ReadU16Be();
     uint8_t bytes = buffer.ReadU8();
-    if(count * 8 > bytes)
+    if((count+7) / 8 > bytes)
     {
         return ModbusError::IllegalValue;
     }

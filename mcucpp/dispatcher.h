@@ -167,6 +167,7 @@ namespace Mcucpp
 				if(task == timerTask && _timers[i].task.tag == tag)
 				{
 					timer = &_timers[i];
+					break;
 				}
 			}
 			if(timer)
@@ -182,10 +183,15 @@ namespace Mcucpp
 					timer->task.tag = tag;
 					timer->time = currentTime + period;
 				}
-				if(!++_timerSequence)
-					_timerSequence++;
-				timer->id = _timerSequence;
-				return _timerSequence;
+
+                timer->id = Atomic::AddAndFetch(&_timerSequence, 1)  & 0x00ffffff;
+				if(timer->id == 0)
+                {
+                    timer->id = Atomic::AddAndFetch(&_timerSequence, 1) & 0x00ffffff;
+                }
+                uint32_t index = uint32_t(timer - &_timers[0]);
+                timer->id |=  index << 24;
+				return  timer->id;
 			}
 			return 0;
 		}
@@ -212,15 +218,21 @@ namespace Mcucpp
 
 		void StopTimer(uint32_t id)
 		{
-			for(size_t i=0; i < _timersLen; i++)
-			{
-				if(_timers[i].id == id)
-				{
-					_timers[i].task = 0;
-					_timers[i].id = 0;
-					return;
-				}
-			}
+		    uint32_t index = id >> 24;
+		    if(_timers[index].id == id)
+            {
+                _timers[index].task = 0;
+                _timers[index].id = 0;
+            }
+		}
+
+		void RestartTimer(uint32_t id, uint32_t period)
+		{
+		    uint32_t index = id >> 24;
+		    if(_timers[index].id == id)
+            {
+                _timers[index].time = GetTimerTicksFunc() + period;
+            }
 		}
 
 		void Poll()

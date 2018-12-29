@@ -24,8 +24,8 @@ def generate(env, **kw):
 		env.Append(CCFLAGS = ["-mcpu=" + device['cpu'] ])
 		
 		if device['cpu'] == 'cortex-m4':
-			env.Append(CCFLAGS = ['-mthumb', '-mfloat-abi=softfp' ])
-			env.Append(LINKFLAGS = ['-mcpu=cortex-m3', '-mthumb', '-mfloat-abi=soft'])
+			env.Append(CCFLAGS = ['-mthumb', '-mfloat-abi=softfp', '-mfpu=fpv4-sp-d16' ])
+			env.Append(LINKFLAGS = ['-mcpu=cortex-m4', '-mthumb', '-mfloat-abi=softfp', '-mfpu=fpv4-sp-d16'])
 		else:
 			env.Append(LINKFLAGS = ["-mcpu=" + device['cpu'] ])
 			
