@@ -35,9 +35,8 @@
 #include <data_buffer.h>
 #include <functional>
 #include <utility>
+#include <iopins.h>
 
-void PrintN(int v);
-void PrintN(const char *v);
 
 namespace Mcucpp
 {
@@ -88,6 +87,7 @@ namespace Modbus
 		virtual bool SendMessage(DataBuffer & buffer)=0;
 		virtual bool StartListen()=0;
 		virtual void Stop()=0;
+		virtual Mcucpp::DataBuffer&& GetTxBuffer()=0;
 		void SetDevice(class ModbusDevice *device){ _device = device; }
 		size_t DataChunkSize(){ return 20; }
 	};
@@ -112,7 +112,7 @@ namespace Modbus
 	class ModbusSlave :public ModbusDevice
 	{
 	    uint8_t _address;
-	    uint16_t _maxRegsToRead;
+	    uint8_t _maxRegsToRead;
 	public:
         ModbusSlave(ModbusTransport &transport);
 		virtual void MessageReceived(DataBuffer &buffer);
@@ -144,10 +144,12 @@ namespace Modbus
 	{
 		DataBuffer _rxBuffer;
 		DataBuffer _txBuffer;
-		DataChunk *_rxChunk;
-
+		DataChunk *_rxChunk = nullptr;
+		DataChunk *_txChunk = nullptr;
+        bool _buffersAreStatic = false;
         void TxHandler(void *data, size_t size, bool success);
         void RxHandler(void *data, size_t size, bool success);
+        void RxHandlerStatic(void *data, size_t size, bool success);
 	public:
 
 		ModbusTransportRtu();
@@ -156,6 +158,8 @@ namespace Modbus
 		virtual bool SendMessage(DataBuffer & buffer);
 		virtual bool StartListen();
 		virtual void Stop();
+		void SetStaticBuffers(DataChunk *rxBuffer, DataChunk *txBuffer);
+		virtual Mcucpp::DataBuffer&& GetTxBuffer();
 	};
 }
 }

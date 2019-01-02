@@ -10,50 +10,50 @@ namespace std
 #if defined(TARGET_HEAP_SIZE) && (TARGET_HEAP_SIZE) > 0
 
 static const size_t McucppMemPoolElements = (TARGET_HEAP_SIZE + sizeof(unsigned) - 1) / sizeof(unsigned);
-static unsigned McucppMemoryPool[McucppMemPoolElements];
+unsigned McucppMemoryPool[McucppMemPoolElements];
 
 #include <allocators/bitmap_alloc.h>
-static Mcucpp::BitMapAllocator allocator(McucppMemoryPool, sizeof(McucppMemoryPool));
+Mcucpp::BitMapAllocator allocator(McucppMemoryPool, sizeof(McucppMemoryPool));
 
 
-void* operator new(size_t blockSize)
+void* operator new(size_t blockSize)noexcept
 {
 	return allocator.Alloc(blockSize);
 }
 
-void* operator new[](size_t blockSize)
+void* operator new[](size_t blockSize)noexcept
 {
 	return allocator.Alloc(blockSize);
 }
 
-void operator delete(void* ptr)
+void operator delete(void* ptr)noexcept
 {
 	return allocator.Free(ptr);
 }
 
-void operator delete[](void* ptr)
+void operator delete[](void* ptr)noexcept
 {
 	return allocator.Free(ptr);
 }
 
-void* operator new(size_t blockSize, const std::nothrow_t&)
+void* operator new(size_t blockSize, const std::nothrow_t&)noexcept
 {
 	return allocator.Alloc(blockSize);
 }
 
-void* operator new[](size_t blockSize, const std::nothrow_t&)
+void* operator new[](size_t blockSize, const std::nothrow_t&)noexcept
 {
 	return allocator.Alloc(blockSize);
 }
 
-void operator delete(void* ptr, const std::nothrow_t&)
+void operator delete(void* ptr, const std::nothrow_t&)noexcept
 {
-	return allocator.Free(ptr);
+	allocator.Free(ptr);
 }
 
-void operator delete[](void* ptr, const std::nothrow_t&)
+void operator delete[](void* ptr, const std::nothrow_t&)noexcept
 {
-	return allocator.Free(ptr);
+	allocator.Free(ptr);
 }
 
 namespace Mcucpp
@@ -61,6 +61,60 @@ namespace Mcucpp
 	size_t HeapBytesUsed()
 	{
 		return allocator.GetUsedSize();
+	}
+}
+
+#else
+
+void* operator new(size_t blockSize)noexcept
+{
+    (void)blockSize;
+	return nullptr;
+}
+
+void* operator new[](size_t blockSize)noexcept
+{
+    (void)blockSize;
+	return nullptr;
+}
+
+void operator delete(void* ptr)noexcept
+{
+    (void)ptr;
+}
+
+void operator delete[](void* ptr)noexcept
+{
+	(void)ptr;
+}
+
+void* operator new(size_t blockSize, const std::nothrow_t&) noexcept
+{
+    (void)blockSize;
+	return nullptr;
+}
+
+void* operator new[](size_t blockSize, const std::nothrow_t&)noexcept
+{
+    (void)blockSize;
+	return nullptr;
+}
+
+void operator delete(void* ptr, const std::nothrow_t&)noexcept
+{
+	(void)ptr;
+}
+
+void operator delete[](void* ptr, const std::nothrow_t&)noexcept
+{
+	(void)ptr;
+}
+
+namespace Mcucpp
+{
+	size_t HeapBytesUsed()
+	{
+		return 0;
 	}
 }
 

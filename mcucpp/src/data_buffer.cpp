@@ -30,7 +30,11 @@ DataChunk* DataChunk::GetNew(const void *data, size_t size)
 
 void DataChunk::Release(DataChunk * data)
 {
-	delete [] (uint8_t *)data;
+    // release only buffers created with GetNew
+    if(data->_data == reinterpret_cast<uint8_t*>(data) + sizeof(DataChunk) )
+    {
+         delete [] (uint8_t *)data;
+    }
 }
 
 void DataChunk::ReleaseRecursive(DataChunk * buffer)
@@ -143,7 +147,6 @@ bool DataBufferBase::InsertBack(size_t size)
 			uint16_t lastSize = last->Size();
 			if(last->Capacity() >= lastSize + size)
 			{
-
 				if(!Atomic::CompareExchange(&last->_size, lastSize, (uint16_t)(lastSize + size)))
 					continue;
 				if(buffer)

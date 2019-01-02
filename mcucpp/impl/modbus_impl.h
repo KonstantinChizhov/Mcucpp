@@ -64,30 +64,46 @@ namespace Modbus
 	template<class IODevice>
 	bool ModbusTransportRtu<IODevice>::StartListen()
 	{
-        _rxBuffer.Clear();
-        if(_rxChunk)
+	    if(!_buffersAreStatic)
         {
-            DataChunk::Release(_rxChunk);
+            _rxBuffer.Clear();
+            if(_rxChunk)
+            {
+                DataChunk::Release(_rxChunk);
+            }
+            _rxChunk = DataChunk::GetNew(DataChunkSize());
         }
-        _rxChunk = DataChunk::GetNew(DataChunkSize());
-
         if(!_rxChunk)
         {
             return false;
         }
-
-        auto callback = [this](void *data, size_t size, bool success)
+        bool res;
+        if(_buffersAreStatic)
         {
-            RxHandler(data, size, success);
-        };
-        bool res = IODevice::ReadAsync(_rxChunk->Data(), _rxChunk->Capacity(), callback);
+            auto callback = [this](void *data, size_t size, bool success)
+            {
+                RxHandlerStatic(data, size, success);
+            };
+            res = IODevice::ReadAsync(_rxChunk->Data(), _rxChunk->Capacity(), callback);
+        }
+        else
+        {
+            auto callback = [this](void *data, size_t size, bool success)
+            {
+                RxHandler(data, size, success);
+            };
+            res = IODevice::ReadAsync(_rxChunk->Data(), _rxChunk->Capacity(), callback);
+        }
         return res;
 	}
 
 	template<class IODevice>
 	void ModbusTransportRtu<IODevice>::Stop()
 	{
+	    _rxChunk = nullptr;
+	    _txBuffer.Clear();
         _rxBuffer.Clear();
+        _buffersAreStatic = false;
 	}
 
 	template<class IODevice>
@@ -165,6 +181,69 @@ namespace Modbus
         {
             // handle device busy
         }
+    }
+
+    template<class IODevice>
+    void ModbusTransportRtu<IODevice>::RxHandlerStatic(void *data, size_t size, bool success)
+    {
+        (void)data;
+        (void)success;
+        if(!_rxChunk || !_rxChunk->Resize(size))
+        {
+            // logic error
+            return;
+        }
+
+        if(size > 0)
+        {
+            if(_device)
+            {
+                _rxBuffer = DataBuffer(_rxChunk);
+                uint16_t crc = CalcModbusCrc(_rxBuffer);
+
+                if(crc == 0)
+                {
+                    _rxBuffer.Seek(0);
+                    _device->MessageReceived(_rxBuffer);
+                }
+            }
+            _rxChunk->Resize(0);
+        }
+
+        auto callback = [this](void *data, size_t size, bool success)
+        {
+            RxHandlerStatic(data, size, success);
+        };
+        bool res = IODevice::ReadAsync(_rxChunk->Data(), _rxChunk->Capacity(), callback);
+        if(!res)
+        {
+            // handle device busy
+        }
+    }
+
+    template<class IODevice>
+    void ModbusTransportRtu<IODevice>::SetStaticBuffers(DataChunk *rxBuffer, DataChunk *txBuffer)
+    {
+        _rxBuffer.Clear();
+        _txBuffer.Clear();
+        _buffersAreStatic = rxBuffer && txBuffer;
+        if(_buffersAreStatic)
+        {
+            _rxChunk = rxBuffer;
+            _txChunk = txBuffer;
+        }
+    }
+
+    template<class IODevice>
+    Mcucpp::DataBuffer&& ModbusTransportRtu<IODevice>::GetTxBuffer()
+    {
+        _txBuffer.Clear();
+        if(_buffersAreStatic)
+        {
+            _txChunk->Resize(0);
+            _txBuffer.AttachFront(_txChunk);
+        }
+        return std::move(_txBuffer);
     }
 
 }

@@ -135,3 +135,29 @@ TEST(DataBuffer, SeekAndTell)
 	buffer.Seek(25);
 	EXPECT_EQ(25, buffer.Tell());
 }
+
+
+TEST(DataBuffer, AttachAndInsterFront)
+{
+	DataBuffer buffer;
+	EXPECT_TRUE(buffer.BufferList() == 0);
+	
+	uint8_t data[100];
+	DataChunk chunk(data, 0, sizeof(data));
+	buffer.AttachFront(&chunk);
+	EXPECT_EQ(0, buffer.Size());
+	EXPECT_EQ(1, buffer.Parts());
+	
+	EXPECT_EQ(buffer.BufferList(), &chunk);
+	buffer.InsertBack(10);
+	EXPECT_EQ(10, buffer.Size());
+	EXPECT_EQ(1, buffer.Parts());
+	
+	buffer.InsertBack(80);
+	EXPECT_EQ(90, buffer.Size());
+	EXPECT_EQ(1, buffer.Parts());
+	
+	buffer.InsertBack(10);
+	EXPECT_EQ(100, buffer.Size());
+	EXPECT_EQ(1, buffer.Parts());
+}

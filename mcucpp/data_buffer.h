@@ -123,7 +123,7 @@ namespace Mcucpp
         DataBufferBase(DataBufferBase &&) noexcept;
 
 		DataBufferBase(DataChunk* chain)
-		:_first(chain), _current(0), _pos(0)
+		:_first(chain), _current(nullptr), _pos(0)
 		{
 
 		}

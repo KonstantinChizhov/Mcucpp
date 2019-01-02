@@ -45,6 +45,7 @@ void ModbusSlave::MessageReceived(DataBuffer &buffer)
         {
             uint16_t start = buffer.ReadU16Be();
             uint16_t count = buffer.ReadU16Be();
+            buffer.Clear();
             error = ReadHoldingRegisters(start, count, ModbusFunction::ReadHoldingRegisters);
             break;
         }
@@ -52,6 +53,7 @@ void ModbusSlave::MessageReceived(DataBuffer &buffer)
         {
             uint16_t start = buffer.ReadU16Be();
             uint16_t count = buffer.ReadU16Be();
+            buffer.Clear();
             error = ReadCoils(start, count);
             break;
         }
@@ -59,6 +61,7 @@ void ModbusSlave::MessageReceived(DataBuffer &buffer)
         {
             uint16_t start = buffer.ReadU16Be();
             uint16_t count = buffer.ReadU16Be();
+            buffer.Clear();
             error = ReadInputs(start, count);
             break;
         }
@@ -66,6 +69,7 @@ void ModbusSlave::MessageReceived(DataBuffer &buffer)
         {
             uint16_t start = buffer.ReadU16Be();
             uint16_t count = buffer.ReadU16Be();
+            buffer.Clear();
             error = ReadInputRegisters(start, count);
             break;
         }
@@ -119,9 +123,9 @@ ModbusError ModbusSlave::WriteMultipleCoils(DataBuffer &buffer)
 
     if(OnWriteCoils)
     {
-
         OnWriteCoils(start, count, buffer);
     }
+    buffer.Clear();
     SendResponce(ModbusFunction::WriteMultipleCoils, start, count);
     return ModbusError::NoError;
 }
@@ -136,6 +140,7 @@ ModbusError ModbusSlave::WriteSingleRegister(DataBuffer &buffer)
         --buffer;
         OnWriteHoldingRegs(start, 1, buffer);
     }
+    buffer.Clear();
     SendResponce(ModbusFunction::WriteSingleRegister, start, value);
     return ModbusError::NoError;
 }
@@ -155,6 +160,7 @@ ModbusError ModbusSlave::WriteSingleCoil(DataBuffer &buffer)
             return error;
         }
     }
+    buffer.Clear();
     SendResponce(ModbusFunction::WriteSingleCoil, addr, state);
     return ModbusError::NoError;
 }
@@ -166,9 +172,9 @@ ModbusError ModbusSlave::ReadInputs(uint16_t start, uint16_t count)
         return ModbusError::IllegalValue;
     }
 
-    DataBuffer message;
+    DataBuffer message( _transport.GetTxBuffer());
     uint8_t messageBytes = (count+7)/8;
-    if(!message.InsertFront(messageBytes + 3))
+    if(!message.InsertBack(messageBytes + 3))
     {
         return ModbusError::ServerFailure;
     }
@@ -204,9 +210,9 @@ ModbusError ModbusSlave::ReadCoils(uint16_t start, uint16_t count)
         return ModbusError::IllegalValue;
     }
 
-    DataBuffer message;
+    DataBuffer message( _transport.GetTxBuffer());
     uint8_t messageBytes = (count+7)/8;
-    if(!message.InsertFront(messageBytes + 3))
+    if(!message.InsertBack(messageBytes + 3))
     {
         return ModbusError::ServerFailure;
     }
@@ -254,6 +260,7 @@ ModbusError ModbusSlave::WriteMultipleRegisters(DataBuffer &buffer)
             return error;
         }
     }
+    buffer.Clear();
     SendResponce(ModbusFunction::WriteMultipleRegisters, writeAddr, writeCount);
     return ModbusError::NoError;
 }
@@ -280,7 +287,7 @@ ModbusError ModbusSlave::ReadWriteMultipleRegisters(DataBuffer &buffer)
             return error;
         }
     }
-
+    buffer.Clear();
     return ReadHoldingRegisters(readAddr, readCount, ModbusFunction::ReadWriteMultipleRegisters);
 }
 
@@ -290,8 +297,8 @@ ModbusError ModbusSlave::ReadInputRegisters(uint16_t start, uint16_t count)
     {
         return ModbusError::IllegalValue;
     }
-    DataBuffer message;
-    if(!message.InsertFront(count*2 + 3))
+    DataBuffer message( _transport.GetTxBuffer());
+    if(!message.InsertBack(count*2 + 3))
     {
         return ModbusError::ServerFailure;
     }
@@ -327,8 +334,8 @@ ModbusError ModbusSlave::ReadHoldingRegisters(uint16_t start, uint16_t count, Mo
     {
         return ModbusError::IllegalValue;
     }
-    DataBuffer message;
-    if(!message.InsertFront(count*2 + 3))
+    DataBuffer message( _transport.GetTxBuffer());
+    if(!message.InsertBack(count*2 + 3))
     {
         return ModbusError::ServerFailure;
     }
@@ -361,8 +368,8 @@ ModbusError ModbusSlave::ReadHoldingRegisters(uint16_t start, uint16_t count, Mo
 
 bool ModbusSlave::SendError(ModbusFunction function, ModbusError error)
 {
-    DataBuffer message;
-    if(!message.InsertFront(3))
+    DataBuffer message( _transport.GetTxBuffer());
+    if(!message.InsertBack(3))
     {
         return false;
     }
@@ -375,8 +382,8 @@ bool ModbusSlave::SendError(ModbusFunction function, ModbusError error)
 
 bool ModbusSlave::SendResponce(ModbusFunction function, uint16_t param1, uint16_t param2)
 {
-    DataBuffer message;
-    if(!message.InsertFront(6))
+    DataBuffer message( _transport.GetTxBuffer());
+    if(!message.InsertBack(6))
     {
         return false;
     }
