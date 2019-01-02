@@ -401,12 +401,12 @@ namespace Mcucpp
 
 	enum class Dma1Channel6Request
 	{
-
+        Usart2_Rx = 2,
 	};
 
 	enum class Dma1Channel7Request
 	{
-
+        Usart2_Tx = 2,
 	};
 
 

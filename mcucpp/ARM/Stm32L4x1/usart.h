@@ -36,6 +36,7 @@
 #include <dma.h>
 #include <dispatcher.h>
 
+
 namespace Mcucpp
 {
 	class UsartBase
@@ -404,6 +405,7 @@ namespace Mcucpp
 			return true;
 		}
 
+
 		USART_TEMPLATE_ARGS
 		bool USART_TEMPLATE_QUALIFIER::ReadAsync(void *data, size_t size, TransferCallbackFunc callback)
 		{
@@ -473,12 +475,16 @@ namespace Mcucpp
 		typedef IO::PinList<IO::Pb11, IO::Pc1, IO::Pg7> LpUsart1TxPins;
 		typedef IO::PinList<IO::Pb10, IO::Pc0, IO::Pg8> LpUsart1RxPins;
 
+		typedef IO::PinList<IO::Pa2, IO::Pd5> Usart2TxPins;
+		typedef IO::PinList<IO::Pa3, IO::Pd6> Usart2RxPins;
+
 	#else
 	#error TODO: add USART pins description
 	#endif
 
 		IO_STRUCT_WRAPPER(USART1, Usart1Regs, USART_TypeDef);
 		IO_STRUCT_WRAPPER(LPUART1, LpUsartRegs, USART_TypeDef);
+		IO_STRUCT_WRAPPER(USART2, Usart2Regs, USART_TypeDef);
 	}
 
 	typedef Private::Usart<
@@ -506,6 +512,20 @@ namespace Mcucpp
 		Dma2Channel7Request::LpUart_Rx,
 		8> LpUsart1;
 
+    typedef Private::Usart<
+		Private::Usart2Regs,
+		USART2_IRQn,
+		Clock::Usart2Clock,
+		Private::Usart2TxPins,
+		Private::Usart2RxPins,
+		Dma1Channel7,
+		Dma1Channel6,
+		Dma1Channel7Request::Usart2_Tx,
+		Dma1Channel6Request::Usart2_Rx,
+		7>
+			Usart2;
+
 	#define MCUCPP_HAS_USART1 1
+	#define MCUCPP_HAS_USART2 1
 
 }
