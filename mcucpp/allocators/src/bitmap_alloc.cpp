@@ -60,6 +60,7 @@ namespace Mcucpp
 			return size_t(-1);
 		}
 
+		DisableInterrupts di;
 		if(blockCount < BitsInWord)
 		{
 			MapT mask = (1 << blockCount) - 1;
@@ -68,7 +69,6 @@ namespace Mcucpp
             const int shiftLimit = BitsInWord - blockCount;
             do
             {
-                outerLoop1:
                 MapT mapElem = mapPtr[0];
                 if(mapElem == BusyBlock)
                 {
@@ -83,13 +83,10 @@ namespace Mcucpp
                     {
                         continue;
                     }
-                    if(Atomic::CompareExchange(mapPtr, mapElem, MapT(mapElem | currentMask)))
-                    {
-                        size_t mapIndex = mapPtr - _map;
-                        _lastBlock = mapIndex;
-                        return mapIndex * BitsInWord + bitShift;
-                    }
-                    goto outerLoop1;
+                    mapPtr[0] |= currentMask;
+                    size_t mapIndex = mapPtr - _map;
+                    _lastBlock = mapIndex;
+                    return mapIndex * BitsInWord + bitShift;
                 }
 
                 int leadingZeros = CountLeadingZeros(mapElem);
@@ -101,15 +98,8 @@ namespace Mcucpp
                     if((mapElem2 & endMask) == 0)
                     {
                         MapT startMask = BusyBlock << (BitsInWord - leadingZeros);
-                        if(!Atomic::CompareExchange(mapPtr, mapElem, MapT(mapElem | startMask)))
-                        {
-                            goto outerLoop1;
-                        }
-                        if(!Atomic::CompareExchange(mapPtr + 1, mapElem2, MapT(mapElem2 | endMask)))
-                        {
-                            Atomic::AndAndFetch(mapPtr, ~startMask);
-                            goto outerLoop1;
-                        }
+                        mapPtr[0] |= startMask;
+                        mapPtr[1] |= endMask;
                         size_t mapIndex = mapPtr - _map;
                         _lastBlock = mapIndex + 1;
                         return mapIndex * BitsInWord + (BitsInWord - leadingZeros);
@@ -160,39 +150,16 @@ namespace Mcucpp
 			blocksAvailable = blockCount - leadingZeros;
 
 			MapT startMask = ~MapT(0) << (BitsInWord - leadingZeros);
+            _map[mapIndex] |= startMask;
 
-			if(!Atomic::CompareExchange(&_map[mapIndex], mapElem, MapT(mapElem | startMask)))
-			{
-				mapIndex--;
-				continue;
-			}
-			bool retry = 0;
 			for(looksAheadIndex = mapIndex + 1; blocksAvailable >= BitsInWord; looksAheadIndex++, blocksAvailable -= BitsInWord)
 			{
-				if(!Atomic::CompareExchange(&_map[looksAheadIndex], (MapT)0, BusyBlock))
-				{
-					retry = true;
-					break;
-				}
+				_map[looksAheadIndex] = BusyBlock;
 			}
 
-			if(!retry && !Atomic::CompareExchange(&_map[looksAheadIndex], lastMapElement, endMask))
-			{
-				Atomic::AndAndFetch(&_map[looksAheadIndex--], endMask);
-				retry = true;
-			}
-
-			if(!retry)
-			{
-				_lastBlock = mapIndex;
-				return (mapIndex + 1) * BitsInWord - leadingZeros;
-			}
-			Atomic::AndAndFetch(&_map[mapIndex], startMask);
-			for(unsigned freeIndex = mapIndex + 1; freeIndex <= looksAheadIndex; freeIndex++)
-			{
-				_map[mapIndex] = 0;
-			}
-			mapIndex = looksAheadIndex + 1;
+			_map[looksAheadIndex] |= endMask;
+            _lastBlock = mapIndex;
+            return (mapIndex + 1) * BitsInWord - leadingZeros;
 		}
 		return size_t(-1);
 	}
@@ -215,17 +182,20 @@ namespace Mcucpp
 		{
 			_lastBlock = mapStartIndex;
 		}
-		if(mapStartIndex == mapEndIndex) // all bits in same map element
+		ATOMIC
 		{
-			Atomic::AndAndFetch(&_map[mapStartIndex], (startBitMask | endBitMask));
-			return;
+            if(mapStartIndex == mapEndIndex) // all bits in same map element
+            {
+                _map[mapStartIndex] &= (startBitMask | endBitMask);
+                return;
+            }
+            _map[mapStartIndex++] &= (startBitMask);
+            for(; mapStartIndex < mapEndIndex; mapStartIndex++)
+            {
+                _map[mapStartIndex] = 0;
+            }
+            _map[mapStartIndex] &= (endBitMask);
 		}
-		Atomic::AndAndFetch(&_map[mapStartIndex++], (startBitMask));
-		for(; mapStartIndex < mapEndIndex; mapStartIndex++)
-		{
-			_map[mapStartIndex] = 0;
-		}
-		Atomic::AndAndFetch(&_map[mapStartIndex], (endBitMask));
 	}
 
 	void BitMap::FreeAll()
