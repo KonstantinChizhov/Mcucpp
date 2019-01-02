@@ -494,10 +494,17 @@ ADC_BASE_TEMPLATE_ARGS
 bool ADC_BASE_TEMPLATE_QUALIFIER::StartSequence(std::initializer_list<uint8_t> channels, uint16_t *dataBuffer, uint16_t scanCount)
 {
 	if(scanCount == 0 || channels.size() == 0)
-		return false;
+    {
+        _adcData.error = ArgumentError;
+        return false;
+    }
 
 	if(!VerifyReady(ADC_CR_ADSTART))
-		return false;
+    {
+        _adcData.error = NotReady;
+        return false;
+    }
+
 	Regs()->ISR |= ADC_ISR_OVR | ADC_ISR_EOC | ADC_ISR_EOS;
 
 	if(channels.size() <= 16)
@@ -555,10 +562,16 @@ ADC_BASE_TEMPLATE_ARGS
 bool ADC_BASE_TEMPLATE_QUALIFIER::StartSequence(const uint8_t *channels, uint8_t channelsCount, uint16_t *dataBuffer, uint16_t scanCount)
 {
 	if(scanCount == 0 || channelsCount == 0)
-		return false;
+    {
+        _adcData.error = ArgumentError;
+        return false;
+    }
 
 	if(!VerifyReady(ADC_CR_ADSTART))
-		return false;
+    {
+        _adcData.error = NotReady;
+        return false;
+    }
 	Regs()->ISR |= ADC_ISR_OVR | ADC_ISR_EOC | ADC_ISR_EOS;
 
 	if(channelsCount <= 16)

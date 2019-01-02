@@ -45,7 +45,7 @@ namespace Mcucpp
 	class AdcCommon
 	{
 	public:
-		enum AdcError{NoError, Overflow, TransferError, HardwareError, ArgumentError, SequenceError};
+		enum AdcError{NoError, Overflow, TransferError, HardwareError, ArgumentError, SequenceError, NotReady};
 
 		static const unsigned AdcTimeoutCycles = 2048 * 28 / 4;
 
