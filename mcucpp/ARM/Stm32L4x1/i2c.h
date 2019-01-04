@@ -180,6 +180,8 @@ namespace Mcucpp
 		static void EventIrqHandler();
 
 		static void ErrorIrqHandler();
+		
+		static void Disable();
 
 
 		template<uint8_t SclPinNumber, uint8_t SdaPinNumber>
@@ -284,7 +286,7 @@ namespace Mcucpp
 	typedef I2cBase<I2C2Regs, I2C2_EV_IRQn, I2C1_ER_IRQn, Clock::I2c2Clock, I2C2SclPins, I2C2SdaPins, void, void, 0, 0> I2c2;
 	typedef I2cBase<I2C3Regs, I2C3_EV_IRQn, I2C1_ER_IRQn, Clock::I2c3Clock, I2C3SclPins, I2C3SdaPins, void, void, 0, 0> I2c3;
 
-	uint32_t CalcTiming (uint32_t srcClock, uint32_t sclClock)
+	static inline uint32_t CalcTiming (uint32_t srcClock, uint32_t sclClock)
 	{
 		uint32_t tClk = 4000000000u / srcClock;	// 4*nsec
 		uint32_t t2Scl = 2000000000u / sclClock;	// 4*nsec
@@ -341,6 +343,13 @@ namespace Mcucpp
 		NVIC_EnableIRQ(ErIQRNumber);
 		//NVIC_SetPriority(EvIQRNumber, 1);
 		//NVIC_SetPriority(ErIQRNumber, 1);
+	}
+	
+	I2C_TEMPLATE_ARGS
+	void I2C_TEMPLATE_QUALIFIER::Disable()
+	{
+		ClockCtrl::Reset();
+		ClockCtrl::Disable();
 	}
 
 	I2C_TEMPLATE_ARGS

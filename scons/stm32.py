@@ -23,12 +23,12 @@ def getFamilyFromName(deviceName):
 	return deviceName.lower().replace('stm32', '')[0:2]
 
 def stLinkRun(target, source, env):
-	command = '$FLASH_TOOL -c SWD Srst -Run -NoPrompt -Q'
+	command = '$FLASH_TOOL -c SWD -NoPrompt -Q Srst -Run'
 	res = env.Execute(command)
 	return res
 	
 def stLinkFlashImage(target, source, env):
-	command = '$FLASH_TOOL -c SWD Srst -P %s -V -NoPrompt -Q' % (source[0].abspath)
+	command = '$FLASH_TOOL -c SWD Srst -ME -P %s -V -NoPrompt -Q' % (source[0].abspath)
 	res = env.Execute(command)
 	logFile = open(target[0].abspath, 'w')
 	logFile.write('Flash tool executed\r\n%s\r\n%s\r\nResult: %s\n' % (command, datetime.datetime.now(), res ) )
