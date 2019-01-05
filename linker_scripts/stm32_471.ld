@@ -31,6 +31,7 @@ SECTIONS
 
 	.text :
 	{
+		_stext = .;
 		__ctors_start__ = .;
 		KEEP(SORT(*)(.init_array))  /* eabi uses .init_array for static constructor lists */
 		__ctors_end__ = .;

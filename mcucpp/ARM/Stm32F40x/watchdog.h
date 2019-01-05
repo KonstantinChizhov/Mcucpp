@@ -76,7 +76,11 @@ namespace Mcucpp
 		
 		static bool CauseReset()
 		{
+			#if defined(RCC_CSR_IWDGRSTF)
 			return RCC->CSR & RCC_CSR_IWDGRSTF;
+			#else
+			return false;
+			#endif
 		}
 	};
 }

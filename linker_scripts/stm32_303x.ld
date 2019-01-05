@@ -20,9 +20,17 @@ SECTIONS
 		KEEP(*(.isr_vectors))
 		. = ALIGN(4);
 	} > FLASH
+	
+	.metadata_section :
+	{
+		. = ALIGN(8);
+		KEEP(*(.crc_section))
+		. = ALIGN(8);
+	} > FLASH
 
 	.text :
 	{
+		_stext = .;
 		__ctors_start__ = .;
 		KEEP(SORT(*)(.init_array))  /* eabi uses .init_array for static constructor lists */
 		__ctors_end__ = .;

@@ -23,7 +23,7 @@ SECTIONS
 		_isr_vectors_end = .;
 	} > FLASH
 	
-	.crc_section :
+	.metadata_section :
 	{
 		. = ALIGN(8);
 		KEEP(*(.crc_section))

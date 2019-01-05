@@ -1,0 +1,24 @@
+from datetime import date
+
+
+armEnv = Environment(DEVICE_NAME = 'stm32f407', 
+	toolpath = ['#../../scons'], 
+	tools=['mcucpp', 'flash_crc'])
+	
+
+armEnv.Append(LINKFLAGS = ["-nostdlib"])
+armEnv.Append(CCFLAGS = ["-O1", "-finline-limit=60"])
+
+app_objects = armEnv.Object(['main.cpp'])
+
+elf = armEnv.Program('crc_test', app_objects)
+elfStamped = armEnv.StampCrc('crc_test_stamped', elf)
+
+lss = armEnv.Disassembly(elf)
+hex = armEnv.Hex(elfStamped)
+flash = armEnv.Flash(hex)
+run = armEnv.Run(hex)
+
+armEnv.Default([elf, lss, hex, elfStamped])
+armEnv.Alias("flash", [flash, run, hex])
+
