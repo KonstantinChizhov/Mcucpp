@@ -210,6 +210,12 @@ namespace Mcucpp
              return StartSequence( {Pins::template PinIndex<Inpunts>::Value... }, dataBuffer, scanCount);
         }
 
+        template<class Pin>
+        constexpr static unsigned ChannelNum()
+        {
+			return Pins::template PinIndex<Pin>::Value;
+        }
+
 		static inline bool SequenceReady();
 		static inline void StopSequence();
 
@@ -219,6 +225,7 @@ namespace Mcucpp
 		static inline unsigned ToVolts(uint16_t value); // in 10E-4 Volt units
 		static inline unsigned ClockFreq();
 		static inline unsigned ConvertionTimeCycles(uint8_t channel);
+		static inline unsigned AdcPeriodUs10(uint8_t channel);
 
 		static inline int16_t ReadTemperature();
 
