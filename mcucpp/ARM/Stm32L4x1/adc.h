@@ -220,6 +220,8 @@ namespace Mcucpp
 		static inline unsigned ClockFreq();
 		static inline unsigned ConvertionTimeCycles(uint8_t channel);
 
+		static inline int16_t ReadTemperature();
+
 		static void DmaHandler(void * data, size_t size, bool success);
 		static void IrqHandler();
 	//private:

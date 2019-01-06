@@ -648,6 +648,17 @@ AdcCommon::AdcError ADC_BASE_TEMPLATE_QUALIFIER::GetError()
 	return _adcData.error;
 }
 
+ADC_BASE_TEMPLATE_ARGS
+int16_t  ADC_BASE_TEMPLATE_QUALIFIER::ReadTemperature()
+{
+	SetSampleTime(TempSensorChannel, 250);
+	uint16_t rawValue = ReadImmediate(TempSensorChannel);
+	int16_t TS_CAL1 = *((volatile int16_t*)0x1FFF75A8);
+	int16_t TS_CAL2 = *((volatile int16_t*)0x1FFF75CA);
+	int16_t value = (rawValue - TS_CAL1) * (110 - 30) / (TS_CAL2 - TS_CAL1) + 30;
+	return value;
+}
+
 namespace Private
 {
 	IO_STRUCT_WRAPPER(ADC1, Adc1Regs, ADC_TypeDef);
