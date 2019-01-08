@@ -251,6 +251,9 @@ namespace Mcucpp
 		USART_TEMPLATE_ARGS
 		void USART_TEMPLATE_QUALIFIER::Init(unsigned baud, UsartMode usartMode)
 		{
+			ClockCtrl::Reset();
+			DmaRxChannel::Disable();
+			DmaTxChannel::Disable();
 			ClockCtrl::Enable();
 			Regs()->CR1 = 0;
 			Regs()->CR2 = 0;
