@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 
 def Crc32Table(v):
 	v = ((v >> 1) ^ 0xEDB88320) if (v & 1) else v >> 1
@@ -36,19 +37,25 @@ def crc_stamp(target, source, env):
 	text = DumpSection(source[0].abspath, ".text", env)
 	isr = DumpSection(source[0].abspath, ".isr_vectors", env)
 	data = DumpSection(source[0].abspath, ".data", env)
+	
 	crc = 0XFFFFFFFF
 	#crc = FileCrc(isr, crc)
 	crc = FileCrc(text, crc)
 	#crc = FileCrc(data, crc)
 	crc = crc ^ 0XFFFFFFFF
-	crcString = crc.to_bytes(4, byteorder='little', signed=False)
-
+	
 	if not "CRC_MARKER" in env:
 		raise Exception("CRC_MARKER var is not found in current environment")
 	
 	crcMarker = env["CRC_MARKER"]
 	
-	markerString = crcMarker.to_bytes(4, byteorder='little', signed=False)
+	if sys.version_info[0] < 3:
+		crcString = chr((crc >> 0) & 0xff) + chr((crc >> 8) & 0xff) + chr((crc >> 16) & 0xff) + chr((crc >> 24) & 0xff)
+		markerString = chr((crcMarker >> 0) & 0xff) + chr((crcMarker >> 8) & 0xff) + chr((crcMarker >> 16) & 0xff) + chr((crcMarker >> 24) & 0xff)
+	else:
+		crcString = crc.to_bytes(4, byteorder='little', signed=False)
+		markerString = crcMarker.to_bytes(4, byteorder='little', signed=False)
+	
 	with open(target[0].abspath, 'rb') as elf_file:
 		content = elf_file.read()
 	
