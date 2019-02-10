@@ -8,7 +8,11 @@ import extensions
 
 
 def create_project_target(env, currentSource, buildElement, projectFileDir, buildTarget, compiler, project):
-	targetElement = ET.SubElement(buildElement, "Target", {"title":buildTarget})
+	target = buildTarget
+	if isinstance(buildTarget, dict):
+		target = buildTarget[currentSource]
+		
+	targetElement = ET.SubElement(buildElement, "Target", {"title":target})
 	sources, includes = extensions.get_sources_and_includes(env, currentSource)
 	
 	outPutRelative = projectFileDir.rel_path(currentSource)

@@ -1,10 +1,14 @@
 
 import os
 from SCons.Script import *
+import subprocess
 
 def unit_test_run(env, target, source):
+	print('unit_test_run', target, source)
 	testApp = str(target[0].abspath)
-	testNode = env.Command('run_test_%s' % str(target[0]), '', testApp)
+	subprocess.call([testApp])
+	#testNode = env.Command('run_test_%s' % str(target[0]), '', testApp)
+	#print (testNode)
 	
 def unit_test_emitter(target, source, env):
 	build_dir = os.path.dirname(target[0].abspath) 
@@ -41,8 +45,8 @@ def generate(env, **kw):
 		env.Append(CPPPATH=['%s/tests/include' % env['MCUCPP_HOME']])
 	
 	if env['CC'] == 'gcc':
-		env.Append(CXXFLAGS = ['-std=gnu++14'])
-		env.Append(CXXFLAGS = ['-static-libgcc', '-static-libstdc++' ])
+		env.Append(CXXFLAGS = ['-std=gnu++14', '-O0', '-g'])
+		env.Append(CXXFLAGS = ['-static', '-static-libgcc', '-static-libstdc++' ])
 		
 	
 	env.Append(CPPDEFINES={'GTEST_OS_WINDOWS':'1', 'GTEST_HAS_PTHREAD':'0', 'EMULATE_GLIBC':'1', '_EMULATE_GLIBC':'1'})
