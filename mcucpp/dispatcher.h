@@ -131,12 +131,13 @@ namespace Mcucpp
 		{
 			if(_count >= _tasksLen)
 				return false;
+			DisableInterrupts di;
 			TaskItem item(task, tag);
 			_tasks[_last] = item;
 			_last++;
 			if(_last >= _tasksLen)
 				_last = 0;
-			Atomic::AddAndFetch(&_count, 1);
+			_count++;
 			return true;
 		}
 
@@ -157,6 +158,7 @@ namespace Mcucpp
 				return 0;
 			uint32_t currentTime = GetTimerTicksFunc();
 			TimerData *timer = 0;
+			DisableInterrupts di;
 			for(size_t i=0; i <_timersLen; i++)
 			{
 				task_t task = _timers[i].task.task;
@@ -184,10 +186,10 @@ namespace Mcucpp
 					timer->time = currentTime + period;
 				}
 
-                timer->id = Atomic::AddAndFetch(&_timerSequence, 1)  & 0x00ffffff;
+                timer->id = (_timerSequence++) & 0x00ffffff;
 				if(timer->id == 0)
                 {
-                    timer->id = Atomic::AddAndFetch(&_timerSequence, 1) & 0x00ffffff;
+                    timer->id = (_timerSequence++) & 0x00ffffff;
                 }
                 uint32_t index = uint32_t(timer - &_timers[0]);
                 timer->id |=  index << 24;
@@ -245,10 +247,13 @@ namespace Mcucpp
 			if(_count > 0)
 			{
 				TaskItem &task = _tasks[_first];
-				Atomic::SubAndFetch(&_count, 1);
-				_first++;
-				if(_first >= _tasksLen)
+				ATOMIC
+				{
+					_count--;
+					_first++;
+					if(_first >= _tasksLen)
 					_first = 0;
+				}
 				task.Invoke();
 			}
 		}
