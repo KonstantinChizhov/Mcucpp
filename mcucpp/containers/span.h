@@ -35,7 +35,7 @@ namespace Mcucpp
 {
 	namespace Containers
 	{
-		inline constexpr ptrdiff_t dynamic_extent = -1;
+		constexpr ptrdiff_t dynamic_extent = -1;
 		
 		template<class T, ptrdiff_t Extent = dynamic_extent>
 		class span
@@ -50,16 +50,18 @@ namespace Mcucpp
 			typedef T* pointer;
 			typedef Mcucpp::reverse_iterator<T*> reverse_iterator;
 		private:
-			pointer *_data;
+			pointer _data;
 			size_t _size;
 		public:
 
 			span() noexcept :_data(nullptr), _size(0){}
 			constexpr span(pointer ptr, index_type count) noexcept :_data(ptr), _size(count){}
-			constexpr span(pointer firstElem, pointer lastElem) noexcept :_data(ptr), _size(lastElem - firstElem){}
+			constexpr span(pointer firstElem, pointer lastElem) noexcept :_data(firstElem), _size(lastElem - firstElem){}
 			template <std::size_t N>
-			constexpr span(element_type (&arr)[N]) noexcept :_data(arr), _size(N){}
-			
+			constexpr span(value_type (&arr)[N]) noexcept :_data(arr), _size(N){}
+
+			template <class ContainerT>
+			constexpr span(ContainerT &container) noexcept :_data(container.begin()), _size(container.size()) {}
 			
 			size_type size()const {return _size;}
 			size_type size_bytes()const {return _size * sizeof(T);}
@@ -67,15 +69,15 @@ namespace Mcucpp
 			bool empty()const {return _size == 0;}
 			reference front(){return *_data;}
 			const_reference front()const{return *_data;}
-			reference back(){return *_data + _size - 1;}
-			const_reference back()const{return *_data + _size - 1;}
+			reference back(){return *(_data + _size - 1);}
+			const_reference back()const{return *(_data + _size - 1);}
 			iterator begin(){return _data;}
-			iterator end(){return _data() + _size;}
+			iterator end(){return _data + _size;}
 			reverse_iterator rbegin(){return reverse_iterator(end());}
 			reverse_iterator rend(){return reverse_iterator(begin());}
 			
 			pointer data(){ return _data; }
-			const pointer data()const { return _data; }
+			pointer data()const { return _data; }
 			inline reference operator[] (index_type i){return _data[i];}
 			inline const_reference operator[] (index_type i)const{return _data[i];}
 		};
