@@ -32,8 +32,6 @@
 #include <iopins.h>
 #include <pinlist.h>
 
-
-
 namespace Mcucpp
 {
 typedef IO::Pa4 Dac1Out1;
@@ -41,7 +39,7 @@ typedef IO::Pa5 Dac1Out2;
 
 class Dac1_1
 {
-public:
+  public:
     typedef uint16_t DataT;
     static constexpr DataT MaxValue = 4095;
 
@@ -54,19 +52,23 @@ public:
 
     static inline void Disable()
     {
-         DAC->CR &= ~DAC_CR_EN1;
+        DAC->CR &= ~DAC_CR_EN1;
     }
 
     static inline void Write(DataT value)
     {
         DAC->DHR12R1 = value;
     }
-};
 
+    static inline DataT Read()
+    {
+        return DAC->DHR12R1;
+    }
+};
 
 class Dac1_2
 {
-public:
+  public:
     typedef uint16_t DataT;
     static constexpr DataT MaxValue = 4096;
 
@@ -79,7 +81,7 @@ public:
 
     static inline void Disable()
     {
-         DAC->CR &= ~DAC_CR_EN2;
+        DAC->CR &= ~DAC_CR_EN2;
     }
 
     static inline void Write(DataT value)
@@ -87,7 +89,10 @@ public:
         DAC->DHR12R2 = value;
     }
 
+     static inline DataT Read()
+    {
+        return DAC->DHR12R2;
+    }
 };
 
-
-}
+} // namespace Mcucpp
