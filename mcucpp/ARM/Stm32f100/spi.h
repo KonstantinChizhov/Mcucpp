@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ioreg.h>
-#include <stm32f37x.h>
+#include <stm32f10x.h>
 #include <clock.h>
 #include <iopins.h>
 #include <pinlist.h>

@@ -148,6 +148,20 @@ SupportedDevices = {
 		'libSources' : ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
 	},
 	
+	'stm32f103': 
+	{
+		'manufacturer' : 'ST',
+		'arch' : stm32,
+		'flash' : 128*1024, 'ram' : 20*1024, 'eeprom' : 0,
+		'includes' : commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32f10x', '%(MCUCPP_HOME)s/mcucpp/ARM/CortexM3', '%(MCUCPP_HOME)s/startup' ],
+		'linkerScript' : '%(MCUCPP_HOME)s/linker_scripts/stm32_103xB.ld',
+		'clock' : 72000000,
+		'defines' : ['STM32F10X_MD_VL', 'F_OSC=8000000u'],
+		'cpu' : 'cortex-m3',
+		'startup' : ['%(MCUCPP_HOME)s/startups/startup_stm32_103xB.c'],
+		'libSources' : ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
+	},
+	
 	'stm32f407': 
 	{
 		'manufacturer' : 'ST',

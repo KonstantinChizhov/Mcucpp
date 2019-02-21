@@ -6,6 +6,7 @@
 #include <static_assert.h>
 #include <enum.h>
 #include <debug.h>
+#include <data_transfer.h>
 
 namespace Mcucpp
 {
@@ -42,12 +43,46 @@ namespace Mcucpp
 		};
 	};
 	
-	DECLARE_ENUM_OPERATIONS(DmaBase::Mode)	
+	DECLARE_ENUM_OPERATIONS(DmaBase::Mode)
 	
-	template<class Module, class ChannelRegs, int Channel>
+	struct DmaChannelData
+	{
+		DmaChannelData()
+			:transferCallback(nullptr),
+            data(nullptr),
+            size(0)
+		{}
+		TransferCallbackFunc transferCallback;
+
+		void *data;
+		uint16_t size;
+
+		inline void NotifyTransferComplete()
+		{
+			TransferCallbackFunc callback = transferCallback;
+			//transferCallback = VoidDmaCallback;
+			if(callback)
+			{
+				callback(data, size, true);
+			}
+		}
+
+		inline void NotifyError()
+		{
+			TransferCallbackFunc callback = transferCallback;
+			//errorCallback = VoidDmaCallback;
+			if(callback)
+			{
+				callback(data, size, false);
+			}
+		}
+	};
+	
+	template<class Module, class ChannelRegs, int Channel, IRQn_Type IRQNumber>
 	class DmaChannel :public DmaBase
 	{
 		STATIC_ASSERT(Channel <= Module::Channels);
+		static DmaChannelData ChannelData;
 		public:
 		using DmaBase::Mode;
 		
@@ -58,7 +93,19 @@ namespace Mcucpp
 			ChannelRegs()->CNDTR = bufferSize;
 			ChannelRegs()->CPAR = reinterpret_cast<uint32_t>(periph);
 			ChannelRegs()->CMAR = reinterpret_cast<uint32_t>(buffer);
+			
+			ChannelData.data = const_cast<void*>(buffer);
+			ChannelData.size = bufferSize;
+			if(ChannelData.transferCallback)
+				mode = mode | DmaBase::TransferCompleteInterrupt | DmaBase::TransferErrorInterrupt;
+			NVIC_EnableIRQ(IRQNumber);
+			
 			ChannelRegs()->CCR = mode | DMA_CCR1_EN;
+		}
+		
+		static void SetTransferCallback(TransferCallbackFunc callback)
+		{
+			ChannelData.transferCallback = callback;
 		}
 		
 		static bool Enabled()
@@ -130,6 +177,22 @@ namespace Mcucpp
 		{
 			Module::template ClearInterrupt<Channel>();
 		}
+		
+		static void IrqHandler()
+		{
+			if(TrasferComplete())
+			{
+				ClearFlags();
+				Disable();
+				ChannelData.NotifyTransferComplete();
+			}
+			if(TransferError())
+			{
+				ClearFlags();
+				Disable();
+				ChannelData.NotifyError();
+			}
+		}
 	};
 	
 	template<class DmaRegs, class Clock, int _Channels>
@@ -189,8 +252,8 @@ namespace Mcucpp
 		template<int ChannelNum>
 		static void ClearChannelFlags()
 		{
-			STATIC_ASSERT(ChannelNum > 0 && ChannelNum < Channels);
-			DmaRegs()->IFCR | (0x0f << (ChannelNum - 1) * 4);
+			STATIC_ASSERT(ChannelNum > 0 && ChannelNum <= Channels);
+			DmaRegs()->IFCR |= (0x0f << (ChannelNum - 1) * 4);
 		}
 		
 		template<int ChannelNum>
@@ -251,21 +314,21 @@ namespace Mcucpp
 	
 	typedef DmaModule<Private::Dma1, Clock::Dma1Clock, 7> Dma1;
 	
-	typedef DmaChannel<Dma1, Private::Dma1Channel1, 1> Dma1Channel1;
-	typedef DmaChannel<Dma1, Private::Dma1Channel2, 2> Dma1Channel2;
-	typedef DmaChannel<Dma1, Private::Dma1Channel3, 3> Dma1Channel3;
-	typedef DmaChannel<Dma1, Private::Dma1Channel4, 4> Dma1Channel4;
-	typedef DmaChannel<Dma1, Private::Dma1Channel5, 5> Dma1Channel5;
-	typedef DmaChannel<Dma1, Private::Dma1Channel6, 6> Dma1Channel6;
-	typedef DmaChannel<Dma1, Private::Dma1Channel7, 7> Dma1Channel7;
+	typedef DmaChannel<Dma1, Private::Dma1Channel1, 1, DMA1_Channel1_IRQn> Dma1Channel1;
+	typedef DmaChannel<Dma1, Private::Dma1Channel2, 2, DMA1_Channel2_IRQn> Dma1Channel2;
+	typedef DmaChannel<Dma1, Private::Dma1Channel3, 3, DMA1_Channel3_IRQn> Dma1Channel3;
+	typedef DmaChannel<Dma1, Private::Dma1Channel4, 4, DMA1_Channel4_IRQn> Dma1Channel4;
+	typedef DmaChannel<Dma1, Private::Dma1Channel5, 5, DMA1_Channel5_IRQn> Dma1Channel5;
+	typedef DmaChannel<Dma1, Private::Dma1Channel6, 6, DMA1_Channel6_IRQn> Dma1Channel6;
+	typedef DmaChannel<Dma1, Private::Dma1Channel7, 7, DMA1_Channel7_IRQn> Dma1Channel7;
 	
 #if defined (STM32F10X_HD) || defined  (STM32F10X_CL) || defined  (STM32F10X_HD_VL)
 	typedef DmaModule<Private::Dma2, Clock::Dma2Clock, 5> Dma2;
-	typedef DmaChannel<Dma2, Private::Dma2Channel1, 1> Dma2Channel1;
-	typedef DmaChannel<Dma2, Private::Dma2Channel2, 2> Dma2Channel2;
-	typedef DmaChannel<Dma2, Private::Dma2Channel3, 3> Dma2Channel3;
-	typedef DmaChannel<Dma2, Private::Dma2Channel4, 4> Dma2Channel4;
-	typedef DmaChannel<Dma2, Private::Dma2Channel5, 5> Dma2Channel5;
+	typedef DmaChannel<Dma2, Private::Dma2Channel1, 1, DMA2_Channel1_IRQn> Dma2Channel1;
+	typedef DmaChannel<Dma2, Private::Dma2Channel2, 2, DMA2_Channel2_IRQn> Dma2Channel2;
+	typedef DmaChannel<Dma2, Private::Dma2Channel3, 3, DMA2_Channel3_IRQn> Dma2Channel3;
+	typedef DmaChannel<Dma2, Private::Dma2Channel4, 4, DMA2_Channel4_IRQn> Dma2Channel4;
+	typedef DmaChannel<Dma2, Private::Dma2Channel5, 5, DMA2_Channel5_IRQn> Dma2Channel5;
 #endif
 	
 }
