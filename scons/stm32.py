@@ -8,7 +8,8 @@ ocdInterfaces = {
 	'f1' : 'interface/stlink-v1.cfg',
 	'f2' : 'interface/stlink-v1.cfg',
 	'f3' : 'interface/stlink-v2.cfg',
-	'f4' : 'interface/stlink-v2.cfg'
+	'f4' : 'interface/stlink-v2.cfg',
+	'l4' : 'interface/stlink-v2.cfg'
 	}
 
 ocdTargets = {
@@ -16,7 +17,8 @@ ocdTargets = {
 	'f1' : 'target/stm32f1x.cfg',
 	'f2' : 'target/stm32f2x.cfg',
 	'f3' : 'target/stm32f3x.cfg',
-	'f4' : 'target/stm32f4x.cfg'
+	'f4' : 'target/stm32f4x.cfg',
+	'l4' : 'target/stm32l4x.cfg'
 	}
 
 def getFamilyFromName(deviceName):
