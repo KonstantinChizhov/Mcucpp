@@ -70,7 +70,51 @@ namespace Mcucpp
 			Ucpol  = 1 << UCPOL0
 		};
 	};
+	
+	struct Usart1Regs
+	{
+		IO_REG_WRAPPER(UDR1, Udr, uint8_t);
+		IO_REG_WRAPPER(UCSR1A, Ucsra, uint8_t);
+		IO_REG_WRAPPER(UCSR1B, Ucsrb, uint8_t);
+		IO_REG_WRAPPER(UCSR1C, Ucsrc, uint8_t);
+		IO_REG_WRAPPER(UBRR1L, Ubrrl, uint8_t);
+		IO_REG_WRAPPER(UBRR1H, Ubrrh, uint8_t);
+		
+		enum
+		{
+			Rxc  = 1 << RXC1 ,
+			Txc  = 1 << TXC1 ,
+			Udre = 1 << UDRE1,
+			Fe   = 1 << FE1  ,
+			Dor  = 1 << DOR1 ,
+			Upe  = 1 << UPE1 ,
+			U2x  = 1 << U2X1 ,
+			Mpcm = 1 << MPCM1,
+
+			Rxcie = 1 << RXCIE1,
+			Txcie = 1 << TXCIE1,
+			Udrie = 1 << UDRIE1,
+			Rxen  = 1 << RXEN1 ,
+			Txen  = 1 << TXEN1 ,
+			Ucsz2 = 1 << UCSZ12,
+			Rxb8  = 1 << RXB81 ,
+			Txb8  = 1 << TXB81 ,
+
+			Umsel1 = 1 << UMSEL11,
+			Umsel0 = 1 << UMSEL10,
+			Upm1   = 1 << UPM11  ,
+			Upm0   = 1 << UPM10  ,
+			Usbs   = 1 << USBS1  ,
+			Ucsz1  = 1 << UCSZ11 ,
+			Ucsz0  = 1 << UCSZ10 ,
+			Ucpol  = 1 << UCPOL1
+		};
+	};
 
 	typedef BasicUsart<Usart0Regs> Usart1;
+	typedef BasicUsart<Usart1Regs> Usart2;
+	
+	
 	#define MCUCPP_HAS_USART1 1
+	#define MCUCPP_HAS_USART2 1 
 }
