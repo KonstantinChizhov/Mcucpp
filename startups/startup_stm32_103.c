@@ -1,5 +1,5 @@
-#include "vectors_stm32_100xB.h"
-#include <mcu_header.h>
+#include "vectors_stm32_103.h"
+#include <stm32f1xx.h>
 
 void DefaultIrqHandler(void)
 {
@@ -32,9 +32,9 @@ void (* const g_pfnVectors[])(void) =
 	BusFaultException,
 	UsageFaultException,
 	0, 0, 0, 0, /* Reserved */
-	SVCHandler,
 	DebugMonitor,
 	0, /* Reserved */
+	SVCHandler,
 	PendSVC,
 	SysTickHandler,
 	WWDG_IRQHandler,
@@ -48,23 +48,29 @@ void (* const g_pfnVectors[])(void) =
 	EXTI2_IRQHandler,
 	EXTI3_IRQHandler,
 	EXTI4_IRQHandler,
-	DMAChannel1_IRQHandler,
-	DMAChannel2_IRQHandler,
-	DMAChannel3_IRQHandler,
-	DMAChannel4_IRQHandler,
-	DMAChannel5_IRQHandler,
-	DMAChannel6_IRQHandler,
-	DMAChannel7_IRQHandler,
-#ifdef STM32F10X_LD
-	ADC_IRQHandler,
-	USB_HP_CAN_TX_IRQHandler,
-	USB_LP_CAN_RX0_IRQHandler,
-	CAN_RX1_IRQHandler,
-	CAN_SCE_IRQHandler,
+	DMA1_Channel1_IRQHandler,
+	DMA1_Channel2_IRQHandler,
+	DMA1_Channel3_IRQHandler,
+	DMA1_Channel4_IRQHandler,
+	DMA1_Channel5_IRQHandler,
+	DMA1_Channel6_IRQHandler,
+	DMA1_Channel7_IRQHandler,
+	ADC1_2_IRQHandler,
+	USB_HP_CAN1_TX_IRQHandler,
+	USB_LP_CAN1_RX0_IRQHandler,
+	CAN1_RX1_IRQHandler,
+	CAN1_SCE_IRQHandler,
 	EXTI9_5_IRQHandler,
+	
+#if defined(STM32F103XG)
+	TIM1_BRK_TIM9_IRQHandler,
+	TIM1_UP_TIM10_IRQHandler,
+	TIM1_TRG_COM_TIM11_IRQHandler,
+#else
 	TIM1_BRK_IRQHandler,
 	TIM1_UP_IRQHandler,
 	TIM1_TRG_COM_IRQHandler,
+#endif
 	TIM1_CC_IRQHandler,
 	TIM2_IRQHandler,
 	TIM3_IRQHandler,
@@ -79,35 +85,52 @@ void (* const g_pfnVectors[])(void) =
 	USART2_IRQHandler,
 	USART3_IRQHandler,
 	EXTI15_10_IRQHandler,
-	RTCAlarm_IRQHandler,
-	USBWakeUp_IRQHandler
+	RTC_Alarm_IRQHandler,
+	USBWakeUp_IRQHandler,
+
+#if defined(STM32F103XE)
+	TIM8_BRK_IRQHandler,
+	TIM8_UP_IRQHandler,
+	TIM8_TRG_COM_IRQHandler,
+	TIM8_CC_IRQHandler,
+	ADC3_IRQHandler,
+	FSMC_IRQHandler,
+	SDIO_IRQHandler,
+	TIM5_IRQHandler,
+	SPI3_IRQHandler,
+	UART4_IRQHandler,
+	UART5_IRQHandler,
+	TIM6_IRQHandler,
+	TIM7_IRQHandler,
+	DMA2_Channel1_IRQHandler,
+	DMA2_Channel2_IRQHandler,
+	DMA2_Channel3_IRQHandler,
+	DMA2_Channel4_5_IRQHandler,
+
+#elif defined(STM32F103XG)
+	TIM8_BRK_TIM12_IRQHandler,
+	TIM8_UP_TIM13_IRQHandler,
+	TIM8_TRG_COM_TIM14_IRQHandler,
+	TIM8_CC_IRQHandler,
+	ADC3_IRQHandler,
+	FSMC_IRQHandler,
+	SDIO_IRQHandler,
+	TIM5_IRQHandler,
+	SPI3_IRQHandler,
+	UART4_IRQHandler,
+	UART5_IRQHandler,
+	TIM6_IRQHandler,
+	TIM7_IRQHandler,
+	DMA2_Channel1_IRQHandler,
+	DMA2_Channel2_IRQHandler,
+	DMA2_Channel3_IRQHandler,
+	DMA2_Channel4_5_IRQHandler,
+#elif defined(STM32F103XB)
+
+#else
+	#error "Unsupported device"
 #endif
-#if  defined(STM32F10X_LD_VL) || defined(STM32F10X_MD_VL)
-	ADC1_IRQHandler,                // irq 18, 
-	0, 0, 0, 0,
-	EXTI9_5_IRQHandler,             // irq 23
-	TIM1_BRK_TIM15_IRQHandler,      // irq 24
-	TIM1_UP_TIM16_IRQHandler,       // irq 25
-	TIM1_TRG_COM_TIM17_IRQHandler,  // irq 26
-	TIM1_CC_IRQHandler,             // irq 27
-	TIM2_IRQHandler,                // irq 28
-	TIM3_IRQHandler,                // irq 29
-	0,
-	I2C1_EV_IRQHandler,             // irq 31
-	I2C1_ER_IRQHandler,             // irq 32
-	0, 0,
-	SPI1_IRQHandler,                // irq 35
-	0,
-	USART1_IRQHandler,              // irq 37
-	USART2_IRQHandler,              // irq 38
-	0,
-	EXTI15_10_IRQHandler,           // irq 40
-	RTCAlarm_IRQHandler,            // irq 41
-	CEC_IRQHandler,                 // irq 42
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	TIM6_DAC_IRQHandler,            // irq 54
-	TIM7_IRQHandler                 // irq 55
-#endif /* STM32F10X_LD_VL || STM32F10X_MD_VL */
+	
 };
 
 /* stm32 reset code */

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ioreg.h"
-#include "stm32f10x.h"
+#include "mcu_header.h"
 
 #ifndef F_OSC
 #warning F_OSC is not defined. F_OSC is defaulted to HSE_VALUE. Verify that external cristal freq is correct.  
@@ -85,8 +85,8 @@ namespace Mcucpp
 		public:
 			enum ClockSource
 			{
-				Internal = RCC_CFGR_PLLSRC_HSI_Div2,
-				External = RCC_CFGR_PLLSRC_PREDIV1,
+				Internal = 0,
+				External = RCC_CFGR_PLLSRC,
 			};
 			
 			static uint32_t SetClockFreq(uint32_t freq);

@@ -38,7 +38,7 @@ extern "C" MCUCPP_INTERRUPT(DMA1_Channel7_IRQHandler)
 	Dma1Channel7::IrqHandler();
 }
 
-#if defined (STM32F10X_HD) || defined  (STM32F10X_CL) || defined  (STM32F10X_HD_VL)
+#if defined(DMA2)
 extern "C" MCUCPP_INTERRUPT(DMA2_Channel1_IRQHandler)
 {
 	Dma2Channel1::IrqHandler();

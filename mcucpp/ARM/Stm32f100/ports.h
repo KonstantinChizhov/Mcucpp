@@ -8,7 +8,7 @@
 #define STM32_PORTS_H
 
 #include "ioreg.h"
-#include "stm32f10x.h"
+#include "mcu_header.h"
 #include "clock.h"
 
 #include <static_assert.h>

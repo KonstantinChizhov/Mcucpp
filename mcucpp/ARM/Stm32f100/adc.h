@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <stm32f10x.h>
+#include <mcu_header.h>
 #include <clock.h>
 #include <iopins.h>
 #include <pinlist.h>
@@ -37,7 +37,7 @@ typedef void (*AdcCallbackType)(uint16_t *data, size_t count);
 class AdcCommon
 {
   public:
-  	static const unsigned MaxSequence = 16;
+	static const unsigned MaxSequence = 16;
 	static const unsigned MaxImmediate = 4;
 	enum AdcError
 	{
@@ -63,30 +63,34 @@ class AdcCommon
 	static const uint8_t ReferenceChannel = 17;
 
 	enum SequenceTrigger
-		{
-			SeqTriggerOnce = 0x10,
-			SeqTriggerTimer1CC1Event = 0,
-			SeqTriggerTimer1CC2Event,
-			SeqTriggerTimer1CC3Event,
-			SeqTriggerTimer2CC2Event,
-			SeqTriggerTimer3TRGOEvent,
-			SeqTriggerTimer4CC4Event,
-			SeqTriggerEXTIline11
-		};
+	{
+		SeqTriggerOnce = 0x10,
+		SeqTriggerTimer1CC1Event = 0,
+		SeqTriggerTimer1CC2Event,
+		SeqTriggerTimer1CC3Event,
+		SeqTriggerTimer2CC2Event,
+		SeqTriggerTimer3TRGOEvent,
+		SeqTriggerTimer4CC4Event,
+		SeqTriggerEXTIline11
+	};
 
-		enum ImmediateTrigger
-		{
-			ImmTriggerOnce = 0x10,
-			ImmTriggerTimer1TRGOEvent = 0,
-			ImmTriggerTimer1CC4Event,
-			ImmTriggerTimer2TRGOEvent,
-			ImmTriggerTimer2CC1Event,
-			ImmTriggerTimer3CC4Event,
-			ImmTriggerTimer4TRGOEvent,
-			ImmTriggerEXTILine15,
-		};
+	enum ImmediateTrigger
+	{
+		ImmTriggerOnce = 0x10,
+		ImmTriggerTimer1TRGOEvent = 0,
+		ImmTriggerTimer1CC4Event,
+		ImmTriggerTimer2TRGOEvent,
+		ImmTriggerTimer2CC1Event,
+		ImmTriggerTimer3CC4Event,
+		ImmTriggerTimer4TRGOEvent,
+		ImmTriggerEXTILine15,
+	};
 
-		enum TriggerMode{TriggerNone, TriggerRisingEdge};
+	enum TriggerMode
+	{
+		TriggerNone,
+		TriggerRisingEdge
+	};
 };
 
 struct AdcData
@@ -396,14 +400,25 @@ static inline void EnableChannel(uint8_t channel)
 
 static inline unsigned GetJsqr(const uint8_t *channels, uint8_t count, uint32_t jsqr)
 {
-	jsqr = ((count - 1) << 20) | (channels[0] << 0);
-
-	if (count > 1)
-		jsqr |= (channels[1] << 5);
-	if (count > 2)
-		jsqr |= (channels[2] << 10);
+	jsqr = ((count - 1) << 20);
+	unsigned fieldOffset = 5 * (4-count);
+	jsqr |= (channels[0] << fieldOffset);
+	fieldOffset += 5;
 	if (count > 3)
-		jsqr |= (channels[3] << 15);
+	{
+		jsqr |= (channels[1] << fieldOffset);
+		fieldOffset += 5;
+	}
+	if (count > 2)
+	{
+		jsqr |= (channels[2] << fieldOffset);
+		fieldOffset += 5;
+	}
+	if (count > 1)
+	{
+		jsqr |= (channels[3] << fieldOffset);
+	}
+	
 	return jsqr;
 }
 
@@ -549,9 +564,9 @@ bool ADC_BASE_TEMPLATE_QUALIFIER::StartImmediate(uint8_t channel)
 		return false;
 	}
 
-	Regs()->CR1 |= ADC_CR1_DISCEN;
-	Regs()->SR = ~(ADC_SR_JEOC);
-	Regs()->JSQR = (unsigned)channel;
+	//Regs()->CR1 |= ADC_CR1_DISCEN;
+	Regs()->SR = ~(ADC_SR_JEOC | ADC_SR_JSTRT);
+	Regs()->JSQR = (unsigned)channel << ADC_JSQR_JSQ4_Pos;\
 
 	EnableChannel<Pins, Regs>(channel);
 
@@ -580,7 +595,7 @@ uint16_t ADC_BASE_TEMPLATE_QUALIFIER::ReadImmediate()
 		_adcData.error = NoError;
 	}
 
-	Regs()->SR &= ~(ADC_SR_JEOC);
+	Regs()->SR &= ~(ADC_SR_JEOC | ADC_SR_JSTRT);
 	return result;
 }
 
