@@ -46,6 +46,9 @@ namespace Mcucpp
 #elif defined(__ATmega168__) || defined(__AVR_ATmega168__) // atmega168
 		typedef IO::PinList<Pc0, Pc1, Pc2, Pc3, Pc4, Pc5> AdcPins;
 		const uint16_t InternalReference = 0x011A; // 1.1V
+#elif defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__) // atmega1284
+		typedef IO::PinList<Pa0, Pa1, Pa2, Pa3, Pa4, Pa5, Pa6, Pa7> AdcPins;
+		const uint16_t InternalReference = 0x011A; // 1.1V
 #else
 #error ADC support is not implemented for this device yet.
 #endif

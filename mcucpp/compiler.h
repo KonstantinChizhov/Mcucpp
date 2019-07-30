@@ -39,7 +39,7 @@
 
 #if __cplusplus <= 199711L || defined(__AVR__) // check for c++11 of avr-gcc compiler
 
-namespace std;
+namespace std
 {
 
     template< class T > struct remove_const          { typedef T type; };

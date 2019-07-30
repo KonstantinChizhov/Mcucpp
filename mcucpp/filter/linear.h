@@ -31,6 +31,7 @@
 #include <algorithm>
 #include <numeric>
 #include <iterator>
+#include <array>
 
 namespace Mcucpp
 {
