@@ -25,6 +25,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
+#pragma once 
 
 #if defined (__GNUC__) && defined(__arm__)
 	#define MCUCPP_INTERRUPT(ISR_NAME) __attribute__(( __interrupt__)) void ISR_NAME()
@@ -64,3 +65,17 @@ namespace std
 #endif
 
 
+#if defined(__AVR__)
+#include <stdlib.h>
+    namespace std
+    {
+    #if __cplusplus <= 199711L 
+        inline void terminate()
+    #else
+        [[noreturn]] inline void terminate() noexcept
+    #endif
+        {
+            abort();
+        }
+    }
+#endif
