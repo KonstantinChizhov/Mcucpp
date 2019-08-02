@@ -73,4 +73,26 @@ namespace Mcucpp
 	{
 		delay_us<ms * 1000, CpuFreq>();
 	}
+
+	template<class Timer>
+	struct TimerDelay
+	{
+		typedef typename Timer::DataT DataT;
+		DataT startTick;
+		void Start()
+		{
+			startTick = Timer::Get();
+		}
+
+		void Wait(DataT ticks)
+		{
+			DataT timeout{-1};
+			while(Timer::Get() - startTick < ticks && --timeout);
+			if(timeout == 0)
+			{
+				// abort();
+				// TODO: handle timeout if timer is not running
+			}
+		}
+	};
 }

@@ -90,6 +90,26 @@ namespace IO
 		static void SetConfiguration()
 		{}
 
+		static void SetSpeed(DataT, Speed)
+		{
+			// nothing to do
+		}
+		
+		static void SetPullUp(DataT, PullMode)
+		{
+			// nothing to do
+		}
+		
+		static void SetDriverType(DataT, DriverType)
+		{
+			// nothing to do
+		}
+		
+		static void AltFuncNumber(DataT, uint8_t)
+		{
+			// nothing to do
+		}
+
 		enum{Id = '-'};
 		enum{Width=sizeof(DataT)*8};
 	};

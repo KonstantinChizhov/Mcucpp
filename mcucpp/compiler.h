@@ -34,10 +34,15 @@
 	#define nullptr 0
 #endif
 
-#define MCUCPP_WEAK __attribute__((weak))
+#if defined (__GNUC__)
+	#define MCUCPP_WEAK __attribute__((weak))
+	#define MCUCPP_FORCEINLINE __attribute__((always_inline))
+#else
+	#define MCUCPP_WEAK
+	#define MCUCPP_FORCEINLINE
+#endif
 
-
-#if __cplusplus <= 199711L || defined(__AVR__) // check for c++11 of avr-gcc compiler
+#if __cplusplus <= 199711L || (defined(__AVR__) && !__has_include("type_traits")) // check for c++11 of avr-gcc compiler
 
 namespace std
 {

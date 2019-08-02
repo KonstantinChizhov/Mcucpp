@@ -275,7 +275,7 @@ namespace Mcucpp
 			}
 		}
 		
-		static void RxIntHandler()
+		MCUCPP_FORCEINLINE static void RxIntHandler()
 		{
 			if(usartData.rxBuffer)
 			{
@@ -290,7 +290,7 @@ namespace Mcucpp
 			}
 		}
 		
-		static void TxIntHandler()
+		MCUCPP_FORCEINLINE static void TxIntHandler()
 		{
 			if(usartData.txBuffer)
 			{
