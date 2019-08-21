@@ -1,4 +1,5 @@
 
+void Print(const char*, int );
 
 namespace Mcucpp
 {
@@ -7,7 +8,6 @@ namespace Modbus
 
 	static inline uint16_t CalcModbusCrc(DataBuffer & buffer)
 	{
-
 		uint16_t crc = Crc16ModbusTable::Init;
 		for(uint8_t c : buffer)
 		{
@@ -16,15 +16,15 @@ namespace Modbus
 		return crc;
 	}
 
-    template<class IODevice>
-	ModbusTransportRtu<IODevice>::ModbusTransportRtu()
+    template<class IODevice, class TxPin>
+	ModbusTransportRtu<IODevice, TxPin>::ModbusTransportRtu()
 		:_rxChunk(nullptr)
 	{
 
 	}
 
-    template<class IODevice>
-	ModbusTransportRtu<IODevice>::~ModbusTransportRtu()
+    template<class IODevice, class TxPin>
+	ModbusTransportRtu<IODevice, TxPin>::~ModbusTransportRtu()
 	{
         if(_rxChunk)
         {
@@ -32,14 +32,14 @@ namespace Modbus
         }
 	}
 
-	template<class IODevice>
-	void ModbusTransportRtu<IODevice>::DiscardReadBuffer()
+	template<class IODevice, class TxPin>
+	void ModbusTransportRtu<IODevice, TxPin>::DiscardReadBuffer()
 	{
 	     _rxBuffer.Clear();
 	}
 
-	template<class IODevice>
-	bool ModbusTransportRtu<IODevice>::SendMessage(DataBuffer & buffer)
+	template<class IODevice, class TxPin>
+	bool ModbusTransportRtu<IODevice, TxPin>::SendMessage(DataBuffer & buffer)
 	{
 	    _txBuffer = std::move(buffer);
 		uint16_t crc = CalcModbusCrc(_txBuffer);
@@ -57,12 +57,13 @@ namespace Modbus
         {
             TxHandler(data, size, success);
         };
+        TxPin::Toggle();
         bool res = IODevice::WriteAsync(chunk->Data(), chunk->Size(), callback);
 		return res;
 	}
 
-	template<class IODevice>
-	bool ModbusTransportRtu<IODevice>::StartListen()
+	template<class IODevice, class TxPin>
+	bool ModbusTransportRtu<IODevice, TxPin>::StartListen()
 	{
 	    if(!_buffersAreStatic)
         {
@@ -97,8 +98,8 @@ namespace Modbus
         return res;
 	}
 
-	template<class IODevice>
-	void ModbusTransportRtu<IODevice>::Stop()
+	template<class IODevice, class TxPin>
+	void ModbusTransportRtu<IODevice, TxPin>::Stop()
 	{
 	    _rxChunk = nullptr;
 	    _txBuffer.Clear();
@@ -106,8 +107,8 @@ namespace Modbus
         _buffersAreStatic = false;
 	}
 
-	template<class IODevice>
-	void ModbusTransportRtu<IODevice>::TxHandler(void *data, size_t size, bool success)
+	template<class IODevice, class TxPin>
+	void ModbusTransportRtu<IODevice, TxPin>::TxHandler(void *data, size_t size, bool success)
 	{
 	    (void)data;
 	    (void)size;
@@ -136,8 +137,8 @@ namespace Modbus
         }
 	}
 
-	template<class IODevice>
-    void ModbusTransportRtu<IODevice>::RxHandler(void *data, size_t size, bool success)
+	template<class IODevice, class TxPin>
+    void ModbusTransportRtu<IODevice, TxPin>::RxHandler(void *data, size_t size, bool success)
     {
         (void)data;
 
@@ -182,12 +183,14 @@ namespace Modbus
             // handle device busy
         }
     }
+    
 
-    template<class IODevice>
-    void ModbusTransportRtu<IODevice>::RxHandlerStatic(void *data, size_t size, bool success)
+    template<class IODevice, class TxPin>
+    void ModbusTransportRtu<IODevice, TxPin>::RxHandlerStatic(void *data, size_t size, bool success)
     {
         (void)data;
         (void)success;
+
         if(!_rxChunk || !_rxChunk->Resize(size))
         {
             // logic error
@@ -221,8 +224,8 @@ namespace Modbus
         }
     }
 
-    template<class IODevice>
-    void ModbusTransportRtu<IODevice>::SetStaticBuffers(DataChunk *rxBuffer, DataChunk *txBuffer)
+    template<class IODevice, class TxPin>
+    void ModbusTransportRtu<IODevice, TxPin>::SetStaticBuffers(DataChunk *rxBuffer, DataChunk *txBuffer)
     {
         _rxBuffer.Clear();
         _txBuffer.Clear();
@@ -234,8 +237,8 @@ namespace Modbus
         }
     }
 
-    template<class IODevice>
-    Mcucpp::DataBuffer&& ModbusTransportRtu<IODevice>::GetTxBuffer()
+    template<class IODevice, class TxPin>
+    Mcucpp::DataBuffer&& ModbusTransportRtu<IODevice, TxPin>::GetTxBuffer()
     {
         _txBuffer.Clear();
         if(_buffersAreStatic)
