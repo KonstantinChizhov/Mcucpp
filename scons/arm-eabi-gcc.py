@@ -12,7 +12,7 @@ def generate(env, **kw):
 	env.Tool('gnu-tools')
 		
 	hexBuilder = Builder(
-		action = '$OBJCOPY -O ihex --only-section .isr_vectors --only-section .text --only-section .rodata --only-section .ctors --only-section .dtors --only-section .data --only-section .metadata_section $SOURCE $TARGET', 
+		action = '$OBJCOPY -O ihex --only-section .isr_vectors --only-section .text --only-section .rodata --only-section .ctors --only-section .dtors --only-section .data --only-section .metadata_section $CUSTOM_HEX_PARAMS $SOURCE $TARGET', 
 		src_suffix = ".elf",
 		suffix = ".hex")
 	

@@ -51,6 +51,7 @@ stm32m4 = {
 SupportedDevices = {
     'atmega8':
         {
+            'name' : 'atmega8',
             'manufacturer': 'Atmel',
             'arch': atmega,
             'flash': 8*1024, 'ram': 1024, 'eeprom': 512,
@@ -63,6 +64,7 @@ SupportedDevices = {
         },
     'atmega16':
         {
+            'name' : 'atmega16',
             'manufacturer': 'Atmel',
             'arch': atmega,
             'flash': 16*1024, 'ram': 1024, 'eeprom': 1024,
@@ -75,6 +77,7 @@ SupportedDevices = {
         },
     'atmega128':
         {
+            'name' : 'atmega128',
             'manufacturer': 'Atmel',
             'arch': atmega,
             'flash': 128*1024, 'ram': 4*1024, 'eeprom': 1024,
@@ -87,6 +90,7 @@ SupportedDevices = {
         },
     'atmega168':
         {
+            'name' : 'atmega168',
             'manufacturer': 'Atmel',
             'arch': atmega,
             'flash': 16*1024, 'ram': 1*1024, 'eeprom': 512,
@@ -99,6 +103,7 @@ SupportedDevices = {
         },
     'atmega1284p':
         {
+            'name' : 'atmega1284p',
             'manufacturer': 'Atmel',
             'arch': atmega,
             'flash': 128*1024, 'ram': 16*1024, 'eeprom': 4*1024,
@@ -111,6 +116,7 @@ SupportedDevices = {
         },
     'attiny2313':
         {
+            'name' : 'attiny2313',
             'manufacturer': 'Atmel',
             'arch': attiny,
             'flash': 2*1024, 'ram': 128, 'eeprom': 128,
@@ -123,6 +129,7 @@ SupportedDevices = {
         },
         'attiny26':
         {
+            'name' : 'attiny26',
             'manufacturer': 'Atmel',
             'arch': attiny,
             'flash': 2*1024, 'ram': 128, 'eeprom': 128,
@@ -148,6 +155,7 @@ SupportedDevices = {
 
         'stm32f100':
         {
+            'name' : 'stm32f100',
             'manufacturer': 'ST',
             'arch': stm32,
             'flash': 128*1024, 'ram': 8*1024, 'eeprom': 0,
@@ -160,8 +168,9 @@ SupportedDevices = {
             'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
         },
 
-		'stm32f103':
+        'stm32f103':
         {
+            'name' : 'stm32f103',
             'manufacturer': 'ST',
             'arch': stm32,
             'flash': 64*1024, 'ram': 20*1024, 'eeprom': 0,
@@ -176,6 +185,7 @@ SupportedDevices = {
 
         'stm32f407':
         {
+            'name' : 'stm32f407',
             'manufacturer': 'ST',
             'arch': stm32m4,
             'flash': 1024*1024, 'ram': 112*1024, 'eeprom': 0,
@@ -190,6 +200,7 @@ SupportedDevices = {
 
         'stm32f429':
         {
+            'name' : 'stm32f429',
             'manufacturer': 'ST',
             'arch': stm32m4,
             'flash': 2*1024*1024, 'ram': 256*1024, 'eeprom': 0,
@@ -203,6 +214,7 @@ SupportedDevices = {
         },
         'stm32l471':
         {
+            'name' : 'stm32l471',
             'manufacturer': 'ST',
             'arch': stm32m4,
             'flash': 1*1024*1024, 'ram': 128*1024, 'eeprom': 0,

@@ -84,13 +84,17 @@ def generate(env, **kw):
 	env.Tool('arm-eabi-gcc')
 	
 	flasherFound = False
-	flasher_windows = "C:\Program Files (x86)\STMicroelectronics\STM32 ST-LINK Utility\ST-LINK Utility\ST-LINK_CLI.exe"
+	flasher_windows = r"C:\Program Files (x86)\STMicroelectronics\STM32 ST-LINK Utility\ST-LINK Utility\ST-LINK_CLI.exe"
 	
 	if not flasherFound and env.Detect("openocd"):
-		if not 'DEVICE_NAME' in env and not 'OCD_INTERFACE' in env:
+		if not 'DEVICE_NAME' in env and not 'OCD_INTERFACE' in env and not 'DEVICE' in env:
 			raise Exception("No device name specified. Set DEVICE_NAME with valid device name.")
-		
-		devFmily = getFamilyFromName(env['DEVICE_NAME'])
+		if 'DEVICE_NAME' in env:
+			deviceName = env['DEVICE_NAME']
+		if 'DEVICE' in env:
+			deviceName = env['DEVICE']['name']
+
+		devFmily = getFamilyFromName(deviceName)
 		ocdInterface = ocdInterfaces[devFmily]
 		ocdTarget = ocdTargets[devFmily]
 		env["OCD_INTERFACE"] = ocdInterface

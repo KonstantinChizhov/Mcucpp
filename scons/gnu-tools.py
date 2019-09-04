@@ -43,7 +43,7 @@ def setup_gnu_tools(env, prefix):
 		"-fno-rtti",
 		"-fuse-cxa-atexit",
 		"-Woverloaded-virtual",
-		"-std=c++14"
+		"-std=c++17"
 		#"-std=c++03"
 	]
 	
