@@ -226,10 +226,13 @@ clock_freq_t SysClock::ClockFreq()
 clock_freq_t SysClock::SetClockFreq(clock_freq_t freq)
 {
 	SelectClockSource(Internal);
+#if defined(FLASH_ACR_LATENCY)
 	FLASH->ACR &= ~FLASH_ACR_LATENCY;
+#endif
 	PllClock::Disable();
 	PllClock::SelectClockSource(PllClock::External);
 	PllClock::SetClockFreq(freq);
+#if defined(FLASH_ACR_LATENCY)
 	if (freq > 48000000)
 	{
 		FLASH->ACR |= FLASH_ACR_LATENCY_2;
@@ -238,6 +241,7 @@ clock_freq_t SysClock::SetClockFreq(clock_freq_t freq)
 	{
 		FLASH->ACR |= FLASH_ACR_LATENCY_1;
 	}
+#endif
 	SelectClockSource(Pll);
 	return ClockFreq();
 }

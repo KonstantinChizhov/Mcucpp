@@ -3,6 +3,7 @@
 #include <modbus.h>
 #include <data_transfer.h>
 #include <data_buffer.h>
+#include <iopins.h>
 #include <vector>
 #include <array>
 
@@ -84,7 +85,7 @@ TEST(Modbus, ModbusTransportRtu_Rx_Tx)
 	using namespace Mcucpp::Modbus;
 	ModbusIoDevice::Reset();
 
-	ModbusTransportRtu<ModbusIoDevice> transport;
+	ModbusTransportRtu<ModbusIoDevice, IO::NullPin> transport;
 	TestDevice device(transport);
 
 	ModbusIoDevice::rxdata = {1, 3, 0, 1, 0, 1, 213, 202};
@@ -126,7 +127,7 @@ TEST(Modbus, SlaveTest)
 	using namespace Mcucpp::Modbus;
 	ModbusIoDevice::Reset();
 
-	ModbusTransportRtu<ModbusIoDevice> transport;
+	ModbusTransportRtu<ModbusIoDevice, IO::NullPin> transport;
 	ModbusSlave device(transport);
 
 	ModbusIoDevice::rxdata = {1, 3, 0, 1, 0, 1, 213, 202};
@@ -170,7 +171,7 @@ TEST(Modbus, SlaveTestStaticBuffer)
 	uint8_t txBuffer[256];
 	DataChunk txChunk(txBuffer, 0, sizeof(txBuffer));
 
-	ModbusTransportRtu<ModbusIoDevice> transport;
+	ModbusTransportRtu<ModbusIoDevice, IO::NullPin> transport;
 	ModbusSlave device(transport);
 	transport.SetStaticBuffers(&rxChunk, &txChunk);
 
