@@ -44,10 +44,10 @@ namespace Mcucpp
 		static const uint32_t BaseAddress = 0x08000000;
 		
 		static inline void ConfigureFreq(uint32_t clockFreq);
-		static inline uint32_t TotalSize();
-		static inline uint32_t PageCount();
-		static inline uint32_t PageAddress(unsigned page);
-		static inline uint32_t PageSize(unsigned page);
+		static inline constexpr uint32_t TotalSize();
+		static inline constexpr uint32_t PageCount();
+		static inline constexpr uint32_t PageAddress(unsigned page);
+		static inline constexpr uint32_t PageSize(unsigned page);
 		static inline bool ErasePage(unsigned page);
 		static inline bool WritePage(unsigned page, void *data, size_t length, size_t offset = 0);
 		static inline bool MassErase();
@@ -82,7 +82,7 @@ namespace Mcucpp
 					ws;
 	}
 		
-	uint32_t Flash::TotalSize()
+	constexpr uint32_t Flash::TotalSize()
 	{
 	#if defined(STM32F40_41xxx)
 		return 1024*1024;
@@ -93,7 +93,7 @@ namespace Mcucpp
 	#endif
 	}
 	
-	uint32_t Flash::PageCount()
+	constexpr uint32_t Flash::PageCount()
 	{
 	#if defined(STM32F40_41xxx)
 		return 12;
@@ -104,7 +104,7 @@ namespace Mcucpp
 	#endif
 	}
 	
-	uint32_t Flash::PageAddress(unsigned page)
+	constexpr uint32_t Flash::PageAddress(unsigned page)
 	{
 	#if defined(STM32F40_41xxx)
 		if(page < 4)
@@ -132,7 +132,7 @@ namespace Mcucpp
 	#endif
 	}
 	
-	uint32_t Flash::PageSize(unsigned page)
+	constexpr uint32_t Flash::PageSize(unsigned page)
 	{
 	#if defined(STM32F40_41xxx)
 		if(page < 4)
