@@ -263,12 +263,14 @@ namespace Mcucpp
 			template<class DePin>
 			static void SelectDePin()
 			{
-				const int dePinIndex = DePins::template PinIndex<DePin>::Value;
-				STATIC_ASSERT(dePinIndex >= 0);
-				SelectDePin(dePinIndex);
+				if constexpr(!Loki::IsSameType<DePin, IO::NullPin>::value)
+				{
+					const int dePinIndex = DePins::template PinIndex<DePin>::Value;
+					STATIC_ASSERT(dePinIndex >= 0);
+					SelectDePin(dePinIndex);
+				}			
 			}
 		};
-
 
 		USART_TEMPLATE_ARGS
 		void USART_TEMPLATE_QUALIFIER::Init(unsigned baud, UsartMode usartMode)
@@ -289,9 +291,9 @@ namespace Mcucpp
 			}
 			Regs()->CR2 = (usartMode >> CR2ModeShift);
 			Regs()->CR1 = (usartMode >> CR1ModeShift)
-					| (20 << USART_CR1_DEAT_Pos)
-					| (20 << USART_CR1_DEDT_Pos);
-		Regs()->CR3 |= USART_CR3_DEM_Msk;
+					| (31 << USART_CR1_DEAT_Pos)
+					| (31 << USART_CR1_DEDT_Pos);
+			Regs()->CR3 |= USART_CR3_DEM_Msk;
 			Regs()->CR1 |= USART_CR1_UE;
 		}
 
