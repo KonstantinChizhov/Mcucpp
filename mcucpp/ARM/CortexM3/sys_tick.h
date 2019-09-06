@@ -53,7 +53,7 @@ namespace Mcucpp
 		
 		static inline  void EnableInterrupt()
 		{
-			NVIC_EnableIRQ(SysTick_IRQn);
+			//NVIC_EnableIRQ(SysTick_IRQn);
 		}
 	};
 	
