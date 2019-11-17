@@ -2,6 +2,7 @@
 #include "vectors_stm32l471.h"
 #include <stm32l471xx.h>
 
+__attribute__((weak, __interrupt__))
 void DefaultIrqHandler(void)
 {
 	while (1)

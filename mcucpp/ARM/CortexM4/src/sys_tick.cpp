@@ -41,7 +41,7 @@ namespace Mcucpp
 	}
 	
 	
-	extern "C" MCUCPP_WEAK MCUCPP_INTERRUPT(SysTick_Handler)
+	extern "C" __attribute__(( __interrupt__)) void SysTick_Handler()
 	{
 		tickCount++;
 	}
