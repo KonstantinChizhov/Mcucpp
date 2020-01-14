@@ -1,0 +1,38 @@
+{
+    "files.associations": {
+        "functional": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "memory": "cpp",
+        "xmemory": "cpp",
+        "xtr1common": "cpp",
+        "xutility": "cpp"
+    },
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": "googletest.failed",
+                "settings": {
+                    "foreground": "#f00"
+                }
+            },
+            {
+                "scope": "googletest.passed",
+                "settings": {
+                    "foreground": "#0f0"
+                }
+            },
+            {
+                "scope": "googletest.run",
+                "settings": {
+                    "foreground": "#0f0"
+                }
+            }
+        ]
+    },
+    "gtest-adapter.debugConfig": [
+        "Debug tests"
+    ],
+    "gtest-adapter.supportLocation": true
+}

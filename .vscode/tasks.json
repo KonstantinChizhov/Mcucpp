@@ -4,12 +4,29 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "scons",
+            "label": "Build all",
             "type": "shell",
-            "command": "scons",
+            "command": "scons ",
             "problemMatcher": [
                 "$gcc"
-            ]
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build and run unit tests",
+            "type": "shell",
+            "options": {  "cwd": "${workspaceFolder}/tests/UnitTests" },
+            "command": "scons UnitTests",
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }

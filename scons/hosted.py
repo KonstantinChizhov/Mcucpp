@@ -22,8 +22,9 @@ def unit_test_emitter(target, source, env):
 	return target, source
 	
 def generate(env, **kw):
-	env['ENV'] = os.environ 
-	if env.Detect('mingw32-gcc'):
+	env['ENV'] = os.environ
+
+	if env['PLATFORM'] == 'win32' and (env.Detect('mingw32-gcc') or env.Detect('gcc')):
 		env.Tool('mingw')
 	else:
 		env.Tool('default')

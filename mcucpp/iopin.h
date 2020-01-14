@@ -71,7 +71,7 @@ namespace IO
 		template<Configuration configuration>
 		static void SetConfiguration()
 		{
-			ConfigPort:: template SetConfiguration<1 << PIN, configuration>();
+			ConfigPort:: template SetConfiguration<1u << PIN, configuration>();
 		}
 
 		static bool IsSet();
