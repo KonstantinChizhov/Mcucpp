@@ -1,6 +1,6 @@
 
 commInc = ['%(MCUCPP_HOME)s/mcucpp']
-avrInc = commInc + ['%(MCUCPP_HOME)s/mcucpp/AVR']
+avrInc = commInc + ['%(MCUCPP_HOME)s/mcucpp/AVR', '%(MCUCPP_HOME)s/3rdparty/avr-libstdcpp/include']
 
 atmega = {
     'name': 'AtMega',
