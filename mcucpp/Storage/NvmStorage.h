@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <flash.h>
+#include <atomic.h>
 #include <algorithm>
 
 namespace Mcucpp

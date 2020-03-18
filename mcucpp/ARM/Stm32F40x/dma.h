@@ -58,14 +58,20 @@ namespace Mcucpp
 		inline void NotifyTransferComplete()
 		{
 			TransferCallbackFunc callback = transferCallback;
-			callback(data, size, true);
+			if(callback)
+			{
+				callback(data, size, true);
+			}
 		}
 		
 		inline void NotifyError()
 		{
 			TransferCallbackFunc callback = transferCallback;
 			//errorCallback = VoidDmaCallback;
-			callback(data, size, false);
+			if(callback)
+			{
+				callback(data, size, false);
+			}
 		}
 	};
 	
@@ -120,7 +126,7 @@ namespace Mcucpp
 		
 		static void Disable()
 		{
-			ChannelRegs()->CR &= DMA_SxCR_EN;
+			ChannelRegs()->CR &= ~DMA_SxCR_EN;
 		}
 		
 		static uint32_t RemainingTransfers()

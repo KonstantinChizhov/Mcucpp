@@ -41,7 +41,7 @@ namespace Mcucpp
 		if ((RCC->CFGR & RCC_CFGR_PLLSRC) == 0)
 			return 2;
 		else
-		#if defined(STM32F10X_CL)
+		#if defined(STM32F10X_CL) 
 			return (RCC->CFGR2 & RCC_CFGR2_PREDIV1) + 1;
 		#else
 			return ((RCC->CFGR & RCC_CFGR_PLLXTPRE) >> 17) + 1;
@@ -128,7 +128,7 @@ namespace Mcucpp
 		
 		uint32_t srcFreq = SrcClockFreq();
 		
-		#if defined(STM32F10X_CL)
+		#if defined(STM32F10X_CL) 
 		resPllDiv = 16;
 		#else
 		resPllDiv = 2;
@@ -162,7 +162,7 @@ namespace Mcucpp
 	
 	clock_freq_t SysClock::MaxFreq()
 	{
-		#if defined(STM32F10X_CL)
+		#if defined(STM32F10X_CL) || defined(STM32F10X_MD)
 			return 72000000;
 		#else
 			return 24000000;

@@ -181,6 +181,7 @@ namespace Mcucpp
 			static void Init(unsigned baud, UsartMode usartMode = Default);
 
 			static void Write(uint8_t c);
+			static void put(uint8_t c){ Write(c); }
 
 			static uint8_t Read();
 
