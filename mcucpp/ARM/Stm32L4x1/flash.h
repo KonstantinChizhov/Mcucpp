@@ -155,6 +155,7 @@ namespace Mcucpp
 
 		while(FLASH->SR & FLASH_SR_BSY)
 			;
+		FLASH->CR &= ~(FLASH_CR_PER | FLASH_CR_PNB_Msk | FLASH_CR_BKER);
 		FLASH->CR |= FLASH_CR_LOCK;
 		return (FLASH->SR & errMask) == 0;
 	}
