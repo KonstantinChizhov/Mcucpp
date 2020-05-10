@@ -41,6 +41,30 @@ namespace Mcucpp
 {
 	namespace Clock
 	{
+		enum class PllClockSource
+		{
+			None = 0,
+			Msi = 1,
+			Internal = 2,
+			External = 3
+		};
+
+		enum class SysClockSource
+		{
+			Msi = 0,
+			Internal = 1,
+			External = 2,
+			Pll = 3
+		};
+
+		enum class ClockErrorCode
+		{
+			Success = 0,
+			ClockSourceFailed = 1,
+			InvalidClockSource = 2,
+			ClockSelectFailed = 3
+		};
+
 		class ClockBase
 		{
 		protected:
@@ -133,24 +157,10 @@ namespace Mcucpp
 		class SysClock
 		{
 		public:
-			enum ClockSource
-			{
-				Internal = 0,
-				External = 1,
-				Pll = 2
-			};
-			
-			enum ErrorCode
-			{
-				Success = 0,
-				ClockSourceFailed = 1,
-				InvalidClockSource = 2,
-				ClockSelectFailed = 3
-			};
 			
 		public:
 			static uint32_t MaxFreq() {return F_CPU;}
-			static inline ErrorCode SelectClockSource(ClockSource clockSource);
+			static inline ClockErrorCode SelectClockSource(SysClockSource clockSource);
 			static inline uint32_t SetClockFreq(uint32_t freq);
 			static inline uint32_t ClockFreq();
 			static inline uint32_t SrcClockFreq();
@@ -312,6 +322,7 @@ namespace Mcucpp
 		IO_REG_WRAPPER(RCC->AHB3ENR, Ahb3ClockEnableReg, uint32_t);
 		
 		IO_REG_WRAPPER(RCC->APB1RSTR, Apb1ResetReg, uint32_t);
+		IO_REG_WRAPPER(RCC->APB2RSTR, Apb2ResetReg, uint32_t);
 		
 		typedef ClockControl<Ahb1ClockEnableReg, RCC_AHB1ENR_GPIOAEN     , AhbClock> GpioaClock;
 		typedef ClockControl<Ahb1ClockEnableReg, RCC_AHB1ENR_GPIOBEN     , AhbClock> GpiobClock;
@@ -348,8 +359,8 @@ namespace Mcucpp
 #endif
 		typedef ClockControl<PeriphClockEnable2, RCC_APB2ENR_TIM1EN      , Apb2Clock> Tim1Clock;
 		typedef ClockControl<PeriphClockEnable2, RCC_APB2ENR_TIM8EN      , Apb2Clock> Tim8Clock;
-		typedef ClockControl<PeriphClockEnable2, RCC_APB2ENR_USART1EN    , Apb2Clock> Usart1Clock;
-		typedef ClockControl<PeriphClockEnable2, RCC_APB2ENR_USART6EN    , Apb2Clock> Usart6Clock;
+		typedef ClockResetControl<PeriphClockEnable2, RCC_APB2ENR_USART1EN    , Apb2Clock, Apb2ResetReg, RCC_APB2RSTR_USART1RST> Usart1Clock;
+		typedef ClockResetControl<PeriphClockEnable2, RCC_APB2ENR_USART6EN    , Apb2Clock, Apb2ResetReg, RCC_APB2RSTR_USART6RST> Usart6Clock;
 		typedef ClockControl<PeriphClockEnable2, RCC_APB2ENR_ADC1EN      , Apb2Clock> Adc1Clock;
 		typedef ClockControl<PeriphClockEnable2, RCC_APB2ENR_ADC2EN      , Apb2Clock> Adc2Clock;
 		typedef ClockControl<PeriphClockEnable2, RCC_APB2ENR_ADC3EN      , Apb2Clock> Adc3Clock;
@@ -377,8 +388,8 @@ namespace Mcucpp
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_WWDGEN      , Apb1Clock> WwdgClock;
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_SPI2EN      , Apb1Clock> Spi2Clock;
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_SPI3EN      , Apb1Clock> Spi3Clock;
-		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_USART2EN    , Apb1Clock> Usart2Clock;
-		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_USART3EN    , Apb1Clock> Usart3Clock;
+		typedef ClockResetControl<PeriphClockEnable1, RCC_APB1ENR_USART2EN    , Apb1Clock, Apb2ResetReg, RCC_APB1RSTR_USART2RST> Usart2Clock;
+		typedef ClockResetControl<PeriphClockEnable1, RCC_APB1ENR_USART3EN    , Apb1Clock, Apb2ResetReg, RCC_APB1RSTR_USART3RST> Usart3Clock;
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_UART4EN     , Apb1Clock> Uart4Clock;
 		typedef ClockControl<PeriphClockEnable1, RCC_APB1ENR_UART5EN     , Apb1Clock> Uart5Clock;
 		typedef ClockResetControl<PeriphClockEnable1, RCC_APB1ENR_I2C1EN , Apb1Clock, Apb1ResetReg, RCC_APB1RSTR_I2C1RST> I2c1Clock;
@@ -548,42 +559,42 @@ namespace Mcucpp
 			ClockBase::DisablelockSource(RCC_CR_PLLON, RCC_CR_PLLRDY);
 		}
 		
-		SysClock::ErrorCode SysClock::SelectClockSource(ClockSource clockSource)
+		ClockErrorCode SysClock::SelectClockSource(SysClockSource clockSource)
 		{
 			uint32_t clockStatusValue;
 			uint32_t clockSelectMask;
 			uint32_t currentFreq = ClockFreq();
 			uint32_t targetFreq;
 			
-			if(clockSource == Internal)
+			if(clockSource == SysClockSource::Internal)
 			{
 				clockStatusValue = RCC_CFGR_SWS_HSI;
 				clockSelectMask = RCC_CFGR_SW_HSI;
 				if (!HsiClock::Enable())
 				{
-					return ClockSourceFailed;
+					return ClockErrorCode::ClockSourceFailed;
 				}
 				targetFreq = HsiClock::ClockFreq();
-			}else if(clockSource == External)
+			}else if(clockSource == SysClockSource::External)
 			{
 				clockStatusValue = RCC_CFGR_SWS_HSE;
 				clockSelectMask = RCC_CFGR_SW_HSE;
 				if (!HseClock::Enable())
 				{
-					return ClockSourceFailed;
+					return ClockErrorCode::ClockSourceFailed;
 				}
 				targetFreq = HseClock::ClockFreq();
-			}else if(clockSource == Pll)
+			}else if(clockSource == SysClockSource::Pll)
 			{
 				clockStatusValue = RCC_CFGR_SWS_PLL;
 				clockSelectMask = RCC_CFGR_SW_PLL;
 				if (!PllClock::Enable())
 				{
-					return ClockSourceFailed;
+					return ClockErrorCode::ClockSourceFailed;
 				}
 				targetFreq = PllClock::ClockFreq();
 			}else
-				return InvalidClockSource;
+				return ClockErrorCode::InvalidClockSource;
 				
 			RCC->APB1ENR |= RCC_APB1ENR_PWREN;
 			PWR->CR |= PWR_CR_VOS;
@@ -604,20 +615,20 @@ namespace Mcucpp
 			}
 			if(timeout == 0)
 			{
-				return ClockSelectFailed;
+				return ClockErrorCode::ClockSelectFailed;
 			}
 			if(currentFreq > targetFreq)
 				Flash::ConfigureFreq(targetFreq);
-			return Success;
+			return ClockErrorCode::Success;
 		}
 		
 		uint32_t SysClock::SetClockFreq(uint32_t freq)
 		{
-			SelectClockSource(Internal);
+			SelectClockSource(SysClockSource::Internal);
 			PllClock::Disable();
 			PllClock::SelectClockSource(PllClock::External);
 			PllClock::SetClockFreq(freq);
-			SelectClockSource(Pll);
+			SelectClockSource(SysClockSource::Pll);
 			return ClockFreq();
 		}
 		

@@ -63,6 +63,11 @@ namespace IO
 			return 0;
 		}
 
+		static void Enable()
+		{	}
+		static void Disable()
+		{	}
+
 		template<DataT clearMask, DataT>
 		static void ClearAndSet()
 		{}

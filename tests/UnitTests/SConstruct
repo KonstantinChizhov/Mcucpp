@@ -1,0 +1,4 @@
+McucppHome = '#./../..'
+Export('McucppHome')
+
+SConscript('./SConscript', variant_dir='build', duplicate=0)

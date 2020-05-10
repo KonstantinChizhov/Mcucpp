@@ -317,6 +317,8 @@ TEST(GPIO, NullPin)
 	NullPin::Toggle();
 	NullPin::SetConfiguration(NullPin::Port::Out);
 	NullPin::SetConfiguration(Mcucpp::IO::NativePortBase::Out);
+    NullPin::Port::Enable();
+    NullPin::Port::Disable();
 	EXPECT_FALSE(NullPin::IsSet());
 }
 

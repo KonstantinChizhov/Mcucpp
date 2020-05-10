@@ -143,6 +143,7 @@ namespace Mcucpp
 			class ClockCtrl, \
 			class TxPins, \
 			class RxPins, \
+			class DePins, \
 			class DmaTxChannel, \
 			class DmaRxChannel, \
 			typename DmaTxChannel::RequestType DmaTxChannelNum,\
@@ -156,6 +157,7 @@ namespace Mcucpp
 			ClockCtrl, \
 			TxPins, \
 			RxPins, \
+			DePins, \
 			DmaTxChannel, \
 			DmaRxChannel, \
 			DmaTxChannelNum,\
@@ -179,6 +181,7 @@ namespace Mcucpp
 			static void Init(unsigned baud, UsartMode usartMode = Default);
 
 			static void Write(uint8_t c);
+			static void put(uint8_t c){ Write(c); }
 
 			static uint8_t Read();
 
@@ -245,8 +248,30 @@ namespace Mcucpp
 				STATIC_ASSERT(rxPinIndex >= 0);
 				SelectTxRxPins<txPinIndex, rxPinIndex>();
 			}
-		};
 
+			static void SelectDePin(uint8_t DePinNumber)
+			{
+				typedef typename DePins::ValueType Type;
+				DePins::Enable();
+				Type maskDe (1 << DePinNumber);
+				DePins::SetConfiguration(maskDe, TxPins::AltFunc);
+				DePins::AltFuncNumber(maskDe, UsartAltFuncNumber);
+
+				//Regs()->CR3 |= USART_CR3_DEM_Msk;
+
+			}
+
+			template<class DePin>
+			static void SelectDePin()
+			{
+				if constexpr(!Loki::IsSameType<DePin, IO::NullPin>::value)
+				{
+					const int dePinIndex = DePins::template PinIndex<DePin>::Value;
+					STATIC_ASSERT(dePinIndex >= 0);
+					SelectDePin(dePinIndex);
+				}			
+			}
+		};
 
 		USART_TEMPLATE_ARGS
 		void USART_TEMPLATE_QUALIFIER::Init(unsigned baud, UsartMode usartMode)
@@ -266,7 +291,11 @@ namespace Mcucpp
 				Regs()->BRR = ClockCtrl::ClockFreq() / baud;
 			}
 			Regs()->CR2 = (usartMode >> CR2ModeShift);
-			Regs()->CR1 = ((usartMode >> CR1ModeShift) | USART_CR1_UE );
+			Regs()->CR1 = (usartMode >> CR1ModeShift)
+					| (31 << USART_CR1_DEAT_Pos)
+					| (31 << USART_CR1_DEDT_Pos);
+			Regs()->CR3 |= USART_CR3_DEM_Msk;
+			Regs()->CR1 |= USART_CR1_UE;
 		}
 
 		USART_TEMPLATE_ARGS
@@ -444,8 +473,11 @@ namespace Mcucpp
                     NVIC_EnableIRQ(IQRNumber);
                 }else
                 {
+					Regs()->CR2 |= USART_CR2_RTOEN;
                     Regs()->CR1 |= USART_CR1_RTOIE;
                     Regs()->RTOR = _data.rxTimeoutChars * 10;
+					//Regs()->CR1 |= USART_CR1_IDLEIE;
+
                     NVIC_EnableIRQ(IQRNumber);
                 }
             }
@@ -474,13 +506,23 @@ namespace Mcucpp
 	#if defined(STM32L471xx)
 		typedef IO::PinList<IO::Pa9,  IO::Pb6> Usart1TxPins;
 		typedef IO::PinList<IO::Pa10, IO::Pb7> Usart1RxPins;
+		typedef IO::PinList<> Usart1DePins;
 
 		typedef IO::PinList<IO::Pb11, IO::Pc1, IO::Pg7> LpUsart1TxPins;
 		typedef IO::PinList<IO::Pb10, IO::Pc0, IO::Pg8> LpUsart1RxPins;
+		typedef IO::PinList<> LpUsart1DePins;
 
 		typedef IO::PinList<IO::Pa2, IO::Pd5> Usart2TxPins;
 		typedef IO::PinList<IO::Pa3, IO::Pd6> Usart2RxPins;
+		typedef IO::PinList<> Usart2DePins;
 
+		typedef IO::PinList<IO::Pb10, IO::Pc4, IO::Pc10, IO::Pd8> Usart3TxPins;
+		typedef IO::PinList<IO::Pb11, IO::Pc5, IO::Pc11, IO::Pd9> Usart3RxPins;
+		typedef IO::PinList<IO::Pa6, IO::Pb13, IO::Pd11> Usart3CtsPins;
+		typedef IO::PinList<IO::Pb0, IO::Pb12, IO::Pc12, IO::Pd10> Usart3CkPins;
+		typedef IO::PinList<IO::Pb1, IO::Pb14, IO::Pd2, IO::Pd12> Usart3DePins;
+
+		
 	#else
 	#error TODO: add USART pins description
 	#endif
@@ -488,6 +530,7 @@ namespace Mcucpp
 		IO_STRUCT_WRAPPER(USART1, Usart1Regs, USART_TypeDef);
 		IO_STRUCT_WRAPPER(LPUART1, LpUsartRegs, USART_TypeDef);
 		IO_STRUCT_WRAPPER(USART2, Usart2Regs, USART_TypeDef);
+		IO_STRUCT_WRAPPER(USART3, Usart3Regs, USART_TypeDef);
 	}
 
 	typedef Private::Usart<
@@ -496,6 +539,7 @@ namespace Mcucpp
 		Clock::Usart1Clock,
 		Private::Usart1TxPins,
 		Private::Usart1RxPins,
+		Private::Usart1DePins,
 		Dma2Channel6,
 		Dma2Channel7,
 		Dma2Channel6Request::Usart1_Tx,
@@ -509,6 +553,7 @@ namespace Mcucpp
 		Clock::LpUart1Clock,
 		Private::LpUsart1TxPins,
 		Private::LpUsart1RxPins,
+		Private::LpUsart1DePins,
 		Dma2Channel6,
 		Dma2Channel7,
 		Dma2Channel6Request::LpUart_Tx,
@@ -521,6 +566,7 @@ namespace Mcucpp
 		Clock::Usart2Clock,
 		Private::Usart2TxPins,
 		Private::Usart2RxPins,
+		Private::Usart2DePins,
 		Dma1Channel7,
 		Dma1Channel6,
 		Dma1Channel7Request::Usart2_Tx,
@@ -528,7 +574,22 @@ namespace Mcucpp
 		7>
 			Usart2;
 
+	 typedef Private::Usart<
+		Private::Usart3Regs,
+		USART3_IRQn,
+		Clock::Usart3Clock,
+		Private::Usart3TxPins,
+		Private::Usart3RxPins,
+		Private::Usart3DePins,
+		Dma1Channel2,
+		Dma1Channel3,
+		Dma1Channel2Request::Usart3_Tx,
+		Dma1Channel3Request::Usart3_Rx,
+		7>
+			Usart3;
+
 	#define MCUCPP_HAS_USART1 1
 	#define MCUCPP_HAS_USART2 1
+	#define MCUCPP_HAS_USART3 1
 
 }

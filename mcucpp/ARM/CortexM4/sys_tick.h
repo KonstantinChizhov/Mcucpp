@@ -38,22 +38,22 @@ namespace Mcucpp
 {
 	class SysTickTimer
 	{
-	public:
+	public: 
 		static inline void Init(uint32_t periodMilliSec)
 		{
 			SysTick->CTRL = 0;
-			uint32_t ticks = Clock::SysClock::ClockFreq() / 1000 * periodMilliSec / 8 - 1;
+			uint32_t ticks = Clock::SysClock::ClockFreq() / 1000 * periodMilliSec - 1;
 			if(ticks > SysTick_LOAD_RELOAD_Msk)
 				ticks = SysTick_LOAD_RELOAD_Msk;
 			SysTick->LOAD = ticks;
-			NVIC_SetPriority(SysTick_IRQn, (1<<__NVIC_PRIO_BITS) - 1);
+			//NVIC_SetPriority(SysTick_IRQn, (1<<__NVIC_PRIO_BITS) - 1);
 			SysTick->VAL = 0;
-			SysTick->CTRL  = SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
+			SysTick->CTRL  = SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk | SysTick_CTRL_CLKSOURCE_Msk;
 		}
 		
 		static inline  void EnableInterrupt()
 		{
-			NVIC_EnableIRQ(SysTick_IRQn);
+			//NVIC_EnableIRQ(SysTick_IRQn);
 		}
 	};
 	

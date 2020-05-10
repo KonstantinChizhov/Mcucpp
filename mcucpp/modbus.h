@@ -139,7 +139,7 @@ namespace Modbus
         ModbusError WriteMultipleRegisters(DataBuffer &buffer);
 	};
 
-	template<class IODevice>
+	template<class IODevice, class TxPin>
 	class ModbusTransportRtu : public ModbusTransport
 	{
 		DataBuffer _rxBuffer;

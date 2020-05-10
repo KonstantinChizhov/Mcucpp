@@ -42,10 +42,10 @@ namespace Mcucpp
 		static const uint32_t BaseAddress = 0x08000000;
 		
 		static inline void ConfigureFreq(uint32_t clockFreq);
-		static inline uint32_t TotalSize();
-		static inline uint32_t PageCount();
-		static inline uint32_t PageAddress(unsigned page);
-		static inline uint32_t PageSize(unsigned page);
+		static inline constexpr uint32_t TotalSize();
+		static inline constexpr uint32_t PageCount();
+		static inline constexpr uint32_t PageAddress(unsigned page);
+		static inline constexpr uint32_t PageSize(unsigned page);
 		static inline bool ErasePage(unsigned page);
 		static inline bool WritePage(unsigned page, void *data, size_t length, size_t offset = 0);
 		static inline bool MassErase();
@@ -69,24 +69,24 @@ namespace Mcucpp
 		FLASH->ACR = FLASH_ACR_PRFTBE | FLASH_ACR_PRFTBS | ws;
 	}
 			
-	uint32_t Flash::TotalSize()
+	constexpr uint32_t Flash::TotalSize()
 	{
 		return PageCount()*FixedPageSize;
 	}
 	
-	uint32_t Flash::PageCount()
+	constexpr uint32_t Flash::PageCount()
 	{
 		return 128;
 	}
 	
-	uint32_t Flash::PageAddress(unsigned page)
+	constexpr uint32_t Flash::PageAddress(unsigned page)
 	{
 		if(page > PageCount())
 			return 0;
 		return BaseAddress + FixedPageSize * page;
 	}
 	
-	uint32_t Flash::PageSize(unsigned)
+	constexpr uint32_t Flash::PageSize(unsigned)
 	{
 		return FixedPageSize;
 	}

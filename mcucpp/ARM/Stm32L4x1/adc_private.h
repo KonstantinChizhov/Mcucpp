@@ -81,9 +81,9 @@ unsigned ADC_BASE_TEMPLATE_QUALIFIER::ConvertionTimeCycles(uint8_t channel)
 ADC_BASE_TEMPLATE_ARGS
 unsigned ADC_BASE_TEMPLATE_QUALIFIER::AdcPeriodUs10(uint8_t channel)
 {
-	unsigned adcTickUs4 = (4000000000u / ClockFreq());
-	unsigned adcTickUs10 = adcTickUs4 * 2 + adcTickUs4 / 2;
-	return (adcTickUs10 * ConvertionTimeCycles(channel) + adcTickUs10 / 2);
+	unsigned adcTickNs4 = (4000000000u / ClockFreq());
+	unsigned adcTickNs10 = adcTickNs4 * 2 + adcTickNs4 / 2;
+	return (adcTickNs10 * ConvertionTimeCycles(channel) + adcTickNs10 / 2);
 }
 
 ADC_BASE_TEMPLATE_ARGS

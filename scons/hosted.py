@@ -22,8 +22,9 @@ def unit_test_emitter(target, source, env):
 	return target, source
 	
 def generate(env, **kw):
-	env['ENV'] = os.environ 
-	if env.Detect('mingw32-gcc'):
+	env['ENV'] = os.environ
+
+	if env['PLATFORM'] == 'win32' and (env.Detect('mingw32-gcc') or env.Detect('gcc')):
 		env.Tool('mingw')
 	else:
 		env.Tool('default')
@@ -45,11 +46,11 @@ def generate(env, **kw):
 		env.Append(CPPPATH=['%s/tests/include' % env['MCUCPP_HOME']])
 	
 	if env['CC'] == 'gcc':
-		env.Append(CXXFLAGS = ['-std=gnu++14', '-O0', '-g'])
+		env.Append(CXXFLAGS = ['-std=gnu++17', '-O0', '-g'])
 		env.Append(CXXFLAGS = ['-static', '-static-libgcc', '-static-libstdc++' ])
 		
-	
-	env.Append(CPPDEFINES={'GTEST_OS_WINDOWS':'1', 'GTEST_HAS_PTHREAD':'0', 'EMULATE_GLIBC':'1', '_EMULATE_GLIBC':'1'})
+	if env['PLATFORM'] == 'win32' and (env.Detect('mingw32-gcc') or env.Detect('gcc')):
+		env.Append(CPPDEFINES={'GTEST_OS_WINDOWS':'1', 'GTEST_HAS_PTHREAD':'0', 'EMULATE_GLIBC':'1', '_EMULATE_GLIBC':'1'})
 	
 	programBuilder = env['BUILDERS']['Program']
 	

@@ -358,7 +358,7 @@ namespace Mcucpp
 	{
 		Adc2 = 0,
 		Spi1_Rx = 1,
-		Usart3_Rx = 2,
+		Usart3_Tx = 2,
 		I2c3_Rx = 3,
 		Tim2_Up = 4,
 		Tim3_Ch3 = 5,

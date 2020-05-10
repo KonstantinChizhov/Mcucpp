@@ -44,12 +44,14 @@ namespace Mcucpp
 		static const uint32_t BaseAddress = 0x08000000;
 		
 		static inline void ConfigureFreq(uint32_t clockFreq);
-		static inline uint32_t TotalSize();
-		static inline uint32_t PageCount();
-		static inline uint32_t PageAddress(unsigned page);
-		static inline uint32_t PageSize(unsigned page);
+		static inline constexpr uint32_t TotalSize();
+		static inline constexpr uint32_t PageCount();
+		static inline constexpr uint32_t PageAddress(unsigned page);
+		static inline constexpr uint32_t PageSize(unsigned page);
+		static inline constexpr uint32_t AddrToPage(const void *addr);
 		static inline bool ErasePage(unsigned page);
-		static inline bool WritePage(unsigned page, void *data, size_t length, size_t offset = 0);
+		static inline bool WritePage(unsigned page, const void *data, size_t length, size_t offset = 0);
+		static inline bool WritePage(void *dest, const void *src, size_t length);
 		static inline bool MassErase();
 		static inline bool WriteProtect(bool enable);
 		static inline bool ReadoutProtect(bool enable);
@@ -82,7 +84,7 @@ namespace Mcucpp
 					ws;
 	}
 		
-	uint32_t Flash::TotalSize()
+	constexpr uint32_t Flash::TotalSize()
 	{
 	#if defined(STM32F40_41xxx)
 		return 1024*1024;
@@ -93,7 +95,7 @@ namespace Mcucpp
 	#endif
 	}
 	
-	uint32_t Flash::PageCount()
+	constexpr uint32_t Flash::PageCount()
 	{
 	#if defined(STM32F40_41xxx)
 		return 12;
@@ -104,7 +106,7 @@ namespace Mcucpp
 	#endif
 	}
 	
-	uint32_t Flash::PageAddress(unsigned page)
+	constexpr uint32_t Flash::PageAddress(unsigned page)
 	{
 	#if defined(STM32F40_41xxx)
 		if(page < 4)
@@ -132,7 +134,7 @@ namespace Mcucpp
 	#endif
 	}
 	
-	uint32_t Flash::PageSize(unsigned page)
+	constexpr uint32_t Flash::PageSize(unsigned page)
 	{
 	#if defined(STM32F40_41xxx)
 		if(page < 4)
@@ -158,6 +160,26 @@ namespace Mcucpp
 		#error Not supported device. TODO: add support.
 	#endif
 	}
+
+	constexpr uint32_t Flash::AddrToPage(const void *addr)
+	{
+		uint32_t addrI = reinterpret_cast<uint32_t>(addr);
+		uint32_t lastPage = PageCount()-1;
+		if(addrI < BaseAddress || addrI >= PageAddress(lastPage) + PageSize(lastPage))
+		{
+			return 0xffffffff;
+		}
+		for(uint32_t i = 0; i < PageCount(); i++)
+		{
+			uint32_t pageAddr = PageAddress(i);
+			uint32_t size = PageSize(i);
+			if(addrI >= pageAddr && addrI < pageAddr + size)
+			{
+				return i;;
+			}
+		}
+		return 0xffffffff;
+	}
 	
 	bool Flash::ErasePage(unsigned page)
 	{
@@ -180,8 +202,15 @@ namespace Mcucpp
 		FLASH->CR |= FLASH_CR_LOCK;
 		return (FLASH->SR & (FLASH_SR_WRPERR | FLASH_SR_PGAERR | FLASH_SR_PGPERR | FLASH_SR_PGSERR)) == 0;
 	}
+
+	bool Flash::WritePage(void *dest, const void *src, size_t length)
+	{
+		unsigned page = AddrToPage(dest);
+		size_t offset = (unsigned)dest - PageAddress(page);
+		return WritePage(page, src, length, offset);
+	}
 	
-	bool Flash::WritePage(unsigned page, void *data, size_t length, size_t offset)
+	bool Flash::WritePage(unsigned page, const void *data, size_t length, size_t offset)
 	{
 		if(page > PageCount())
 			return false;
@@ -190,7 +219,7 @@ namespace Mcucpp
 			return false;
 		
 		uint8_t *dest = (uint8_t *)(PageAddress(page) + offset);
-		uint8_t *src = (uint8_t *)data;
+		const uint8_t *src = (const uint8_t *)data;
 		
 		FLASH->KEYR = 0x45670123;
 		FLASH->KEYR = 0xCDEF89AB;

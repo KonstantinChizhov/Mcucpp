@@ -232,12 +232,12 @@ namespace Mcucpp
 				
 				static void Enable()
 				{
-				
+					enabled = true;
 				}
 				
 				static void Disable()
 				{
-				
+					enabled = false;
 				}
 
 				enum{Id = Identity};
@@ -249,6 +249,8 @@ namespace Mcucpp
 				volatile static DataType InReg;
 				volatile static DataType PrevOutReg;
 				volatile static DataType PrevDirReg;
+
+				volatile static bool enabled;
 
 				static CallbackT *callback;
 			};
@@ -270,6 +272,9 @@ namespace Mcucpp
 
 			template<class DataType, unsigned Identity, class CallbackT>
 			CallbackT *TestPort<DataType, Identity, CallbackT>::callback = 0;
+
+			template<class DataType, unsigned Identity, class CallbackT>
+			volatile bool TestPort<DataType, Identity, CallbackT>::enabled = false;
 		}
 		
 		typedef Test::TestPort<uint32_t, 'A'> Porta;
