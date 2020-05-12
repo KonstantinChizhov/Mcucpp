@@ -195,7 +195,7 @@ namespace Mcucpp
 					Regs()->CRH = NativePortBase::UnpackConfig((mask>>8), Regs()->CRH, driver, 0x04);
 				}
 				
-				static void AltFuncNumber(DataT mask, uint8_t number)
+				static void AltFuncNumber(DataT, uint8_t)
 				{
 					// nothing to do
 				}

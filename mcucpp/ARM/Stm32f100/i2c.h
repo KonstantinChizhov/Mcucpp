@@ -172,7 +172,7 @@ namespace Mcucpp
 
 		static I2cError Read(uint16_t devAddr, uint16_t regAddr, uint8_t *data, int size, I2cOpts opts = I2cOpts::None);
 		
-		static bool Write(uint16_t devAddr, uint16_t regAddr, const uint8_t *data, int size, I2cOpts opts = I2cOpts::None);
+		static I2cError Write(uint16_t devAddr, uint16_t regAddr, const uint8_t *data, int size, I2cOpts opts = I2cOpts::None);
 		
 		static bool WriteRegAddr(uint16_t regAddr, I2cOpts opts);
 		
@@ -463,40 +463,35 @@ namespace Mcucpp
 	}
 	
 	I2C_TEMPLATE_ARGS
-	bool I2C_TEMPLATE_QUALIFIER::Write(uint16_t devAddr, uint16_t regAddr, const uint8_t *data, int size, I2cOpts opts)
+	I2cError I2C_TEMPLATE_QUALIFIER::Write(uint16_t devAddr, uint16_t regAddr, const uint8_t *data, int size, I2cOpts opts)
 	{
+		_data.error = I2cError::NoError;
 		if(devAddr > 1023 || !data || size <= 2)
 		{
 			_data.error = I2cError::ArgumentError;
-			return 0xff;
+			return _data.error;
 		}
 		
-		if(!WaitWhileBusy()) return false;
+		I2Cx()->SR1 = 0;
+		I2Cx()->SR2 = 0;
 
-		I2Cx()->CR1 |= I2C_CR1_ACK;
-		
-		if(!Start())return false;
-		
-		I2Cx()->DR = devAddr & 0xfffe;
-		if(!WaitEvent(0x00070082)) return false; // BUSY, MSL, ADDR, TXE TRA
+		if(!WaitWhileBusy()) return _data.error;
 
-		I2Cx()->DR = (uint8_t)regAddr;
-		if(!WaitEvent(0x00070084)) return false;  // TRA, BUSY, MSL, TXE and BTF flags 
-
-		WriteRegAddr(regAddr, opts);
+		if(!Start())return _data.error;
 		
-		int i = 0;
-		
-		for(; i < size; i++)
+		if(!WriteDevAddr(devAddr, false, opts))return _data.error;
+		if(!HasAnyFlag(opts, I2cOpts::RegAddrNone) )
 		{
-			if(!WaitEvent(0x00030040))return false; // I2C_EVENT_MASTER_BYTE_RECEIVED
-			uint8_t tmp = (uint8_t)I2Cx()->DR;
-			data[i] = tmp;
+			if(!WriteRegAddr(regAddr, opts)) return _data.error;
 		}
-		
+		for(int i = 0; i < size; i++)
+		{
+			I2Cx()->DR = data[i];
+			if(!WaitEvent(0x00070084)) return _data.error;  // TRA, BUSY, MSL, TXE and BTF flags 
+		}
 		I2Cx()->CR1 &= ~I2C_CR1_ACK;
 		I2Cx()->CR1 |= I2C_CR1_STOP;
-		return true;
+		return _data.error;
 	}
 	
 	I2C_TEMPLATE_ARGS
@@ -549,7 +544,7 @@ namespace Mcucpp
 			return false;
 		}
 		
-		if(!Mcucpp::Atomic::CompareExchange(&_data.buffer, (uint8_t*)nullptr, static_cast<uint8_t*>(data)))
+		if(!Mcucpp::Atomic::CompareExchange(&_data.buffer, (uint8_t*)nullptr, const_cast<uint8_t*>(static_cast<const uint8_t*>(data))))
 		{
 			_data.error = I2cError::Busy;
 			return false;
