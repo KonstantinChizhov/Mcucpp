@@ -18,9 +18,11 @@ namespace Mcucpp
 			STATIC_ASSERT(IsSigned<typename Display::Coord>::value);
 			// and at least 16 bit
 			STATIC_ASSERT(sizeof(typename Display::Coord) >= 2);
+			Display &_display;
 		public:
 			typedef typename Display::Coord Coord;
 			typedef typename Display::Color Color;
+			
 			enum OutputMode
 			{
 				WriteMode = Display::WriteMode,
@@ -32,8 +34,10 @@ namespace Mcucpp
 
 			typedef int_fast8_t PenWidthType;
 
-			Painter()
-				:_color(Display::DefaultColor), 
+			
+			Painter(Display &display)
+				:_display(display),
+				_color(Display::DefaultColor), 
 				_backColor(Display::DefaultBackground), 
 				_penWidth(1),
 				_charInterval(1)
@@ -90,7 +94,7 @@ namespace Mcucpp
 				Fill(unsigned width, unsigned height, Color c = Display::DefaultColor)
 						:_width(width), _height(height), _c(c)
 				{}
-				Color operator()(unsigned x, unsigned y)const
+				Color operator()(unsigned, unsigned)const
 				{
 					return _c;
 				}
@@ -113,7 +117,7 @@ namespace Mcucpp
 				x += pic.Width();
 				if(_charInterval)
 				{
-					Display::DrawBitmap(Fill(_charInterval, pic.Height()), x, y, _backColor, _color);
+					_display.DrawBitmap(Fill(_charInterval, pic.Height()), x, y, _backColor, _color);
 					x += _charInterval;
 				}
 				++str;
@@ -123,19 +127,19 @@ namespace Mcucpp
 		template<class Display>
 		void Painter<Display>::SetOutputMode(OutputMode mode)
 		{
-			Display::SetOutputMode((typename Display::OutputMode)mode);
+			_display.SetOutputMode((typename Display::OutputMode)mode);
 		}
 
 		template<class Display>
 		void Painter<Display>::PutPixel(Coord x, Coord y, Color color)
 		{
-			Display::PutPixel(x, y, color);
+			_display.PutPixel(x, y, color);
 		}
 
 		template<class Display>
 		void Painter<Display>::Clear()
 		{
-			Display::Fill(Display::DefaultBackground);
+			_display.Fill(Display::DefaultBackground);
 		}
 
 		template<class Display>
@@ -202,10 +206,10 @@ namespace Mcucpp
 			{
 				if(deltaX < deltaY)
 					for(PenWidthType i = pw2m; i < pw2p; i++)
-						Display::PutPixel(x1+i, y1, _color);
+						_display.PutPixel(x1+i, y1, _color);
 				else
 					for(PenWidthType i = pw2m; i < pw2p; i++)
-						Display::PutPixel(x1, y1+i, _color);
+						_display.PutPixel(x1, y1+i, _color);
 					 
 				Coord error2 = error * 2;
 	 
@@ -227,7 +231,7 @@ namespace Mcucpp
 		template<class Bitmap>
 		void Painter<Display>::DrawBitmap(const Bitmap &pic, Coord x, Coord y)
 		{
-			Display::DrawBitmap(pic, x, y, _color, _backColor);
+			_display.DrawBitmap(pic, x, y, _color, _backColor);
 		}
 
 			
@@ -254,14 +258,14 @@ namespace Mcucpp
 		template<class Display>
 		void Painter<Display>::CircleHelper(Coord x, Coord y, Coord dx, Coord dy)
 		{
-			Display::PutPixel(x+dx, y+dy, _color);
+			_display.PutPixel(x+dx, y+dy, _color);
 			if(dx)
-				Display::PutPixel(x-dx, y+dy, _color);
+				_display.PutPixel(x-dx, y+dy, _color);
 			if(dy)
 			{
-				Display::PutPixel(x+dx, y-dy, _color);
+				_display.PutPixel(x+dx, y-dy, _color);
 				if(dx)
-					Display::PutPixel(x-dx, y-dy, _color);
+					_display.PutPixel(x-dx, y-dy, _color);
 			}
 		}
 
