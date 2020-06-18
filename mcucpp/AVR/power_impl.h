@@ -134,7 +134,7 @@ namespace Mcucpp
 	|| defined(__AVR_ATtiny22__) || defined(__AVR_ATmega161__) || defined(__AVR_AT90S1200__)\
 	|| defined(__AVR_ATmega103__) || defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny13__)\
 	|| defined(__AVR_ATtiny461A__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny261A__)\
-	|| defined(__AVR_ATtiny44__) || \
+	|| defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny441__) || defined(__AVR_ATtiny841__) || \
 	\
 	defined(__ATmega162__) || defined(__AT90C8534__) || defined(__ATmega32__)\
 	|| defined(__AT90S2313__) || defined(__AT90S8515__) || defined(__ATmega163__)\
@@ -153,7 +153,7 @@ namespace Mcucpp
 	|| defined(__ATtiny22__) || defined(__ATmega161__) || defined(__AT90S1200__)\
 	|| defined(__ATmega103__) || defined(__ATtiny25__) || defined(__ATtiny13__)\
 	|| defined(__ATtiny461A__) || defined(__ATtiny45__) || defined(__ATtiny261A__)\
-	|| defined(__ATtiny44__)
+	|| defined(__ATtiny44__) || defined(__ATtiny441__) || defined(__ATtiny841__)
 
 		IO_REG_WRAPPER(MCUCR, SleepCtrlReg, uint8_t);
 		static const uint8_t SleepEnableMask = 1 << SE;
@@ -246,7 +246,7 @@ namespace Mcucpp
 || defined(__AVR_ATtiny48__) || defined(__AVR_ATtiny85__) || defined(__AVR_ATtiny261__) \
 || defined(__AVR_ATtiny261A__) || defined(__AVR_ATtiny461__) || defined(__AVR_ATtiny461A__) \
 || defined(__AVR_ATtiny861__) || defined(__AVR_ATtiny861A__) || defined(__AVR_ATtiny88__) \
-|| defined(__AVR_ATtiny1634__) || \
+|| defined(__AVR_ATtiny1634__) || defined(__AVR_ATtiny441__) || defined(__AVR_ATtiny841__) \
 \
 defined(__AT90S4434__) || defined(__AT76C711__) || defined(__AT90S8535__) \
 || defined(__ATmega103__) || defined(__ATmega161__) || defined(__ATmega163__) \
@@ -258,7 +258,7 @@ defined(__AT90S4434__) || defined(__AT76C711__) || defined(__AT90S8535__) \
 || defined(__ATtiny48__) || defined(__ATtiny85__) || defined(__ATtiny261__) \
 || defined(__ATtiny261A__) || defined(__ATtiny461__) || defined(__ATtiny461A__) \
 || defined(__ATtiny861__) || defined(__ATtiny861A__) || defined(__ATtiny88__) \
-|| defined(__ATtiny1634__)
+|| defined(__ATtiny1634__) || defined(__ATtiny441__) || defined(__ATtiny841__)
 
 	enum SleepMode
 	{

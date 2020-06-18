@@ -45,8 +45,9 @@
 		 defined(__ATmega8535__) || defined(__ATmega8HVA__) || defined(__ATtiny167__) || defined(__ATtiny20__) || defined(__ATtiny2313A__) || \
 		 defined(__ATtiny2313__) || defined(__ATtiny23U__) || defined(__ATtiny24A__) || defined(__ATtiny24__) || defined(__ATtiny261A__) || \
 		 defined(__ATtiny261__) || defined(__ATtiny26__) || defined(__ATtiny40__) || defined(__ATtiny4313__) || defined(__ATtiny43U__) || \
-		 defined(__ATtiny44A__) || defined(__ATtiny44__) || defined(__ATtiny461A__) || defined(__ATtiny461__) || defined(__ATtiny48__) || \
-		 defined(__ATtiny84__) || defined(__ATtiny861A__) || defined(__ATtiny861__) || defined(__ATtiny87__) || defined(__ATtiny88__) || \
+		 defined(__ATtiny44A__) || defined(__ATtiny44__) || defined(__ATtiny441__) || defined(__ATtiny461A__) || defined(__ATtiny461__) || \
+		 defined(__ATtiny48__) || defined(__ATtiny84__) || defined(__ATtiny841__) || defined(__ATtiny861A__) || defined(__ATtiny861__) || \
+		 defined(__ATtiny87__) || defined(__ATtiny88__) || \
 		 defined(__AVR_AT43USB320__) || defined(__AVR_AT43USB355__) || defined(__AVR_AT76C711__) || defined(__AVR_AT90C8534__) || defined(__AVR_AT90CAN128__) || \
 		 defined(__AVR_AT90CAN32__) || defined(__AVR_AT90CAN64__) || defined(__AVR_AT90S4414__) || defined(__AVR_AT90S4434__) || defined(__AVR_AT90S8515__) || \
 		 defined(__AVR_AT90S8535__) || defined(__AVR_AT90SCR100__) || defined(__AVR_AT90USB1286__) || defined(__AVR_AT90USB1287__) || defined(__AVR_AT90USB646__) || \
@@ -67,9 +68,9 @@
 		 defined(__AVR_ATmega64__) || defined(__AVR_ATmega8515__) || defined(__AVR_ATmega8535__) || defined(__AVR_ATmega8HVA__) || defined(__AVR_ATtiny1634__) || \
 		 defined(__AVR_ATtiny167__) || defined(__AVR_ATtiny20__) || defined(__AVR_ATtiny2313A__) || defined(__AVR_ATtiny2313__) || defined(__AVR_ATtiny24A__) || \
 		 defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny261A__) || defined(__AVR_ATtiny261__) || defined(__AVR_ATtiny26__) || defined(__AVR_ATtiny40__) || \
-		 defined(__AVR_ATtiny4313__) || defined(__AVR_ATtiny43U__) || defined(__AVR_ATtiny44A__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny461A__) || \
-		 defined(__AVR_ATtiny461__) || defined(__AVR_ATtiny48__) || defined(__AVR_ATtiny84A__) || defined(__AVR_ATtiny84__) || defined(__AVR_ATtiny861A__) || \
-		 defined(__AVR_ATtiny861__) || defined(__AVR_ATtiny87__) || defined(__AVR_ATtiny88__)
+		 defined(__AVR_ATtiny4313__) || defined(__AVR_ATtiny43U__) || defined(__AVR_ATtiny44A__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny441__) || \
+		 defined(__AVR_ATtiny461A__) || defined(__AVR_ATtiny461__) || defined(__AVR_ATtiny48__) || defined(__AVR_ATtiny84A__) || defined(__AVR_ATtiny84__) || \
+		 defined(__AVR_ATtiny861A__) || defined(__AVR_ATtiny841__) || defined(__AVR_ATtiny861__) || defined(__AVR_ATtiny87__) || defined(__AVR_ATtiny88__)
 
 #define  MCUCPP_HAS_PORTA
 
@@ -146,8 +147,8 @@
 		 defined(__AVR_ATtiny20__) || defined(__AVR_ATtiny22__) || defined(__AVR_ATtiny2313A__) || defined(__AVR_ATtiny2313__) || defined(__AVR_ATtiny24A__) || \
 		 defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny261A__) || defined(__AVR_ATtiny261__) || defined(__AVR_ATtiny26__) || \
 		 defined(__AVR_ATtiny40__) || defined(__AVR_ATtiny4313__) || defined(__AVR_ATtiny43U__) || defined(__AVR_ATtiny44A__) || defined(__AVR_ATtiny44__) || \
-		 defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny461A__) || defined(__AVR_ATtiny461__) || defined(__AVR_ATtiny48__) || defined(__AVR_ATtiny4__) || \
-		 defined(__AVR_ATtiny5__) || defined(__AVR_ATtiny84A__) || defined(__AVR_ATtiny84__) || defined(__AVR_ATtiny85__) || defined(__AVR_ATtiny861A__) || \
+		 defined(__AVR_ATtiny441__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny461A__) || defined(__AVR_ATtiny461__) || defined(__AVR_ATtiny48__) || defined(__AVR_ATtiny4__) || \
+		 defined(__AVR_ATtiny5__) || defined(__AVR_ATtiny84A__) || defined(__AVR_ATtiny84__) || defined(__AVR_ATtiny841__) || defined(__AVR_ATtiny85__) || defined(__AVR_ATtiny861A__) || \
 		 defined(__AVR_ATtiny861__) || defined(__AVR_ATtiny87__) || defined(__AVR_ATtiny88__) || defined(__AVR_ATtiny9__) 
 
 #define  MCUCPP_HAS_PORTB
