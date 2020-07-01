@@ -24,13 +24,23 @@ ocdTargets = {
 def getFamilyFromName(deviceName):
 	return deviceName.lower().replace('stm32', '')[0:2]
 
+def stLinkReadoutProtection(target, source, env):
+	command = '$FLASH_TOOL -Q -NoPrompt -c SWD Srst -OB RDP=1'
+	res = env.Execute(command)
+	return res
+	
+def stLinkReadoutUnProtection(target, source, env):
+	command = '$FLASH_TOOL -Q -NoPrompt -c SWD Srst -OB RDP=0'
+	res = env.Execute(command)
+	return res
+
 def stLinkRun(target, source, env):
-	command = '$FLASH_TOOL -c SWD -NoPrompt -Q Srst -Run'
+	command = '$FLASH_TOOL -NoPrompt -Q -c SWD Srst -Run'
 	res = env.Execute(command)
 	return res
 	
 def stLinkFlashImage(target, source, env):
-	command = '$FLASH_TOOL -c SWD Srst -ME -P %s -V -NoPrompt -Q' % (source[0].abspath)
+	command = '$FLASH_TOOL -NoPrompt -Q -c SWD Srst -OB RDP=0 -ME -P "%s" -V ' % (source[0].abspath)
 	res = env.Execute(command)
 	logFile = open(target[0].abspath, 'w')
 	logFile.write('Flash tool executed\r\n%s\r\n%s\r\nResult: %s\n' % (command, datetime.datetime.now(), res ) )
@@ -133,7 +143,15 @@ def generate(env, **kw):
 				action = stLinkRun, 
 				src_suffix = ".hex",
 				suffix = "_run.log")
-			env.Append(BUILDERS = {'Flash': flashBuilder, 'Run': runBuilder})
+			protectBuilder = Builder(
+				action = stLinkReadoutProtection, 
+				src_suffix = ".hex",
+				suffix = "_protect.log")
+			unprotectBuilder = Builder(
+				action = stLinkReadoutUnProtection, 
+				src_suffix = ".hex",
+				suffix = "_protect.log")
+			env.Append(BUILDERS = {'Flash': flashBuilder, 'Run': runBuilder, 'Protect' : protectBuilder, 'Unprotect' : unprotectBuilder})
 			flasherFound = True
 		else:
 			print ("ST-LINK Utility is not found in default location")

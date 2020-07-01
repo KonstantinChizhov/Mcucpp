@@ -67,7 +67,7 @@ def setup_gnu_tools(env, prefix):
 		if 'linkerScript' in device and device['linkerScript'] is not None:
 			formattedLinkerScript = device['linkerScript'] % env
 			linkerscript = env.File(formattedLinkerScript).srcnode().abspath
-			linkerscript = '"-T%s"' % linkerscript
+			linkerscript = '-T%s' % linkerscript
 		
 		if 'includes' in device and device['includes'] is not None:
 			formattedIncludes = [os.path.abspath( include % env) for include in device['includes']]

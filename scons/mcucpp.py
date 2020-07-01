@@ -3,6 +3,7 @@ from SCons.Script import *
 import devices
 import extensions
 import hashlib
+import packages
 
 def get_env_id(env, target):
 	allOptions = [str(t.abspath) for t in target]
@@ -94,9 +95,12 @@ def generate(env, **kw):
 	if 'tools' not in device['arch']:
 		raise Exception('No "tools" definition in given arch')
 	
+	if 'packages' in device:
+		for package in device['packages']:
+ 			packages.DownloadPackage(package)
+
 	for tool in device['arch']['tools']:
 		env.Tool(tool)
-	
 	env.Tool('code-blocks')
 	#env.Tool('serial_tools')
 

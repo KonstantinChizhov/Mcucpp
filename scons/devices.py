@@ -48,6 +48,16 @@ stm32m4 = {
 }
 
 
+extensa = {
+    'name' : 'extensa',
+    'tools' : ['esp8266'],
+    'REG_WIDTH'  : 32,
+    'HAS_HW_MUL' : 32,
+    'HAS_HW_DIV' : 32,
+    'HAS_FPU'    : 0
+}
+
+
 SupportedDevices = {
     'atmega8':
         {
@@ -174,10 +184,14 @@ SupportedDevices = {
             'manufacturer': 'ST',
             'arch': stm32,
             'flash': 64*1024, 'ram': 20*1024, 'eeprom': 0,
-            'includes': commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32f100', '%(MCUCPP_HOME)s/mcucpp/ARM/CortexM3', '%(MCUCPP_HOME)s/startup', '%(MCUCPP_HOME)s/3rdparty/CMSIS/Device/ST/STM32F1xx/Include'],
+            'includes': commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32f100', 
+					'%(MCUCPP_HOME)s/mcucpp/ARM/CortexM3', 
+					'%(MCUCPP_HOME)s/startup', 
+					'%(MCUCPP_HOME)s/3rdparty/CMSIS/Device/ST/STM32F1xx/Include', 
+					'%(MCUCPP_HOME)s/3rdparty/STM32_USB-FS-Device_Driver/inc'],
             'linkerScript': '%(MCUCPP_HOME)s/linker_scripts/stm32_103xB.ld',
             'clock': 72000000,
-            'defines': ['F_OSC=8000000u', 'STM32F103xB', 'STM32F103XB'],
+            'defines': ['F_OSC=8000000u', 'STM32F103xB', 'STM32F103XB', 'STM32F10X_MD'],
             'cpu': 'cortex-m3',
             'startup': ['%(MCUCPP_HOME)s/startups/startup_stm32_103.c'],
             'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
@@ -225,5 +239,36 @@ SupportedDevices = {
             'cpu': 'cortex-m4',
             'startup': ['%(MCUCPP_HOME)s/startups/startup_stm32l471.c'],
             'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
+        },
+        'esp8266' : 
+        {
+            'manufacturer' : 'Espressif',
+            'arch' : extensa, 
+            'flash' : 1024*1024, 'ram' : 80*1024,
+            'includes' : ['%(IDF_PATH)s/components/esp8266/include', 
+                    '%(IDF_PATH)s/components/lwip/include'],
+            'libSources' : [],
+            'linkerScript' : '%(IDF_PATH)s/components/esp8266/ld/esp8266.common.ld',
+            'clock' : 80000000,
+            'defines' : [ \
+                #'LWIP_OPEN_SRC', 
+                'PBUF_RSV_FOR_WLAN', 
+                'EBUF_LWIP', 
+                #'ICACHE_FLASH', 
+                '__ets__'],
+            'cpu' : 'extensa',
+            'packages' : [{
+                'name': 'ESP8266_RTOS_SDK',
+                'searchUrl' : 'https://github.com/espressif/ESP8266_RTOS_SDK/releases/latest',
+                'searchPattern' : r'.*espressif/ESP8266_RTOS_SDK/archive/.*\.zip',
+                'verifyPath' : 'ESP8266_RTOS_SDK-3.1.2/components/esp8266/include/esp_wifi.h',
+                'type' : 'lib'
+                },
+                {
+                'name': 'ESP8266_TOOLCHAIN',
+                'dpwnloadUrl' : 'https://dl.espressif.com/dl/xtensa-lx106-elf-win32-1.22.0-100-ge567ec7-5.2.0.zip',
+                'verifyPath' : 'xtensa-lx106-elf-win32-1.22.0-100-ge567ec7-5.2.0/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc.exe',
+                'type' : 'tool'
+                }]
         }
 }
