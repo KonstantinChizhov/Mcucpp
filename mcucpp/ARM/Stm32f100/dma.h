@@ -103,6 +103,11 @@ namespace Mcucpp
 			ChannelRegs()->CCR = mode | DMA_CCR_EN;
 		}
 		
+		static bool Ready()
+		{
+			return ChannelRegs()->CNDTR == 0 || !Enabled() || TrasferComplete();
+		}
+		
 		static void SetTransferCallback(TransferCallbackFunc callback)
 		{
 			ChannelData.transferCallback = callback;
@@ -115,7 +120,7 @@ namespace Mcucpp
 		
 		static void Disable()
 		{
-			ChannelRegs()->CCR &= DMA_CCR_EN;
+			ChannelRegs()->CCR &= ~DMA_CCR_EN;
 		}
 		
 		static uint32_t RemainingTransfers()
