@@ -33,7 +33,15 @@
 
 #if __cplusplus <= 199711L // check for c++11
 	#define nullptr 0
+	#if defined (__GNUC__)
+		#define MCUCPP_ALING(X) __attribute__((aligned(8)))
+	#else
+		#define MCUCPP_ALING(X)
+	#endif
+#else
+	#define MCUCPP_ALING(X) alignas(8)
 #endif
+
 
 #if defined (__GNUC__)
 	#define MCUCPP_WEAK __attribute__((weak))
