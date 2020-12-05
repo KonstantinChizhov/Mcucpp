@@ -27,11 +27,13 @@ public:
 	
 	NvmStorage(uint16_t startPage, uint16_t nPages)
 	{
-		_first = reinterpret_cast<DataT *>(Flash::PageAddress(startPage));
-		_last = reinterpret_cast<DataT *>(Flash::PageAddress(startPage + nPages));
-		// align last to sizeof(DataT), otherwise max_element, min_element and find will fail
-		size_t count = (_last - _first) / sizeof(DataT);
-		_last = _first + count * sizeof(DataT);
+		auto startAddr = Flash::PageAddress(startPage);
+		auto endAddr = Flash::PageAddress(startPage + nPages);
+	// align last to sizeof(DataT), otherwise max_element, min_element and find will fail
+		size_t count = (endAddr - startAddr) / sizeof(DataT);
+		endAddr = startAddr + count * sizeof(DataT);
+		_first = reinterpret_cast<DataT *>(startAddr);
+		_last = reinterpret_cast<DataT *>(endAddr);
 	}
 	bool Write(DataT &params);
 	bool Read(DataT &params);
