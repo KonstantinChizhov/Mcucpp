@@ -57,9 +57,9 @@ namespace Mcucpp
 		{
 			DataBits5 = 0,
 			DataBits6 = Regs::Ucsz0 << 8,
-			DataBits7 = Regs::Ucsz1,
-			DataBits8 = Regs::Ucsz1 | (Regs::Ucsz0 << 8),
-			DataBits9 = Regs::Ucsz2 | Regs::Ucsz1 | ( Regs::Ucsz0 << 8),
+			DataBits7 = Regs::Ucsz1 << 8,
+			DataBits8 = (Regs::Ucsz1 << 8) | (Regs::Ucsz0 << 8),
+			DataBits9 = Regs::Ucsz2 | (Regs::Ucsz1 << 8) | ( Regs::Ucsz0 << 8),
 			
 			NoneParity = 0,
 			EvenParity = Regs::Upm1 << 8,

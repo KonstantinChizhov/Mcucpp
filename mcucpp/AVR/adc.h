@@ -31,6 +31,7 @@
 #include <__compatibility.h>
 #include <stdint.h>
 #include <pinlist.h>
+#include "iopins.h"
 
 namespace Mcucpp
 {
@@ -43,7 +44,7 @@ namespace Mcucpp
 #elif defined(__ATmega8__) || defined(__AVR_ATmega8__) || defined(__ATmega8A__) // atmega8
 		typedef IO::PinList<Pc0, Pc1, Pc2, Pc3, Pc4, Pc5, NullPin, NullPin> AdcPins;
 		const uint16_t InternalReference = 0x028f;// 2.56V
-#elif defined(__ATmega168__) || defined(__AVR_ATmega168__) // atmega168
+#elif defined(__ATmega168__) || defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__) // atmega168, atmega328p
 		typedef IO::PinList<Pc0, Pc1, Pc2, Pc3, Pc4, Pc5> AdcPins;
 		const uint16_t InternalReference = 0x011A; // 1.1V
 #elif defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1284__) // atmega1284
@@ -88,6 +89,20 @@ namespace Mcucpp
 			MuxMask =  1 << MUX3 | 1 << MUX2 | 1 << MUX1 | 1 << MUX0,
 			VrefMask = 1 << REFS1 | 1 << REFS0
 		};
+
+		enum Channel {
+			ADC0 = 0 << MUX3 | 0 << MUX2 | 0 << MUX1 | 0 << MUX0,
+			ADC1 = 0 << MUX3 | 0 << MUX2 | 0 << MUX1 | 1 << MUX0,
+			ADC2 = 0 << MUX3 | 0 << MUX2 | 1 << MUX1 | 0 << MUX0,
+			ADC3 = 0 << MUX3 | 0 << MUX2 | 1 << MUX1 | 1 << MUX0,
+			ADC4 = 0 << MUX3 | 1 << MUX2 | 0 << MUX1 | 0 << MUX0,
+			ADC5 = 0 << MUX3 | 1 << MUX2 | 0 << MUX1 | 1 << MUX0,
+			ADC6 = 0 << MUX3 | 1 << MUX2 | 1 << MUX1 | 0 << MUX0,
+			ADC7 = 0 << MUX3 | 1 << MUX2 | 1 << MUX1 | 1 << MUX0,
+			ADC8 = 1 << MUX3 | 0 << MUX2 | 0 << MUX1 | 0 << MUX0,
+			ADC_11REF = 1 << MUX3 | 1 << MUX2 | 1 << MUX1 | 0 << MUX0,
+			ADC_GND = 1 << MUX3 | 1 << MUX2 | 1 << MUX1 | 1 << MUX0
+		};
 		
 		enum ClockSource
 		{
@@ -107,7 +122,7 @@ namespace Mcucpp
 
 		static void SetClockDivider(AdcDivider divider)
 		{
-			ADCSRA = (ADCSRA & DividerMask) | divider;
+			ADCSRA = (ADCSRA & ~DividerMask) | divider;
 		}
 
 		static void SetVref(Vref ref)
@@ -120,10 +135,10 @@ namespace Mcucpp
 			ADMUX = (ADMUX & ~MuxMask) | (channel & MuxMask);
 		}
 		 
-		static void Init(uint8_t channel = 0, AdcDivider divider = Div32, Vref ref = VCC)
+		static void Init(Channel channel = ADC0, AdcDivider divider = Div64, Vref ref = VCC)
 		{
 			ADMUX = (ADMUX & ~(MuxMask | VrefMask)) | (channel & MuxMask) | ref;
-			ADCSRA = (ADCSRA & DividerMask) | divider | 1 << ADEN;
+			ADCSRA = (ADCSRA & ~DividerMask) | divider | 1 << ADEN;
 		}
 		
 		static void StartContinuousConversions()
