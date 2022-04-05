@@ -96,5 +96,6 @@
     "gtest-adapter.debugConfig": [
         "Debug tests"
     ],
-    "gtest-adapter.supportLocation": true
+    "gtest-adapter.supportLocation": true,
+    "cmake.configureOnOpen": false
 }

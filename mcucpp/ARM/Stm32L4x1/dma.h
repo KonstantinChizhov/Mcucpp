@@ -143,7 +143,7 @@ namespace Mcucpp
 
 		static void SetRequest(RequestType request)
 		{
-		    Module::Enable();
+			Module::Enable();
 			Module::template SetRequest<Channel>(static_cast<uint32_t>(request));
 		}
 

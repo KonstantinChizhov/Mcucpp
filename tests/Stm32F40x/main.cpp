@@ -108,7 +108,7 @@ int main()
 	//Adc1::Init();
 	
 	//Usart1::SetTxCompleteCallback(Hello);
-	//Usart1::Write("Hello world!!!\r\n", 16, true);
+	Usart1::WriteAsync("Hello world!!!\r\n", 16, nullptr);
 	
 	Led1::Set();
 	//delay_ms<5000, 168000000>();

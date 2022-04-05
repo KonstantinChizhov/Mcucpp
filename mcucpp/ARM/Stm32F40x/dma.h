@@ -9,39 +9,35 @@
 
 namespace Mcucpp
 {
-	class DmaBase
+	enum class DmaMode
 	{
-	public:
-		enum Mode
-		{
-			PriorityLow = 0,
-			PriorityMedium = DMA_SxCR_PL_0,
-			PriorityHigh = DMA_SxCR_PL_1,
-			PriorityVeryHigh = DMA_SxCR_PL_1 | DMA_SxCR_PL_0,
-			
-			MSize8Bits = 0,
-			MSize16Bits = DMA_SxCR_MSIZE_0,
-			MSize32Bits = DMA_SxCR_MSIZE_1,
-			
-			PSize8Bits = 0,
-			PSize16Bits = DMA_SxCR_PSIZE_0,
-			PSize32Bits = DMA_SxCR_PSIZE_1,
-			
-			MemIncriment = DMA_SxCR_MINC,
-			PeriphIncriment = DMA_SxCR_PINC,
-			Circular = DMA_SxCR_CIRC,
-			
-			Periph2Mem = 0,
-			Mem2Periph = DMA_SxCR_DIR_0,
-			Mem2Mem = DMA_SxCR_DIR_1,
-			
-			TransferErrorInterrupt = DMA_SxCR_TEIE,
-			HalfTransferInterrupt = DMA_SxCR_HTIE,
-			TransferCompleteInterrupt = DMA_SxCR_TCIE
-		};
+		PriorityLow = 0,
+		PriorityMedium = DMA_SxCR_PL_0,
+		PriorityHigh = DMA_SxCR_PL_1,
+		PriorityVeryHigh = DMA_SxCR_PL_1 | DMA_SxCR_PL_0,
+		
+		MSize8Bits = 0,
+		MSize16Bits = DMA_SxCR_MSIZE_0,
+		MSize32Bits = DMA_SxCR_MSIZE_1,
+		
+		PSize8Bits = 0,
+		PSize16Bits = DMA_SxCR_PSIZE_0,
+		PSize32Bits = DMA_SxCR_PSIZE_1,
+		
+		MemIncriment = DMA_SxCR_MINC,
+		PeriphIncriment = DMA_SxCR_PINC,
+		Circular = DMA_SxCR_CIRC,
+		
+		Periph2Mem = 0,
+		Mem2Periph = DMA_SxCR_DIR_0,
+		Mem2Mem = DMA_SxCR_DIR_1,
+		
+		TransferErrorInterrupt = DMA_SxCR_TEIE,
+		HalfTransferInterrupt = DMA_SxCR_HTIE,
+		TransferCompleteInterrupt = DMA_SxCR_TCIE
 	};
 	
-	DECLARE_ENUM_OPERATIONS(DmaBase::Mode)
+	DECLARE_ENUM_OPERATIONS(DmaMode)
 		
 	struct DmaChannelData
 	{
@@ -75,18 +71,17 @@ namespace Mcucpp
 		}
 	};
 	
-	template<class Module, class ChannelRegs, int Channel, IRQn IQRNumber>
-	class DmaChannel :public DmaBase
+	template<class Module, class ChannelRegs, int Channel, class RequestT, IRQn IQRNumber>
+	class DmaChannel
 	{
 		STATIC_ASSERT(Channel < Module::Channels);
 		static DmaChannelData ChannelData;
 		
 	public:
 		
+		typedef RequestT RequestType;
 		
-		using DmaBase::Mode;
-		
-		static void Transfer(Mode mode, const void *buffer, volatile void *periph, uint16_t bufferSize, uint8_t channel = 0)
+		static void Transfer(DmaMode mode, const void *buffer, volatile void *periph, uint16_t bufferSize)
 		{
 			Module::Enable();
 			if(!TransferError())
@@ -104,9 +99,15 @@ namespace Mcucpp
 			ChannelData.data = const_cast<void*>(buffer);
 			ChannelData.size = bufferSize;
 			if(ChannelData.transferCallback)
-				mode = mode | TransferCompleteInterrupt | TransferErrorInterrupt;
-			ChannelRegs()->CR = mode | DMA_SxCR_EN | ((channel & 0x07) << 25);
+				mode = mode | DmaMode::TransferCompleteInterrupt | DmaMode::TransferErrorInterrupt;
+			ChannelRegs()->CR = (ChannelRegs()->CR & DMA_SxCR_CHSEL) | (uint32_t)mode | DMA_SxCR_EN;
 			NVIC_EnableIRQ(IQRNumber);
+		}
+
+		static void SetRequest(RequestType request)
+		{
+			Module::Enable();
+			ChannelRegs()->CR = (ChannelRegs()->CR & ~DMA_SxCR_CHSEL) | (uint32_t)request << 25;
 		}
 		
 		static void SetTransferCallback(TransferCallbackFunc callback)
@@ -193,8 +194,37 @@ namespace Mcucpp
 		}
 	};
 	
+	enum class NoDmaChannelRequest
+	{
+		NoRequest = -1
+	};
+
+	class NoDmaChannel
+	{		
+	public:
+		
+		typedef NoDmaChannelRequest RequestType;
+		
+		static void Transfer(DmaMode mode, const void *buffer, volatile void *periph, uint16_t bufferSize);
+		static void SetRequest(RequestType request);
+		static void SetTransferCallback(TransferCallbackFunc callback);
+		static bool Ready();
+		static bool Enabled();
+		static void Disable();
+		static uint32_t RemainingTransfers();
+		static void * PeriphAddress();
+		static void * MemAddress();
+		static bool TransferError();
+		static bool HalfTrasfer();
+		static bool TrasferComplete();
+		static void ClearFlags();		
+		static void ClearTransferError();		
+		static void ClearHalfTrasfer();
+		static void ClearTrasferComplete();
+	};
+
 	template<class DmaRegs, class Clock, int _Channels>
-	class DmaModule :public DmaBase
+	class DmaModule
 	{
 		STATIC_ASSERT(_Channels <= 8);
 		
@@ -312,6 +342,203 @@ namespace Mcucpp
 		}
 	};
 	
+	enum class Dma1Channel0Request
+	{
+		Spi3_Rx = 0,
+		I2c1_Rx = 1,
+		Tim4_Ch1 = 2,
+		I2s3_Ext_Rx = 3,
+		Uart5_Rx = 4,
+		Uart8_Tx = 5,
+		Tim5_Ch3 = 6,
+		Tim5_Up = 6,
+	};
+
+	enum class Dma1Channel1Request
+	{
+		I2c1_Tx = 0,
+		I2c3_Rx = 1,
+		Tim2_Up = 3,
+		Tim2_Ch3 = 3,
+		Usart3_Rx = 4,
+		Uart7_Tx = 5,
+		Tim5_Ch4 = 6,
+		Tim5_Trig = 6,
+		Tim6_Up = 7,
+	};
+
+	enum class Dma1Channel2Request
+	{
+		Spi3_Rx = 0,
+		Tim7_Up = 1,
+		I2s3_Ext_Rx = 2,
+		I2c3_Rx = 3,
+		Uart4_Rx = 4,
+		Tim3_Ch4 = 5,
+		Tim3_Up = 5,
+		Tim5_Ch1 = 6,
+		I2c2_Rx = 7,
+	};
+
+	enum class Dma1Channel3Request
+	{
+		Spi2_Rx = 0,
+		// = 1,
+		Tim4_Ch2 = 2,
+		I2s2_Ext_Rx = 3,
+		Usart3_Tx = 4,
+		Uart7_Rx = 5,
+		Tim5_Ch4 = 6,
+		Tim5_Trig= 6,
+		I2c2_Rx = 7,
+	};
+
+
+	enum class Dma1Channel4Request
+	{
+		Spi2_Tx = 0,
+		Tim7_Up = 1,
+		I2s2_Ext_Tx = 2,
+		I2c3_Tx = 3,
+		Uart4_Tx = 4,
+		Tim3_Ch1 = 5,
+		Tim3_Trig = 5, 
+		Tim5_Ch2 = 6,
+		Usart3_Tx = 7,
+	};
+
+	enum class Dma1Channel5Request
+	{
+		Spi3_Tx = 0,
+		I2c1_Rx = 1,
+		I2s3_Ext_Tx = 2,
+		Tim2_Ch1 = 3,
+		Usart2_Rx = 4,
+		Tim3_Ch2 = 5,
+		I2c3_Tx = 6,
+		Dac1 = 7,
+	};
+
+	enum class Dma1Channel6Request
+	{
+		I2c1_Tx = 1,
+		Tim4_Up = 2,
+		Tim2_Ch2 = 3,
+		Tim2_Ch4 = 3,
+		Usart2_Tx = 4,
+		Uart8_Rx = 5,
+		Tim5_Up = 6,
+		Dac2 = 7,
+	};
+
+	enum class Dma1Channel7Request
+	{
+		Spi3_Tx = 0,
+		I2c1_Tx = 1,
+		Tim4_Ch3 = 2,
+		Tim2_Up = 3,
+		Tim2_Ch4 = 3,
+		Uart5_Tx = 4,
+		Tim3_Ch3 = 5,
+		Usart2_Rx = 6,
+		I2c2_Tx = 7,
+	};
+
+	enum class Dma2Channel0Request
+	{
+		Adc1 = 0,
+		Adc3 = 2,
+		Spi1_Rx = 3,
+		Spi4_Rx = 4,
+		Tim1_Trig = 6,
+	};
+
+	enum class Dma2Channel1Request
+	{
+		Sai1_A = 0,
+		Dcmi = 1,
+		Adc3 = 2,
+		Spi4_Tx = 4,
+		Usart6_Rx = 5,
+		Tim1_Ch1 = 6,
+		Tim8_Up = 7,
+	};
+
+	enum class Dma2Channel2Request
+	{
+		// Tim8_Ch1 = 0,
+		Tim8_Ch2 = 0,
+		Tim8_Ch3 = 0,
+		Adc2 = 1,
+		Spi1_Tx = 2,
+		Spi1_Rx = 3,
+		Usart1_Rx = 4,
+		Usart6_Rx = 5,
+		Tim1_Ch2 = 6,
+		Tim8_Ch1 = 7,
+	};
+
+	enum class Dma2Channel3Request
+	{
+		Sai1_A = 0,
+		Adc2 = 1,
+		Spi5_Rx = 2,
+		Spi1_Tx = 3, 
+		Sdio = 4,
+		Spi4_Rx = 5,
+		Tim1_Ch1 = 6,
+		Tim8_Ch2 = 7,
+	};
+
+	enum class Dma2Channel4Request
+	{
+		Adc1 = 0,
+		Sai1_B = 1,
+		Spi5_Tx = 2,
+		Spi4_Rx = 4,
+		Spi4_Tx = 5,
+		Tim1_Ch4 = 6,
+		Tim1_Trig = 6,
+		Tim1_Com = 6,
+		Tim8_Ch3 = 7,
+	};
+
+	enum class Dma2Channel5Request
+	{
+		Sai1_B = 0,
+		Spi6_Tx = 1,
+		Cryp_Out = 2,
+		Spi1_Tx = 3,
+		Usart1_Rx = 4,
+		Spi5_Tx = 5,
+		Tim1_Up = 6,
+		Spi5_Rx = 7,
+	};
+
+	enum class Dma2Channel6Request
+	{
+		Tim1_Ch1 = 0,
+		Tim1_Ch2 = 0,
+		// Tim1_Ch3 = 0,
+		Spi6_Rx = 1,
+		Cryp_In = 2,
+		Sdio = 4,
+		Usart6_Tx = 5,
+		Tim1_Ch3 = 6,
+		Spi5_Tx = 7,
+	};
+
+	enum class Dma2Channel7Request
+	{
+		Dcmi = 1,
+		Hash_In = 2,
+		Usart1_Tx = 4,
+		Usart6_Tx = 5,
+		Tim8_Ch4 = 7,
+		Tim8_Trig = 7,
+		Tim8_Com = 7,
+	};
+
 	
 	namespace Private
 	{
@@ -337,29 +564,29 @@ namespace Mcucpp
 		IO_STRUCT_WRAPPER(DMA2_Stream7, Dma2Channel7, DMA_Stream_TypeDef);
 	}
 	
-	template<class Module, class ChannelRegs, int Channel, IRQn IRQnumber>
-	DmaChannelData DmaChannel<Module, ChannelRegs, Channel, IRQnumber>::ChannelData;
+	template<class Module, class ChannelRegs, int Channel, class RequestT, IRQn IRQnumber>
+	DmaChannelData DmaChannel<Module, ChannelRegs, Channel, RequestT, IRQnumber>::ChannelData;
 	
 	typedef DmaModule<Private::Dma1, Clock::Dma1Clock, 8> Dma1;
 	
-	typedef DmaChannel<Dma1, Private::Dma1Channel0, 0, DMA1_Stream0_IRQn> Dma1Channel0;
-	typedef DmaChannel<Dma1, Private::Dma1Channel1, 1, DMA1_Stream1_IRQn> Dma1Channel1;
-	typedef DmaChannel<Dma1, Private::Dma1Channel2, 2, DMA1_Stream2_IRQn> Dma1Channel2;
-	typedef DmaChannel<Dma1, Private::Dma1Channel3, 3, DMA1_Stream3_IRQn> Dma1Channel3;
-	typedef DmaChannel<Dma1, Private::Dma1Channel4, 4, DMA1_Stream4_IRQn> Dma1Channel4;
-	typedef DmaChannel<Dma1, Private::Dma1Channel5, 5, DMA1_Stream5_IRQn> Dma1Channel5;
-	typedef DmaChannel<Dma1, Private::Dma1Channel6, 6, DMA1_Stream6_IRQn> Dma1Channel6;
-	typedef DmaChannel<Dma1, Private::Dma1Channel7, 7, DMA1_Stream7_IRQn> Dma1Channel7;
+	typedef DmaChannel<Dma1, Private::Dma1Channel0, 0, Dma1Channel0Request, DMA1_Stream0_IRQn> Dma1Channel0;
+	typedef DmaChannel<Dma1, Private::Dma1Channel1, 1, Dma1Channel1Request, DMA1_Stream1_IRQn> Dma1Channel1;
+	typedef DmaChannel<Dma1, Private::Dma1Channel2, 2, Dma1Channel2Request, DMA1_Stream2_IRQn> Dma1Channel2;
+	typedef DmaChannel<Dma1, Private::Dma1Channel3, 3, Dma1Channel3Request, DMA1_Stream3_IRQn> Dma1Channel3;
+	typedef DmaChannel<Dma1, Private::Dma1Channel4, 4, Dma1Channel4Request, DMA1_Stream4_IRQn> Dma1Channel4;
+	typedef DmaChannel<Dma1, Private::Dma1Channel5, 5, Dma1Channel5Request, DMA1_Stream5_IRQn> Dma1Channel5;
+	typedef DmaChannel<Dma1, Private::Dma1Channel6, 6, Dma1Channel6Request, DMA1_Stream6_IRQn> Dma1Channel6;
+	typedef DmaChannel<Dma1, Private::Dma1Channel7, 7, Dma1Channel7Request, DMA1_Stream7_IRQn> Dma1Channel7;
 	
 
 	typedef DmaModule<Private::Dma2, Clock::Dma2Clock, 8> Dma2;
 	
-	typedef DmaChannel<Dma2, Private::Dma2Channel0, 0, DMA2_Stream0_IRQn> Dma2Channel0;
-	typedef DmaChannel<Dma2, Private::Dma2Channel1, 1, DMA2_Stream1_IRQn> Dma2Channel1;
-	typedef DmaChannel<Dma2, Private::Dma2Channel2, 2, DMA2_Stream2_IRQn> Dma2Channel2;
-	typedef DmaChannel<Dma2, Private::Dma2Channel3, 3, DMA2_Stream3_IRQn> Dma2Channel3;
-	typedef DmaChannel<Dma2, Private::Dma2Channel4, 4, DMA2_Stream4_IRQn> Dma2Channel4;
-	typedef DmaChannel<Dma2, Private::Dma2Channel5, 5, DMA2_Stream5_IRQn> Dma2Channel5;
-	typedef DmaChannel<Dma2, Private::Dma2Channel6, 6, DMA2_Stream6_IRQn> Dma2Channel6;
-	typedef DmaChannel<Dma2, Private::Dma2Channel7, 7, DMA2_Stream7_IRQn> Dma2Channel7;
+	typedef DmaChannel<Dma2, Private::Dma2Channel0, 0, Dma2Channel0Request, DMA2_Stream0_IRQn> Dma2Channel0;
+	typedef DmaChannel<Dma2, Private::Dma2Channel1, 1, Dma2Channel1Request, DMA2_Stream1_IRQn> Dma2Channel1;
+	typedef DmaChannel<Dma2, Private::Dma2Channel2, 2, Dma2Channel2Request, DMA2_Stream2_IRQn> Dma2Channel2;
+	typedef DmaChannel<Dma2, Private::Dma2Channel3, 3, Dma2Channel3Request, DMA2_Stream3_IRQn> Dma2Channel3;
+	typedef DmaChannel<Dma2, Private::Dma2Channel4, 4, Dma2Channel4Request, DMA2_Stream4_IRQn> Dma2Channel4;
+	typedef DmaChannel<Dma2, Private::Dma2Channel5, 5, Dma2Channel5Request, DMA2_Stream5_IRQn> Dma2Channel5;
+	typedef DmaChannel<Dma2, Private::Dma2Channel6, 6, Dma2Channel6Request, DMA2_Stream6_IRQn> Dma2Channel6;
+	typedef DmaChannel<Dma2, Private::Dma2Channel7, 7, Dma2Channel7Request, DMA2_Stream7_IRQn> Dma2Channel7;
 }

@@ -111,6 +111,7 @@ protected:
 	};
 };
 
+
 inline UsartBase::UsartMode operator|(UsartBase::UsartMode left, UsartBase::UsartMode right)
 {
 	return static_cast<UsartBase::UsartMode>(static_cast<unsigned>(left) | static_cast<unsigned>(right));
@@ -153,8 +154,8 @@ public:
 	class RxPins,                      \
 	class DmaTxChannel,                \
 	class DmaRxChannel,                \
-	uint8_t DmaTxChannelNum,           \
-	uint8_t DmaRxChannelNum,           \
+	typename DmaTxChannel::RequestType DmaTxChannelNum,\
+	typename DmaRxChannel::RequestType DmaRxChannelNum,\
 	uint8_t UsartAltFuncNumber>
 
 #define USART_TEMPLATE_QUALIFIER Usart< \
@@ -451,7 +452,8 @@ bool USART_TEMPLATE_QUALIFIER::WriteAsync(const void *data, size_t size, Transfe
 	Regs()->CR3 |= USART_CR3_DMAT;
 	DmaTxChannel::SetTransferCallback(callback);
 	Regs()->SR &= ~USART_SR_TC;
-	DmaTxChannel::Transfer(DmaTxChannel::Mem2Periph | DmaTxChannel::MemIncriment, data, &Regs()->DR, size, DmaTxChannelNum);
+	DmaTxChannel::SetRequest(DmaTxChannelNum);
+	DmaTxChannel::Transfer(DmaMode::Mem2Periph | DmaMode::MemIncriment, data, &Regs()->DR, size);
 	Regs()->SR &= ~USART_SR_TC;
 	return true;
 }
@@ -480,8 +482,8 @@ bool USART_TEMPLATE_QUALIFIER::ReadAsync(void *data, size_t size, TransferCallba
 	_data.rxSize = size;
 	_data.data = data;
 	DmaRxChannel::SetTransferCallback(callback);
-
-	DmaRxChannel::Transfer(DmaRxChannel::Periph2Mem | DmaRxChannel::MemIncriment, ptr, &Regs()->DR, size, DmaRxChannelNum);
+	DmaTxChannel::SetRequest(DmaRxChannelNum);
+	DmaRxChannel::Transfer(DmaMode::Periph2Mem | DmaMode::MemIncriment, ptr, &Regs()->DR, size, DmaRxChannelNum);
 	if (_data.rxTimeoutChars > 0)
 	{
 		Regs()->CR1 |= USART_CR1_IDLEIE;
@@ -550,12 +552,83 @@ IO_STRUCT_WRAPPER(UART5, Uart5Regs, USART_TypeDef);
 IO_STRUCT_WRAPPER(USART6, Usart6Regs, USART_TypeDef);
 } // namespace Private
 
-typedef Private::Usart<Private::Usart1Regs, USART1_IRQn, Clock::Usart1Clock, Private::Usart1TxPins, Private::Usart1RxPins, Dma2Channel7, Dma2Channel2, 4, 4, 7> Usart1;
-typedef Private::Usart<Private::Usart2Regs, USART2_IRQn, Clock::Usart2Clock, Private::Usart2TxPins, Private::Usart2RxPins, Dma1Channel6, Dma1Channel5, 4, 4, 7> Usart2;
-typedef Private::Usart<Private::Usart3Regs, USART3_IRQn, Clock::Usart3Clock, Private::Usart3TxPins, Private::Usart3RxPins, Dma1Channel3, Dma1Channel1, 4, 4, 7> Usart3;
-typedef Private::Usart<Private::Uart4Regs, UART4_IRQn, Clock::Uart4Clock, Private::Uart4TxPins, Private::Uart4RxPins, Dma1Channel4, Dma1Channel2, 4, 4, 8> Uart4;
-typedef Private::Usart<Private::Uart5Regs, UART5_IRQn, Clock::Uart5Clock, Private::Uart5TxPins, Private::Uart5RxPins, Dma2Channel7, Dma2Channel0, 4, 4, 8> Uart5;
-typedef Private::Usart<Private::Usart6Regs, USART6_IRQn, Clock::Usart6Clock, Private::Usart6TxPins, Private::Usart6RxPins, Dma2Channel7, Dma2Channel2, 5, 5, 8> Usart6;
+typedef Private::Usart<
+	Private::Usart1Regs, 
+	USART1_IRQn, 
+	Clock::Usart1Clock, 
+	Private::Usart1TxPins, 
+	Private::Usart1RxPins, 
+	Dma2Channel7, 
+	Dma2Channel2, 
+	Dma2Channel7Request::Usart1_Tx, 
+	Dma2Channel2Request::Usart1_Rx, 
+	7> 
+		Usart1;
+
+typedef Private::Usart<
+	Private::Usart2Regs, 
+	USART2_IRQn, 
+	Clock::Usart2Clock, 
+	Private::Usart2TxPins, 
+	Private::Usart2RxPins, 
+	Dma1Channel6, 
+	Dma1Channel5, 
+	Dma1Channel6Request::Usart2_Tx, 
+	Dma1Channel5Request::Usart2_Rx, 
+	7> 
+		Usart2;
+
+typedef Private::Usart<
+	Private::Usart3Regs, 
+	USART3_IRQn, 
+	Clock::Usart3Clock, 
+	Private::Usart3TxPins, 
+	Private::Usart3RxPins, 
+	Dma1Channel3, 
+	Dma1Channel1, 
+	Dma1Channel3Request::Usart3_Tx, 
+	Dma1Channel1Request::Usart3_Rx,  
+	7> 
+		Usart3;
+
+typedef Private::Usart<
+	Private::Uart4Regs, 
+	UART4_IRQn, 
+	Clock::Uart4Clock, 
+	Private::Uart4TxPins, 
+	Private::Uart4RxPins, 
+	Dma1Channel4, 
+	Dma1Channel2, 
+	Dma1Channel4Request::Uart4_Tx,
+	Dma1Channel2Request::Uart4_Rx,
+	8> 
+		Uart4;
+
+typedef Private::Usart<
+	Private::Uart5Regs, 
+	UART5_IRQn, 
+	Clock::Uart5Clock, 
+	Private::Uart5TxPins, 
+	Private::Uart5RxPins, 
+	Dma1Channel7, 
+	Dma1Channel0, 
+	Dma1Channel7Request::Uart5_Tx,
+	Dma1Channel0Request::Uart5_Rx,
+	8>
+		Uart5;
+
+typedef Private::Usart<
+	Private::Usart6Regs, 
+	USART6_IRQn, 
+	Clock::Usart6Clock, 
+	Private::Usart6TxPins, 
+	Private::Usart6RxPins, 
+	Dma2Channel7, 
+	Dma2Channel2, 
+	Dma2Channel7Request::Usart6_Tx, 
+	Dma2Channel2Request::Usart6_Rx, 
+	8> 
+		Usart6;
 
 #define MCUCPP_HAS_USART1 1
 #define MCUCPP_HAS_USART2 1
