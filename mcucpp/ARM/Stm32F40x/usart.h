@@ -425,6 +425,7 @@ USART_TEMPLATE_ARGS
 void USART_TEMPLATE_QUALIFIER::OnReadTimeout()
 {
 	uint8_t lastByte = USART1->DR; // read last byte from DR to reset USART_SR_IDLE
+	(void)lastByte;
 	DmaRxChannel::Disable();
 	DmaRxChannel::SetTransferCallback(nullptr);
 	DmaRxChannel::ClearFlags();

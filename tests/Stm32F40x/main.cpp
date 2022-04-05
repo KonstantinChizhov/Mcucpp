@@ -53,7 +53,7 @@ void Hello(void *data, size_t size)
 {
 	Led2::Toggle();
 	//Usart1::SetTxCompleteCallback(Hello);
-	Usart1::Write(data, size, true);
+	Usart1::Write(data, size);
 }
 
 
@@ -90,7 +90,7 @@ uint16_t adcbuffer[16];
 
 int main()
 {
-	SysClock::SetClockFreq(168000000);
+	SysClock::SetClockFreq(100000000);
 	Portd::Enable();
 	Porta::Enable();
 	Portb::Enable();
@@ -136,17 +136,4 @@ int main()
 	}
 }
 
-extern "C" void USART1_IRQHandler()
-{
-	if(Usart1::ReadReady())
-	{
-		//Usart1::Write(Usart1::Read()+1);
-	}
-	Usart1::ClearInterruptFlag(Usart1::RxNotEmptyInt);
-}
-
-extern "C" void SysTick_Handler()
-{
-	//Usart1::Write('.');
-}
 

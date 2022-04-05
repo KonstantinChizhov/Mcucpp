@@ -90,11 +90,11 @@ namespace Mcucpp
 				}
 				static void Set(DataT value)
 				{
-					GpioRegs()->BSRRL = (uint16_t)value;
+					GpioRegs()->BSRR = (uint32_t)value;
 				}
 				static void Clear(DataT value)
 				{
-					GpioRegs()->BSRRH = (uint16_t)value;
+					GpioRegs()->BSRR = (uint16_t)value << 16;
 				}
 				static void Toggle(DataT value)
 				{
@@ -123,13 +123,13 @@ namespace Mcucpp
 				template<DataT value>
 				static void Set()
 				{
-					GpioRegs()->BSRRL = (uint16_t)value;
+					GpioRegs()->BSRR = (uint32_t)value;
 				}
 
 				template<DataT value>
 				static void Clear()
 				{
-					GpioRegs()->BSRRH = (uint16_t)value;
+					GpioRegs()->BSRR = (uint32_t)value << 16;
 				}
 				
 				// Configuration
