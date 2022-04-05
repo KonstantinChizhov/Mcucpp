@@ -75,8 +75,8 @@ namespace IO
 		}
 
 		static bool IsSet();
-		static void WaiteForSet();
-		static void WaiteForClear();
+		static void WaitForSet();
+		static void WaitForClear();
 	};
 
 	template<class PORT, uint8_t PIN, class CONFIG_PORT = PORT>

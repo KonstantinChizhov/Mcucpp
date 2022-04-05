@@ -113,13 +113,13 @@ namespace Mcucpp
 		}
 
 		template<class PORT, uint8_t PIN, class CONFIG_PORT>
-		void TPin<PORT, PIN, CONFIG_PORT>::WaiteForSet()
+		void TPin<PORT, PIN, CONFIG_PORT>::WaitForSet()
 		{
 			while(IsSet()==0){}
 		}
 
 		template<class PORT, uint8_t PIN, class CONFIG_PORT>
-		void TPin<PORT, PIN, CONFIG_PORT>::WaiteForClear()
+		void TPin<PORT, PIN, CONFIG_PORT>::WaitForClear()
 		{
 			while(IsSet()){}
 		}
