@@ -2,7 +2,7 @@ import os
 
 
 armEnv = Environment(DEVICE_NAME = 'stm32f407', 
-	toolpath = ['#/scons'], 
+	toolpath = ['#/scons', '#../../scons'], 
 	tools=['mcucpp'])
 
 armEnv.Append(LINKFLAGS = ["-nostdlib"])
