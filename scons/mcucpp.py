@@ -90,6 +90,8 @@ def generate(env, **kw):
 			env.Tool('hosted')
 			return 
 	
+	print( 'Target device name: %s' % device['name'])
+
 	if 'arch' not in device:
 		raise Exception('No "arch" definition in given device')
 	if 'tools' not in device['arch']:

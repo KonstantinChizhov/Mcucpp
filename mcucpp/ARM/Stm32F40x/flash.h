@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2013
+// Date			: 2022
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification, 
@@ -64,10 +64,14 @@ namespace Mcucpp
 		uint32_t vdd = Power::GetVdd();
 		if(vdd > 27)
 		{
-			FLASH->CR |= FLASH_CR_PSIZE_1;
+			FLASH->CR = (FLASH->CR & ~FLASH_CR_PSIZE) | FLASH_CR_PSIZE_1;
 		}else if(vdd > 21)
 		{
-			FLASH->CR |= FLASH_CR_PSIZE_0;
+			FLASH->CR = (FLASH->CR & ~FLASH_CR_PSIZE) | FLASH_CR_PSIZE_0;
+		}
+		else
+		{
+			FLASH->CR &= ~FLASH_CR_PSIZE;
 		}
 	}
 	

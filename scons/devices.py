@@ -249,7 +249,7 @@ SupportedDevices = {
             'includes': commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x', '%(MCUCPP_HOME)s/mcucpp/ARM/CortexM4',  '%(MCUCPP_HOME)s/startup', '%(MCUCPP_HOME)s/3rdparty/CMSIS/Include', '%(MCUCPP_HOME)s/3rdparty/CMSIS/Device/ST/STM32F4xx/Include'],
             'linkerScript': '%(MCUCPP_HOME)s/linker_scripts/stm32_411.ld',
             'clock': 100000000,
-            'defines': ['STM32F40_41xxx', 'F_OSC=8000000u', '__FPU_PRESENT=1'],
+            'defines': ['STM32F40_41xxx', 'F_OSC=25000000u', '__FPU_PRESENT=1'],
             'cpu': 'cortex-m4',
             'startup': ['%(MCUCPP_HOME)s/startups/startup_stm32_40x.c'],
             'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']

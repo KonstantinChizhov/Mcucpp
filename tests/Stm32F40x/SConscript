@@ -1,15 +1,16 @@
 import os
 
 
-armEnv = Environment(DEVICE_NAME = 'stm32f407', 
+armEnv = Environment(DEVICE_NAME = 'stm32f411', 
 	toolpath = ['#/scons', '#../../scons'], 
 	tools=['mcucpp'])
 
 armEnv.Append(LINKFLAGS = ["-nostdlib"])
 armEnv.Append(CCFLAGS = ["-O3", "-finline-limit=60"])
+armEnv.Append(CPPDEFINES = [ 'TARGET_HEAP_SIZE=2048'])
 
 app_objects = armEnv.Object(['main.cpp'])
 
-elf = armEnv.Program('Stm32f3HwTest', app_objects)
+elf = armEnv.Program('Stm32HwTest', app_objects)
 lss = armEnv.Disassembly(elf)
 hex = armEnv.Hex(elf)

@@ -44,13 +44,15 @@ namespace Mcucpp
 		DmaChannelData()
 			:transferCallback(nullptr),
             data(nullptr),
-            size(0)
+            size(0),
+			request(0)
 		{}
 		TransferCallbackFunc transferCallback;
 		
 		void *data;
 		uint16_t size;
-		
+		uint32_t request;
+
 		inline void NotifyTransferComplete()
 		{
 			TransferCallbackFunc callback = transferCallback;
@@ -84,11 +86,11 @@ namespace Mcucpp
 		static void Transfer(DmaMode mode, const void *buffer, volatile void *periph, uint16_t bufferSize)
 		{
 			Module::Enable();
-			if(!TransferError())
+			while(!(TransferError() || Ready()))
 			{
-				while(!Ready())
-					;
+			    ;
 			}
+
 			ClearFlags();
 			ChannelRegs()->CR = 0;
 			ChannelRegs()->NDTR = bufferSize;
@@ -100,14 +102,13 @@ namespace Mcucpp
 			ChannelData.size = bufferSize;
 			if(ChannelData.transferCallback)
 				mode = mode | DmaMode::TransferCompleteInterrupt | DmaMode::TransferErrorInterrupt;
-			ChannelRegs()->CR = (ChannelRegs()->CR & DMA_SxCR_CHSEL) | (uint32_t)mode | DMA_SxCR_EN;
+			ChannelRegs()->CR = ChannelData.request | (uint32_t)mode | DMA_SxCR_EN;
 			NVIC_EnableIRQ(IQRNumber);
 		}
 
 		static void SetRequest(RequestType request)
 		{
-			Module::Enable();
-			ChannelRegs()->CR = (ChannelRegs()->CR & ~DMA_SxCR_CHSEL) | (uint32_t)request << 25;
+			ChannelData.request = (uint32_t)request << 25;
 		}
 		
 		static void SetTransferCallback(TransferCallbackFunc callback)
