@@ -20,10 +20,8 @@ using namespace Mcucpp::IO;
 using namespace Mcucpp::Clock;
 
 
-typedef Pd13 Led1;
-typedef Pd12 Led2;
-typedef Pd14 Led3;
-typedef Pd15 Led4;
+typedef Pc13 Led1;
+
 
 struct UsartOut
 {
@@ -45,59 +43,24 @@ struct SwoOut
 	}
 };
 
-typedef basic_ostream<SwoOut> ostream;
+typedef basic_ostream<UsartOut> ostream;
 
 ostream cout;
 
-void Hello(void *data, size_t size)
+namespace Mcucpp
 {
-	Led2::Toggle();
-	//Usart1::SetTxCompleteCallback(Hello);
-	Usart1::Write(data, size);
+	size_t HeapBytesUsed();
 }
-
-
-void AdcFunc(uint16_t *data, size_t size)
-{
-	cout << "Data: " << size << " ";
-	for(int i = 0; i < size; i++)
-		cout << setw(6) << data[i];
-	cout << "\n";
-}
-
-uint8_t buffer[16];
-uint16_t adcbuffer[16];
-
-#define cycle 1000000L
-//#define TT double
-#define TT float
-
-	TT test(void)
-	{
-		TT a = (TT)1.0;
-		TT b = (TT)1234.567;
-
-		for (long i = 0; i < cycle; i++)
-		{
-			a = a + ( (TT)i / b );
-			b = b + (TT)0.000001;
-			if (a > (TT)100000000.0) 
-				a = (TT)1.0;
-		}
-		return(a);
-	}
-
 
 int main()
 {
-	SysClock::SetClockFreq(100000000);
+	SysClock::SetClockFreq(F_CPU);
 	Portd::Enable();
 	Porta::Enable();
 	Portb::Enable();
 	Portc::Enable();
 	
 	Led1::SetConfiguration(NativePortBase::Out);
-	Led2::SetConfiguration(NativePortBase::Out);
 	
 	Usart1::Init(115200);
 	Usart1::SelectTxRxPins(1, 1);
@@ -105,34 +68,24 @@ int main()
 	cout << "Hello, World!!\nSys Freq = " << SysClock::ClockFreq() << "\n";
 	cout << "Usart1 Freq = " << Usart1Clock::ClockFreq() << "\n";
 	cout << "SysTick->CALIB = " << hex << SysTick->CALIB << "\n";
-	//Adc1::Init();
-	
-	//Usart1::SetTxCompleteCallback(Hello);
-	Usart1::WriteAsync("Hello world!!!\r\n", 16, nullptr);
+	cout << "SysTick->CTRL = " << hex << SysTick->CTRL << "\n";
+
+	cout << "HeapBytesUsed=" << HeapBytesUsed() << "\n";
+	int *arr = new int[ 10];
+	cout << hex << (uint32_t) arr << dec << " HeapBytesUsed=" << HeapBytesUsed() << "\n";
+
+
+	if(!Usart1::WriteAsync("Hello world!!!\r\n", 16, [](auto a1, auto a2, bool r){ } ))
+	{
+		cout << "failed WriteAsync\r\n"; 
+	}
 	
 	Led1::Set();
-	//delay_ms<5000, 168000000>();
-			
-	uint16_t data[32] = {0};
-	uint8_t ch[16] = {6,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-	
-	//SysTickTimer::Init(10);
-	//SysTickTimer::EnableInterrupt();
-	uint32_t start = DWT->CYCCNT;
-	TT v = test();
-	uint32_t time = DWT->CYCCNT - start;
-	cout << "V = " << (float)v << " time = " << dec << time;
-	
+	cout << "SysTick->CTRL = " << hex << SysTick->CTRL << "\n";
 	while(1)
 	{
-		//Adc1::Start(ch, 1, data, 16, AdcFunc);
-		
-		//for(int i = 0; i<16; i++)
-		//	cout << setw(6) << data[i];
-		//cout << "Temp = " << Adc1::Read(Adc1::TempSensorChannel) << "\n";
-		//cout << "\n";
 		Led1::Toggle();
-		delay_ms<100, 168000000>();
+		delay_ms<1000, F_CPU>();
 	}
 }
 
