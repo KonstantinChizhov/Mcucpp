@@ -1,5 +1,5 @@
 
-#define ADC_BASE_TEMPLATE_ARGS template<class Regs, class CommonRegs, class ClockCtrl, class InputPins, class DmaChannel, uint8_t channelNum>
+#define ADC_BASE_TEMPLATE_ARGS template<class Regs, class CommonRegs, class ClockCtrl, class InputPins, class DmaChannel, typename DmaChannel::RequestType channelNum>
 #define ADC_BASE_TEMPLATE_QUALIFIER AdcBase<Regs, CommonRegs, ClockCtrl, InputPins, DmaChannel, channelNum>
 
 namespace Private
@@ -31,6 +31,12 @@ bool ADC_BASE_TEMPLATE_QUALIFIER::VerifyReady(unsigned readyMask)
 }
 
 ADC_BASE_TEMPLATE_ARGS
+void ADC_BASE_TEMPLATE_QUALIFIER::EnableOversampling(unsigned bits, unsigned shift)
+{
+	// Not supported
+}
+
+ADC_BASE_TEMPLATE_ARGS
 unsigned ADC_BASE_TEMPLATE_QUALIFIER::ClockFreq()
 {
 	unsigned divider = (((CommonRegs()->CCR & ADC_CCR_ADCPRE) >> 16) + 1) * 2;
@@ -54,6 +60,14 @@ unsigned ADC_BASE_TEMPLATE_QUALIFIER::ConvertionTimeCycles(uint8_t channel)
 	}
 	uint16_t sampleTimes[] = {3, 15, 28, 56, 84, 112, 144, 480};
 	return ResolutionBits() + sampleTimes[sampleTimeBits];
+}
+
+ADC_BASE_TEMPLATE_ARGS
+unsigned ADC_BASE_TEMPLATE_QUALIFIER::AdcPeriodUs10(uint8_t channel)
+{
+	unsigned adcTickNs4 = (4000000000u / ClockFreq());
+	unsigned adcTickNs10 = adcTickNs4 * 2 + adcTickNs4 / 2;
+	return (adcTickNs10 * ConvertionTimeCycles(channel) + adcTickNs10 / 2);
 }
 
 ADC_BASE_TEMPLATE_ARGS
@@ -424,59 +438,129 @@ void ADC_BASE_TEMPLATE_QUALIFIER::SetSequenceCallback(AdcCallback callback)
 }
 
 ADC_BASE_TEMPLATE_ARGS
-bool ADC_BASE_TEMPLATE_QUALIFIER::StartSequence(const uint8_t *channels, uint8_t channelsCount, uint16_t *dataBuffer, uint16_t scanCount)
+bool ADC_BASE_TEMPLATE_QUALIFIER::StartSequence(std::initializer_list<uint8_t> channels, uint16_t *dataBuffer, uint16_t scanCount)
 {
-	if(scanCount == 0 || channelsCount == 0)
+	if(scanCount == 0 || channels.size() == 0 || channels.size() > 16)
+	{	
+		_adcData.error = ArgumentError;
 		return false;
+	}
 	
 	if(!_adcData.seqCallback)
+	{
 		_adcData.seqCallback = VoidAdcCallback;
+	}
 	
-	if(!VerifyReady(ADC_CR2_SWSTART))
+	if(!VerifyReady(ADC_CR2_SWSTART))	
+	{
+		_adcData.error = NotReady;
 		return false;
+	}
+
 	Regs()->SR &= ~ADC_SR_OVR;
 		
-	if(channelsCount <= 16)
+	Regs()->SQR1 = (Regs()->SQR1 & ~ADC_SQR1_L) | (( channels.size() - 1) << 20);
+	Regs()->SQR3 = 0;
+	Regs()->SQR2 = 0;
+	int i = 0;
+	for(uint8_t channel : channels)
 	{
-		Regs()->SQR1 = (Regs()->SQR1 & ~ADC_SQR1_L) | ((channelsCount - 1) << 20);
-		Regs()->SQR3 = 0;
-		Regs()->SQR2 = 0;
-		for(unsigned i = 0; i < channelsCount; i++)
+		Pins::SetConfiguration(1u << channel, Pins::Analog);
+		if(i < 6)
 		{
-			Pins::SetConfiguration(1u << channels[i], Pins::Analog);
-			if(i < 6)
-			{
-				Regs()->SQR3 |= (channels[i] & 0x1f) << 5*i;
-			}else if(i < 12)
-			{
-				Regs()->SQR2 |= (channels[i] & 0x1f) << 5*(i-6);
-			}else
-			{
-				Regs()->SQR1 |= (channels[i] & 0x1f) << 5*(i-12);
-			}
+			Regs()->SQR3 |= (channel & 0x1f) << 5*i;
+		}else if(i < 12)
+		{
+			Regs()->SQR2 |= (channel & 0x1f) << 5*(i-6);
+		}else
+		{
+			Regs()->SQR1 |= (channel & 0x1f) << 5*(i-12);
 		}
-		
-		DmaChannel::SetTransferCallback(DmaHandler);
-		DmaChannel::Transfer(DmaChannel::Periph2Mem | DmaChannel::MemIncriment | DmaChannel::PriorityHigh | DmaChannel::PSize16Bits | DmaChannel::MSize16Bits,
-				dataBuffer, &Regs()->DR, channelsCount * scanCount, channelNum);
-		
-		_adcData.error = NoError;
-		
-		Regs()->CR1 |= ADC_CR1_SCAN;
-		
-		unsigned controlReg = Regs()->CR2;
-		controlReg |= ADC_CR2_DMA;  //| ADC_CR2_EOCS;
-		if(scanCount > 1)
-			controlReg |= ADC_CR2_CONT;
-		Regs()->CR2 = controlReg;
-		
-		// start conversion now if no external trigger selected
-		if((controlReg & ADC_CR2_EXTEN) == 0)
-			Regs()->CR2 |= ADC_CR2_SWSTART;
-		
-		return true;
+		i++;
 	}
-	else return false;
+	
+	DmaChannel::SetTransferCallback(DmaHandler);
+	DmaChannel::SetRequest(channelNum);
+	DmaChannel::Transfer(DmaMode::Periph2Mem | DmaMode::MemIncriment | DmaMode::PriorityHigh | DmaMode::PSize16Bits | DmaMode::MSize16Bits,
+			dataBuffer, &Regs()->DR, channels.size() * scanCount);
+	
+	_adcData.error = NoError;
+	
+	Regs()->CR1 |= ADC_CR1_SCAN;
+	
+	unsigned controlReg = Regs()->CR2;
+	controlReg |= ADC_CR2_DMA;  //| ADC_CR2_EOCS;
+	if(scanCount > 1)
+		controlReg |= ADC_CR2_CONT;
+	Regs()->CR2 = controlReg;
+	
+	// start conversion now if no external trigger selected
+	if((controlReg & ADC_CR2_EXTEN) == 0)
+		Regs()->CR2 |= ADC_CR2_SWSTART;
+	
+	return true;
+}
+
+ADC_BASE_TEMPLATE_ARGS
+bool ADC_BASE_TEMPLATE_QUALIFIER::StartSequence(const uint8_t *channels, uint8_t channelsCount, uint16_t *dataBuffer, uint16_t scanCount)
+{
+	if(scanCount == 0 || channelsCount == 0 || channelsCount > 16)
+	{
+		_adcData.error = ArgumentError;
+		return false;
+	}
+	
+	if(!_adcData.seqCallback)
+	{
+		_adcData.seqCallback = VoidAdcCallback;
+	}	
+	
+	if(!VerifyReady(ADC_CR2_SWSTART))
+	{
+		_adcData.error = NotReady;
+		return false;
+	}
+
+	Regs()->SR &= ~ADC_SR_OVR;
+		
+
+	Regs()->SQR1 = (Regs()->SQR1 & ~ADC_SQR1_L) | ((channelsCount - 1) << 20);
+	Regs()->SQR3 = 0;
+	Regs()->SQR2 = 0;
+	for(unsigned i = 0; i < channelsCount; i++)
+	{
+		Pins::SetConfiguration(1u << channels[i], Pins::Analog);
+		if(i < 6)
+		{
+			Regs()->SQR3 |= (channels[i] & 0x1f) << 5*i;
+		}else if(i < 12)
+		{
+			Regs()->SQR2 |= (channels[i] & 0x1f) << 5*(i-6);
+		}else
+		{
+			Regs()->SQR1 |= (channels[i] & 0x1f) << 5*(i-12);
+		}
+	}
+	
+	DmaChannel::SetTransferCallback(DmaHandler);
+	DmaChannel::Transfer(DmaChannel::Periph2Mem | DmaChannel::MemIncriment | DmaChannel::PriorityHigh | DmaChannel::PSize16Bits | DmaChannel::MSize16Bits,
+			dataBuffer, &Regs()->DR, channelsCount * scanCount, channelNum);
+	
+	_adcData.error = NoError;
+	
+	Regs()->CR1 |= ADC_CR1_SCAN;
+	
+	unsigned controlReg = Regs()->CR2;
+	controlReg |= ADC_CR2_DMA;  //| ADC_CR2_EOCS;
+	if(scanCount > 1)
+		controlReg |= ADC_CR2_CONT;
+	Regs()->CR2 = controlReg;
+	
+	// start conversion now if no external trigger selected
+	if((controlReg & ADC_CR2_EXTEN) == 0)
+		Regs()->CR2 |= ADC_CR2_SWSTART;
+	
+	return true;
 }
 
 ADC_BASE_TEMPLATE_ARGS
@@ -499,6 +583,17 @@ ADC_BASE_TEMPLATE_ARGS
 AdcCommon::AdcError ADC_BASE_TEMPLATE_QUALIFIER::GetError()
 {
 	return _adcData.error;
+}
+
+ADC_BASE_TEMPLATE_ARGS
+int16_t  ADC_BASE_TEMPLATE_QUALIFIER::ReadTemperature()
+{
+	SetSampleTime(TempSensorChannel, 250);
+	uint16_t rawValue = ReadImmediate(TempSensorChannel);
+	int16_t TS_CAL1 = *((volatile int16_t*) 0x1FFF7A2C);
+	int16_t TS_CAL2 = *((volatile int16_t*)0x1FFF7A2E);
+	int16_t value = (rawValue - TS_CAL1) * (110 - 30) / (TS_CAL2 - TS_CAL1) + 30;
+	return value;
 }
 
 namespace Private

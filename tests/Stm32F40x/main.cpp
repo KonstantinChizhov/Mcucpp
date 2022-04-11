@@ -6,7 +6,7 @@
 #include <power.h>
 #include <dma.h>
 #include <usart.h>
-//#include <adc.h>
+#include <adc.h>
 #include <delay.h>
 #include <hw_random.h>
 #include <sys_tick.h>
@@ -73,6 +73,14 @@ int main()
 	cout << "HeapBytesUsed=" << HeapBytesUsed() << "\n";
 	int *arr = new int[ 10];
 	cout << hex << (uint32_t) arr << dec << " HeapBytesUsed=" << HeapBytesUsed() << "\n";
+	int a=0, b=1;
+
+	auto emptyLambda = [](int a1, int a2, bool r){ };
+	auto Lambda = [&](int a1, int a2, bool r){ cout << "lambda\n"; };
+	auto Lambda2 = [&](int a1, int a2, bool r){ a = 1; b = 0; };
+	cout << sizeof(emptyLambda) << "\n";
+	cout << sizeof(Lambda) << "\n";
+	cout << sizeof(Lambda2) << "\n";
 
 
 	if(!Usart1::WriteAsync("Hello world!!!\r\n", 16, [](auto a1, auto a2, bool r){ } ))
@@ -82,6 +90,10 @@ int main()
 	
 	Led1::Set();
 	cout << "SysTick->CTRL = " << hex << SysTick->CTRL << "\n";
+
+	Adc1::DataT buffer [100];
+	Adc1::Init();
+	Adc1::StartSequence({1,2,3,4,5}, buffer, 20);
 	while(1)
 	{
 		Led1::Toggle();

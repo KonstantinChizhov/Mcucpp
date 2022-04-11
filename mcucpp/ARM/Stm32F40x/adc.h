@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2016
+// Date			: 2022
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification, 
@@ -27,12 +27,14 @@
 
 #pragma once
 
-#include <stm32f4xx.h>
+#include <mcu_header.h>
 #include <clock.h>
 #include <iopins.h>
 #include <pinlist.h>
 #include <dma.h>
 #include <power.h>
+#include <delay.h>
+#include <initializer_list>
 
 namespace Mcucpp
 {
@@ -43,7 +45,7 @@ namespace Mcucpp
 	class AdcCommon
 	{
 	public:
-		enum AdcError{NoError, Overflow, TransferError, HardwareError, ArgumentError};
+		enum AdcError{NoError, Overflow, TransferError, HardwareError, ArgumentError, SequenceError, NotReady};
 		static const unsigned AdcTimeoutCycles = 2048 * 28 / 4;
 		
 		static const unsigned MaxSequence = 16;
@@ -62,7 +64,7 @@ namespace Mcucpp
 		};
 
 		// Clock sources
-		enum ClockSource{ AdcClock = 0};
+		enum ClockSource{ AdcClock = 0, MainClock = 0};
 	
 		// Clock dividers
 		enum AdcDivider
@@ -142,7 +144,7 @@ namespace Mcucpp
 		uint16_t vRef;
 	};
 	
-	template<class Regs, class CommonRegs, class ClockCtrl, class InputPins, class DmaChannel, uint8_t channelNum>
+	template<class Regs, class CommonRegs, class ClockCtrl, class InputPins, class DmaChannel, typename DmaChannel::RequestType channelNum>
 	class AdcBase :public AdcCommon
 	{
 	public:
@@ -158,11 +160,12 @@ namespace Mcucpp
 		static inline void SelectClockSource(ClockSource);
 		static inline void SetReference(Reference reference);
 		static inline uint8_t ChannelsCount();
+		static inline void EnableOversampling(unsigned bits, unsigned shift);
 		
 		// immediate
 		static inline void SetImmediateTrigger(ImmediateTrigger trigger, TriggerMode mode);
 		// Start async conversionon group max MaxImmediate channels
-		static inline bool StartImmediate(const uint8_t *channels, uint16_t *data, uint8_t count, AdcCallback callback = 0);
+		static inline bool StartImmediate(const uint8_t *channels, uint16_t *data, uint8_t count, AdcCallback callback = nullptr);
 		// Blocking conversion
 		static inline bool ReadImmediate(const uint8_t *channels, uint16_t *data, uint8_t count);
 		// 
@@ -188,6 +191,20 @@ namespace Mcucpp
 		/// start conversion sequence of channelsCount channels (maximum MaxSequence (16)) 
 		/// dataBuffer has to be channelsCount * scanCount elements
 		static inline bool StartSequence(const uint8_t *channels, uint8_t channelsCount, uint16_t *dataBuffer, uint16_t scanCount);
+		static inline bool StartSequence(std::initializer_list<uint8_t> channels, uint16_t *dataBuffer, uint16_t scanCount);
+
+		template<class ... Inpunts>
+		static inline bool StartSequence(uint16_t *dataBuffer, uint16_t scanCount)
+		{
+			 return StartSequence( {Pins::template PinIndex<Inpunts>::Value... }, dataBuffer, scanCount);
+		}
+
+		template<class Pin>
+		constexpr static unsigned ChannelNum()
+		{
+			return Pins::template PinIndex<Pin>::Value;
+		}
+
 		static inline bool SequenceReady();
 		static inline void StopSequence();
 		
@@ -197,6 +214,8 @@ namespace Mcucpp
 		static inline unsigned ToVolts(uint16_t value); // in 10E-4 Volt units
 		static inline unsigned ClockFreq();
 		static inline unsigned ConvertionTimeCycles(uint8_t channel);
+		static inline unsigned AdcPeriodUs10(uint8_t channel);
+		static inline int16_t ReadTemperature();
 		
 		static void DmaHandler(void * data, size_t size, bool success);
 		static void IrqHandler();
@@ -208,9 +227,9 @@ namespace Mcucpp
 	
 #include <adc_private.h>
 	
-	typedef AdcBase<Private::Adc1Regs, Private::AdcRegs, Clock::Adc1Clock, Private::Adc1Pins, Dma2Channel0, 0> Adc1;
-	typedef AdcBase<Private::Adc2Regs, Private::AdcRegs, Clock::Adc2Clock, Private::Adc2Pins, Dma2Channel3, 1> Adc2;
-	typedef AdcBase<Private::Adc3Regs, Private::AdcRegs, Clock::Adc3Clock, Private::Adc3Pins, Dma2Channel1, 2> Adc3;
+	typedef AdcBase<Private::Adc1Regs, Private::AdcRegs, Clock::Adc1Clock, Private::Adc1Pins, Dma2Channel0, Dma2Channel0Request::Adc1> Adc1;
+	typedef AdcBase<Private::Adc2Regs, Private::AdcRegs, Clock::Adc2Clock, Private::Adc2Pins, Dma2Channel3, Dma2Channel3Request::Adc2> Adc2;
+	typedef AdcBase<Private::Adc3Regs, Private::AdcRegs, Clock::Adc3Clock, Private::Adc3Pins, Dma2Channel1, Dma2Channel1Request::Adc3> Adc3;
 	
 	ADC_BASE_TEMPLATE_ARGS
 	unsigned ADC_BASE_TEMPLATE_QUALIFIER::ToVolts(uint16_t value)
