@@ -14,7 +14,6 @@
 #include <mcu_header.h>
 #include <compiler.h>
 
-#include <functional>
 
 //using namespace Mcucpp;
 //using namespace Mcucpp::IO;
@@ -36,12 +35,9 @@ struct SwoOut
 //ostream cout;
 SwoOut out;
 
-std::function<void(char)> f = [](char c){out.put(c);};
 
 int main()
 {
-	GPIOA->ODR = sizeof(std::function<void(SwoOut&, char)>);
-	
 	// SysClock::SetClockFreq(72000000);
 	// Porta::Enable();
 	
@@ -55,11 +51,6 @@ int main()
 		// delay_ms<100, F_CPU>();
 	// }
 	return 0;
-}
-
-extern "C" MCUCPP_INTERRUPT(SysTick_Handler)
-{
-	f('.');
 }
 
 void* __dso_handle;

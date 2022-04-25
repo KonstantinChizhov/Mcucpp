@@ -26,9 +26,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
-#if __has_include(<functional>)
-#include <functional>
-#endif
+
+#include "noalloc_function.h"
 
 namespace Mcucpp
 {
@@ -36,7 +35,7 @@ namespace Mcucpp
 	typedef void (*TaggedTransferCallback)(void *tag, void *data, size_t size, bool success);
 	
 #if !defined(__AVR__)
-	typedef std::function<void (void *data, size_t size, bool success)> TransferCallbackFunc;
+	typedef noalloc_function<void (void *data, size_t size, bool success)> TransferCallbackFunc;
 #endif
 }
 

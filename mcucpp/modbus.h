@@ -119,12 +119,12 @@ namespace Modbus
         bool SendError(ModbusFunction function, ModbusError error);
         bool SendResponce(ModbusFunction function, uint16_t param1, uint16_t param2);
 
-		std::function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadHoldingRegs;
-		std::function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnWriteHoldingRegs;
-		std::function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadInputs;
-		std::function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadCoils;
-		std::function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnWriteCoils;
-		std::function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadInputRegisters;
+		noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadHoldingRegs;
+		noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnWriteHoldingRegs;
+		noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadInputs;
+		noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadCoils;
+		noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnWriteCoils;
+		noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadInputRegisters;
 
 		void SetAddress(uint8_t addr) { _address = addr; }
 
