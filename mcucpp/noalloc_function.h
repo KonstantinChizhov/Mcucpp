@@ -29,15 +29,18 @@
 #pragma once
 
 #if !defined(NOALLOC_FUNCTION_STORAGE_SIZE)
-#define NOALLOC_FUNCTION_STORAGE_SIZE 4
+#define NOALLOC_FUNCTION_STORAGE_SIZE 3
 #endif
 
-namespace Mcucppp
+#include <string.h>
+
+namespace Mcucpp
 {
 
     struct noalloc_function_storage
     {
-        union{
+        union
+        {
             void *data[NOALLOC_FUNCTION_STORAGE_SIZE]; // void * should satisfy most of alligment requirements in embedded systems
             void *object;
         };
@@ -49,25 +52,36 @@ namespace Mcucppp
     template <class R, class... Args>
     class noalloc_function<R(Args...)>
     {
-        using invoker_type = R(Args..., noalloc_function_storage&);
 
     public:
         using result_type = R;
         using target_type = R(Args...);
+        using invoker_type = R(Args..., noalloc_function_storage &);
+
         noalloc_function() = default;
-        
+        noalloc_function &operator=(noalloc_function &rhs) = default;
+        noalloc_function &operator=(noalloc_function &&rhs) = default;
+
         noalloc_function(target_type func)
+            : invoker(invoke_function)
         {
-            target = func;
+            storage.object = reinterpret_cast<void *>(func);
         }
 
-        noalloc_function& operator=(target_type func)
+        noalloc_function &operator=(target_type func)
         {
-            target = func;
+            invoker = invoke_function;
+            storage.object = reinterpret_cast<void *>(func);
             return *this;
         }
 
-        template<class CallableT>
+        noalloc_function &operator=(decltype(nullptr))
+        {
+            invoker = nullptr;
+            return *this;
+        }
+
+        template <class CallableT>
         noalloc_function(CallableT &functor)
         {
             static_assert(sizeof(functor) <= sizeof(storage), "Storage is too small to hold functor");
@@ -75,9 +89,16 @@ namespace Mcucppp
             invoker = invoke_functor<CallableT>;
         }
 
+        template <class CallableT>
+        noalloc_function(CallableT &&functor)
+        {
+            static_assert(sizeof(functor) <= sizeof(storage), "Storage is too small to hold functor");
+            memcpy(storage.data, &functor, sizeof(functor));
+            invoker = invoke_functor<CallableT>;
+        }
 
-        template<class CallableT>
-        noalloc_function& operator=(CallableT &functor)
+        template <class CallableT>
+        noalloc_function &operator=(CallableT &functor)
         {
             static_assert(sizeof(functor) <= sizeof(storage), "Storage is too small to hold functor");
             memcpy(storage.data, &functor, sizeof(functor));
@@ -85,8 +106,8 @@ namespace Mcucppp
             return *this;
         }
 
-        template<class CallableT>
-        noalloc_function& operator=(CallableT &&functor)
+        template <class CallableT>
+        noalloc_function &operator=(CallableT &&functor)
         {
             static_assert(sizeof(functor) <= sizeof(storage), "Storage is too small to hold functor");
             memcpy(storage.data, &functor, sizeof(functor));
@@ -94,28 +115,27 @@ namespace Mcucppp
             return *this;
         }
 
-        inline result_type operator()(Args...args)
-		{
-            if(!target)
+        template <class ObjectT>
+        noalloc_function(ObjectT &object, invoker_type invokerFunc)
+        {
+            storage.object = &object;
+            invoker = invokerFunc;
+        }
+
+        inline result_type operator()(Args... args)
+        {
+            if (!invoker)
             {
                 return result_type();
             }
-            if(storage.object)
-            {
-                return invoker(args..., storage);
-            }
-            return target(args...);
-		}
+            return invoker(args..., storage);
+        }
 
-        operator bool() { return (bool)target; }
+        operator bool() { return (bool)invoker; }
 
     private:
         noalloc_function_storage storage = {0};
-        union
-        {
-            invoker_type *invoker = nullptr;
-            target_type * target;
-        };
+        invoker_type *invoker = nullptr;
 
     private:
         template <class ObjectT, result_type (ObjectT::*Func)(Args...)>
@@ -129,6 +149,27 @@ namespace Mcucppp
         {
             return (*reinterpret_cast<CallableT *>(&storage.data[0]))(args...);
         }
+
+        static result_type invoke_function(Args... args, noalloc_function_storage &storage)
+        {
+            return (reinterpret_cast<target_type*>(storage.object))(args...);
+        }
     };
+
+    template <class ObjectT, class R, class... Args>
+    auto bind_s(R (ObjectT::*memberFunc)(Args...) const, const ObjectT &object)
+    {
+        using function = noalloc_function<R(Args...)>;
+        return function([memberFunc, object](Args... args)
+                        { (object.*memberFunc)(args...); });
+    }
+
+    template <class ObjectT, class R, class... Args>
+    auto bind_s(R (ObjectT::*memberFunc)(Args...), ObjectT &object)
+    {
+        using function = noalloc_function<R(Args...)>;
+        return function([memberFunc, &object](Args... args) mutable
+                        { (object.*memberFunc)(args...); });
+    }
 
 }
