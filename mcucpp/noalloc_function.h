@@ -61,6 +61,10 @@ namespace Mcucpp
         noalloc_function() = default;
         noalloc_function &operator=(noalloc_function &rhs) = default;
         noalloc_function &operator=(noalloc_function &&rhs) = default;
+        noalloc_function &operator=(const noalloc_function &rhs) = default;
+        noalloc_function (noalloc_function &rhs) = default;
+        noalloc_function (noalloc_function &&rhs) = default;
+        noalloc_function (const noalloc_function &rhs) = default;
 
         noalloc_function(target_type func)
             : invoker(invoke_function)
@@ -73,6 +77,10 @@ namespace Mcucpp
             invoker = invoke_function;
             storage.object = reinterpret_cast<void *>(func);
             return *this;
+        }
+
+        noalloc_function(decltype(nullptr))
+        {
         }
 
         noalloc_function &operator=(decltype(nullptr))

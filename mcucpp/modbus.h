@@ -36,7 +36,7 @@
 #include <functional>
 #include <utility>
 #include <iopins.h>
-
+#include "noalloc_function.h"
 
 namespace Mcucpp
 {

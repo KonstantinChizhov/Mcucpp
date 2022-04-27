@@ -100,3 +100,25 @@ TEST(NoallocFunction, ClassFunction)
     EXPECT_FALSE((bool)func);
     EXPECT_FALSE(object.called);
 }
+
+struct ClassWithCallback
+{
+    int a = -1;
+
+    noalloc_function<int(int)> callback;
+    void Action()
+    {
+        auto temp = callback;
+        a = temp(42);
+    }
+};
+
+TEST(NoallocFunction, CopyAssign)
+{
+    ClassWithCallback object;
+    object.callback = [](int v)
+    { return v + 1; };
+
+    object.Action();
+    EXPECT_EQ(object.a, 43);
+}
