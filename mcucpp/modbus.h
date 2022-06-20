@@ -33,7 +33,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <data_buffer.h>
-#include <functional>
+#include "noalloc_function.h"
 #include <utility>
 #include <iopins.h>
 #include "noalloc_function.h"

@@ -59,12 +59,51 @@ namespace Mcucpp
         using invoker_type = R(Args..., noalloc_function_storage &);
 
         noalloc_function() = default;
-        noalloc_function &operator=(noalloc_function &rhs) = default;
-        noalloc_function &operator=(noalloc_function &&rhs) = default;
-        noalloc_function &operator=(const noalloc_function &rhs) = default;
-        noalloc_function (noalloc_function &rhs) = default;
-        noalloc_function (noalloc_function &&rhs) = default;
-        noalloc_function (const noalloc_function &rhs) = default;
+
+        noalloc_function(const noalloc_function &rhs)
+        {
+            storage = rhs.storage;
+            invoker = rhs.invoker;
+        }
+
+        noalloc_function(const noalloc_function &&rhs)
+        {
+            storage = rhs.storage;
+            invoker = rhs.invoker;
+        }
+
+        noalloc_function(noalloc_function &rhs)
+        {
+            storage = rhs.storage;
+            invoker = rhs.invoker;
+        }
+
+        noalloc_function(noalloc_function &&rhs)
+        {
+            storage = rhs.storage;
+            invoker = rhs.invoker;
+        }
+
+        noalloc_function &operator=(noalloc_function &rhs)
+        {
+            storage = rhs.storage;
+            invoker = rhs.invoker;
+            return *this;
+        }
+
+        noalloc_function &operator=(const noalloc_function &rhs)
+        {
+            storage = rhs.storage;
+            invoker = rhs.invoker;
+            return *this;
+        }
+
+        noalloc_function &operator=(const noalloc_function &&rhs)
+        {
+            storage = rhs.storage;
+            invoker = rhs.invoker;
+            return *this;
+        }
 
         noalloc_function(target_type func)
             : invoker(invoke_function)
@@ -80,6 +119,7 @@ namespace Mcucpp
         }
 
         noalloc_function(decltype(nullptr))
+            : invoker(nullptr)
         {
         }
 
@@ -160,7 +200,7 @@ namespace Mcucpp
 
         static result_type invoke_function(Args... args, noalloc_function_storage &storage)
         {
-            return (reinterpret_cast<target_type*>(storage.object))(args...);
+            return (reinterpret_cast<target_type *>(storage.object))(args...);
         }
     };
 
