@@ -1,7 +1,7 @@
 
 ENTRY(Reset_Handler)
 
-_Minimum_Stack_Size = 0x400;
+_Minimum_Stack_Size = 0x800;
 
 MEMORY
 {

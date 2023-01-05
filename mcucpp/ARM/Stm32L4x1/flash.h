@@ -33,6 +33,7 @@
 #include "mcu_header.h"
 #include <power.h>
 #include <atomic.h>
+#include <algorithm>
 
 namespace Mcucpp
 {
@@ -162,9 +163,26 @@ namespace Mcucpp
 
 	bool Flash::WritePage(void *dest, const void *src, size_t length)
 	{
+		const uint8_t *srcPtr = (const uint8_t*)src;
 		unsigned page = AddrToPage(dest);
+		unsigned pageSize = PageSize(page);
 		size_t offset = (unsigned)dest - PageAddress(page);
-		return WritePage(page, src, length, offset);
+		size_t chunck = std::min(pageSize - offset, (unsigned)length);
+
+		while(length > 0)
+		{
+			if(!WritePage(page, srcPtr, chunck, offset))
+			{
+				return false;
+			}
+			srcPtr += chunck;
+			length -= chunck;
+			page += 1;
+			pageSize = PageSize(page);
+			offset = 0;
+			chunck = std::min(pageSize, (unsigned)length);
+		}
+		return true;
 	}
 
 	bool Flash::WritePage(unsigned page, const void *data, size_t length, size_t offset)
