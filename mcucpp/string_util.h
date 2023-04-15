@@ -34,7 +34,7 @@ namespace Mcucpp
 	template<class T, class char_type>
 	char_type * UtoaFastDiv(T value, char_type *bufferEnd)
 	{
-		*bufferEnd = 0;
+		*--bufferEnd = 0;
 		divmod10_t<T> res;
 		res.quot = value;
 		do
@@ -49,7 +49,7 @@ namespace Mcucpp
 	template<class T, class char_type>
 	char_type * UtoaOct(T value, char_type *bufferEnd)
 	{
-		*bufferEnd = 0;
+		*--bufferEnd = 0;
 
 		do
 		{
@@ -64,7 +64,7 @@ namespace Mcucpp
 	template<class T, class char_type>
 	char_type * UtoaHex(T value, char_type *bufferEnd)
 	{
-		*bufferEnd = 0;
+		*--bufferEnd = 0;
 		do
 		{
 			uint8_t c = value & 0x0f;
