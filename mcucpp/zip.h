@@ -25,7 +25,7 @@
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
 #include <stdint.h>
-#include <stddef.h>
+#include <cstddef>
 #include <tuple>
 
 namespace Mcucpp
@@ -58,7 +58,7 @@ namespace Mcucpp
 	{
 	public:
 
-		typedef typename ptrdiff_t   difference_type;
+		typedef typename std::ptrdiff_t   difference_type;
 	public:
 		ZipIterator() : _iterators() {}
 		explicit   ZipIterator(ForwardIterators... s)
