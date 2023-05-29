@@ -143,7 +143,7 @@ namespace Mcucpp
 		if(length & 0x7) // length multiple of 8
 			return false;
 
-		memcpy(&FlashMemoryBuffer[PageAddress(page)], data, length);
+		memcpy((void *)PageAddress(page), data, length);
 		return true;
 	}
 }
