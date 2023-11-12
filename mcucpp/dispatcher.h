@@ -237,12 +237,14 @@ namespace Mcucpp
             }
 		}
 
-		void Poll()
+		bool Poll()
 		{
+			bool result = true;
 			if(GetTimerTicksFunc)
 			{
 				uint32_t ticks = GetTimerTicksFunc();
-				TimerHandler(ticks);
+				if(!TimerHandler(ticks))
+					result = false;
 			}
 			if(_count > 0)
 			{
@@ -256,20 +258,23 @@ namespace Mcucpp
 				}
 				task.Invoke();
 			}
+			return result;
 		}
 
-		void TimerHandler(uint32_t time)
+		bool TimerHandler(uint32_t time)
 		{
 			for(size_t i=0; i < _timersLen; i++)
 			{
 				TaskItem &task = _timers[i].task;
 				if(task.task != 0 && _timers[i].time <= time)
 				{
-					SetTask(task.task, task.tag);
+					if(!SetTask(task.task, task.tag))
+						return false;
 					task.task = 0;
 					_timers[i].id = 0;
 				}
 			}
+			return true;
 		}
 		uint32_t GetTicks(){return GetTimerTicksFunc ? GetTimerTicksFunc() : 0;}
 	private:
