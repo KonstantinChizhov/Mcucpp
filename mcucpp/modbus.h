@@ -40,128 +40,143 @@
 
 namespace Mcucpp
 {
-namespace Modbus
-{
-	enum class ModbusFunction :uint8_t
+	namespace Modbus
 	{
-		ReadCoils = 1,
-		ReadInputs = 2,
-		ReadHoldingRegisters = 3,
-		ReadInputRegisters = 4,
-		WriteSingleCoil = 5,
-		WriteSingleRegister = 6,
-		ReadExceptionStatus = 7,
-		Diagnostics = 8,
-		WriteMultipleCoils = 15,
-		WriteMultipleRegisters = 16,
-		ReadWriteMultipleRegisters = 23,
-		Responce = 0x80
-	};
+		enum class ModbusFunction : uint8_t
+		{
+			ReadCoils = 1,
+			ReadInputs = 2,
+			ReadHoldingRegisters = 3,
+			ReadInputRegisters = 4,
+			WriteSingleCoil = 5,
+			WriteSingleRegister = 6,
+			ReadExceptionStatus = 7,
+			Diagnostics = 8,
+			WriteMultipleCoils = 15,
+			WriteMultipleRegisters = 16,
+			ReadWriteMultipleRegisters = 23,
+			Responce = 0x80
+		};
 
-	enum class ModbusError :uint8_t
-	{
-	    NoError = 0,
-		IllegalFunction = 0x01,
-		IllegalAddress  = 0x02,
-		IllegalValue    = 0x03,
-		ServerFailure   = 0x04,
-		Acknowledge     = 0x05,
-		ServerBusy      = 0x06,
-		NotAcknowledge  = 0x07,
-		MemoryParityError = 0x08,
-		PathNotAvailable  = 0x0a,
-		DeviceFailed  = 0x0b,
-	};
+		enum class ModbusError : uint8_t
+		{
+			NoError = 0,
+			IllegalFunction = 0x01,
+			IllegalAddress = 0x02,
+			IllegalValue = 0x03,
+			ServerFailure = 0x04,
+			Acknowledge = 0x05,
+			ServerBusy = 0x06,
+			NotAcknowledge = 0x07,
+			MemoryParityError = 0x08,
+			PathNotAvailable = 0x0a,
+			DeviceFailed = 0x0b,
+		};
 
-	class ModbusTransport
-	{
-    protected:
-        class ModbusDevice *_device;
-	public:
-	    ModbusTransport(const ModbusTransport&)=delete;
-	    ModbusTransport(ModbusTransport&&)=delete;
-	    ModbusTransport& operator=(const ModbusTransport&)=delete;
-        ModbusTransport():_device(nullptr) {}
+		class ModbusTransport
+		{
+		protected:
+			class ModbusDevice *_device;
+			uint32_t _messagesReceived = 0;
+			uint32_t _crcErrors = 0;
+			uint32_t _messagesSent = 0;
 
-		virtual void DiscardReadBuffer()=0;
-		virtual bool SendMessage(DataBuffer & buffer)=0;
-		virtual bool StartListen()=0;
-		virtual void Stop()=0;
-		virtual Mcucpp::DataBuffer&& GetTxBuffer()=0;
-		void SetDevice(class ModbusDevice *device){ _device = device; }
-		size_t DataChunkSize(){ return 20; }
-	};
+		public:
+			ModbusTransport(const ModbusTransport &) = delete;
+			ModbusTransport(ModbusTransport &&) = delete;
+			ModbusTransport &operator=(const ModbusTransport &) = delete;
+			ModbusTransport() : _device(nullptr) {}
 
-	class ModbusDevice
-	{
-    protected:
-	    ModbusTransport &_transport;
-	public:
-	    ModbusDevice(ModbusTransport &transport);
-		virtual void MessageReceived(Mcucpp::DataBuffer & buffer)=0;
-	};
+			virtual void DiscardReadBuffer() = 0;
+			virtual bool SendMessage(DataBuffer &buffer) = 0;
+			virtual bool StartListen() = 0;
+			virtual void Stop() = 0;
+			virtual Mcucpp::DataBuffer &&GetTxBuffer() = 0;
+			void SetDevice(class ModbusDevice *device) { _device = device; }
+			size_t DataChunkSize() { return 20; }
+			uint32_t GetMessagesReceived() { return _messagesReceived; }
+			uint32_t GetCrcErrors() { return _crcErrors; }
+			uint32_t GetMessagesSent() { return _messagesSent; }
+			void ResetCounters()
+			{
+				_messagesReceived = 0;
+				_crcErrors = 0;
+				_messagesSent = 0;
+			}
+		};
 
-    class ModbusMaster :public ModbusDevice
-	{
-	public:
-	    ModbusMaster(ModbusTransport &transport);
+		class ModbusDevice
+		{
+		protected:
+			ModbusTransport &_transport;
 
-		virtual void MessageReceived(DataBuffer &buffer);
-	};
+		public:
+			ModbusDevice(ModbusTransport &transport);
+			virtual bool MessageReceived(Mcucpp::DataBuffer &buffer) = 0;
+		};
 
-	class ModbusSlave :public ModbusDevice
-	{
-	    uint8_t _address;
-	    uint8_t _maxRegsToRead;
-	public:
-        ModbusSlave(ModbusTransport &transport);
-		virtual void MessageReceived(DataBuffer &buffer);
-        bool SendError(ModbusFunction function, ModbusError error);
-        bool SendResponce(ModbusFunction function, uint16_t param1, uint16_t param2);
+		class ModbusMaster : public ModbusDevice
+		{
+		public:
+			ModbusMaster(ModbusTransport &transport);
 
-		noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadHoldingRegs;
-		noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnWriteHoldingRegs;
-		noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadInputs;
-		noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadCoils;
-		noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnWriteCoils;
-		noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadInputRegisters;
+			virtual bool MessageReceived(DataBuffer &buffer);
+		};
 
-		void SetAddress(uint8_t addr) { _address = addr; }
+		class ModbusSlave : public ModbusDevice
+		{
+			uint8_t _address;
+			uint8_t _maxRegsToRead;
 
-        ModbusError WriteMultipleCoils(DataBuffer &buffer);
-        ModbusError WriteSingleRegister(DataBuffer &buffer);
-        ModbusError WriteSingleCoil(DataBuffer &buffer);
-        ModbusError ReadInputs(uint16_t start, uint16_t count);
-        ModbusError ReadCoils(uint16_t start, uint16_t count);
-        ModbusError ReadInputRegisters(uint16_t start, uint16_t count);
-        ModbusError ReadHoldingRegisters(uint16_t start, uint16_t count, ModbusFunction function);
-        ModbusError ReadWriteMultipleRegisters(DataBuffer &buffer);
-        ModbusError WriteMultipleRegisters(DataBuffer &buffer);
-	};
+		public:
+			ModbusSlave(ModbusTransport &transport);
+			virtual bool MessageReceived(DataBuffer &buffer);
+			bool SendError(ModbusFunction function, ModbusError error);
+			bool SendResponce(ModbusFunction function, uint16_t param1, uint16_t param2);
 
-	template<class IODevice, class TxPin>
-	class ModbusTransportRtu : public ModbusTransport
-	{
-		DataBuffer _rxBuffer;
-		DataBuffer _txBuffer;
-		DataChunk *_rxChunk = nullptr;
-		DataChunk *_txChunk = nullptr;
-        bool _buffersAreStatic = false;
-        void TxHandler(void *data, size_t size, bool success);
-        void RxHandler(void *data, size_t size, bool success);
-        void RxHandlerStatic(void *data, size_t size, bool success);
-	public:
+			noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadHoldingRegs;
+			noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnWriteHoldingRegs;
+			noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadInputs;
+			noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadCoils;
+			noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnWriteCoils;
+			noalloc_function<ModbusError(uint16_t start, uint16_t count, DataBuffer &buffer)> OnReadInputRegisters;
 
-		ModbusTransportRtu();
-		~ModbusTransportRtu();
-		virtual void DiscardReadBuffer();
-		virtual bool SendMessage(DataBuffer & buffer);
-		virtual bool StartListen();
-		virtual void Stop();
-		void SetStaticBuffers(DataChunk *rxBuffer, DataChunk *txBuffer);
-		virtual Mcucpp::DataBuffer&& GetTxBuffer();
-	};
-}
+			void SetAddress(uint8_t addr) { _address = addr; }
+
+			ModbusError WriteMultipleCoils(DataBuffer &buffer);
+			ModbusError WriteSingleRegister(DataBuffer &buffer);
+			ModbusError WriteSingleCoil(DataBuffer &buffer);
+			ModbusError ReadInputs(uint16_t start, uint16_t count);
+			ModbusError ReadCoils(uint16_t start, uint16_t count);
+			ModbusError ReadInputRegisters(uint16_t start, uint16_t count);
+			ModbusError ReadHoldingRegisters(uint16_t start, uint16_t count, ModbusFunction function);
+			ModbusError ReadWriteMultipleRegisters(DataBuffer &buffer);
+			ModbusError WriteMultipleRegisters(DataBuffer &buffer);
+		};
+
+		template <class IODevice, class TxPin>
+		class ModbusTransportRtu : public ModbusTransport
+		{
+			DataBuffer _rxBuffer;
+			DataBuffer _txBuffer;
+			DataChunk *_rxChunk = nullptr;
+			DataChunk *_txChunk = nullptr;
+			bool _buffersAreStatic = false;
+			void TxHandler(void *data, size_t size, bool success);
+			void RxHandler(void *data, size_t size, bool success);
+			void RxHandlerStatic(void *data, size_t size, bool success);
+
+		public:
+			ModbusTransportRtu();
+			~ModbusTransportRtu();
+			virtual void DiscardReadBuffer();
+			virtual bool SendMessage(DataBuffer &buffer);
+			virtual bool StartListen();
+			virtual void Stop();
+			void SetStaticBuffers(DataChunk *rxBuffer, DataChunk *txBuffer);
+			virtual Mcucpp::DataBuffer &&GetTxBuffer();
+		};
+	}
 }
 
 #include <impl/modbus_impl.h>

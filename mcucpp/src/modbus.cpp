@@ -27,13 +27,13 @@ ModbusMaster::ModbusMaster(ModbusTransport &transport)
 
 }
 
-void ModbusSlave::MessageReceived(DataBuffer &buffer)
+bool ModbusSlave::MessageReceived(DataBuffer &buffer)
 {
 
     uint8_t addr = buffer.ReadU8();
     if(addr != _address)
     {
-        return;
+        return false;
     }
 
     ModbusFunction function = static_cast<ModbusFunction>(buffer.ReadU8());
@@ -108,6 +108,7 @@ void ModbusSlave::MessageReceived(DataBuffer &buffer)
     {
         // handle error
     }
+    return true;
 }
 
 
@@ -397,7 +398,8 @@ bool ModbusSlave::SendResponce(ModbusFunction function, uint16_t param1, uint16_
 
 
 
-void ModbusMaster::MessageReceived(DataBuffer &buffer)
+bool ModbusMaster::MessageReceived(DataBuffer &buffer)
 {
     (void)buffer;
+    return false;
 }
