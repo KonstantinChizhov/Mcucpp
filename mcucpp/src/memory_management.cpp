@@ -121,7 +121,6 @@ namespace Mcucpp
 #endif
 
 #if defined (__GNUC__)
-void* __dso_handle;
 
 namespace std
 {

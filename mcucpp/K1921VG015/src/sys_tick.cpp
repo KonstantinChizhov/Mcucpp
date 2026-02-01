@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2012
+// Date			: 2026
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification,
@@ -25,83 +25,46 @@
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
 
-#pragma once
-
-#ifndef MCUCPP_DEBUG_H
-#define MCUCPP_DEBUG_H
-
-#if defined(DEBUG_STREAM)
-namespace Mcucpp
-{
-	class SystemDebug
-	{
-		SystemDebug();
-
-	public:
-		static void Assert(bool condition, const char *message)
-		{
-			if (!condition)
-			{
-				DEBUG_STREAM << "Assertion failed: " << message << "\n";
-				while (true)
-					;
-			}
-		}
-		static DebugStream &Out() { return debugOut; }
-	};
-}
-
-#else
-// include platform dependent header
-#include <_debug.h>
-#endif
+#include <sys_tick.h>
+#include <compiler.h>
+// MCU specific clock
+#include <clock.h>
+#include <mtimer.h>
+#include <csr.h>
+#include <arch.h>
+#include <plic.h>
+#include <K1921VG015.h>
 
 namespace Mcucpp
 {
-	class NullStream
+	static volatile uint32_t tickCount = 0;
+
+	MCUCPP_WEAK uint32_t GetTickCount()
 	{
-	public:
-		template <class T>
-		NullStream &operator<<(T value) { return *this; }
-	};
+		return tickCount;
+	}
+
+	void SysTickHandler()
+	{
+		tickCount++;
+		SysTickTimer::Reload();
+	}
 }
 
-namespace Mcucpp
-{
-	class NullDebug
+void Mcucpp::SysTickTimer::Init(uint32_t periodMilliSec)
 	{
-		NullDebug();
+		// set_csr(mstatus, MSTATUS_MIE);
+		period_cycles = Clock::SysClock::ClockFreq() / 1000 * periodMilliSec - 1;
+		Reload();
+		PLIC_SetIrqHandler(Plic_Mach_Target, IsrVect_IRQ_0, SysTickHandler);
+	}
 
-	public:
-		static void Assert(bool /*condition*/, const char * /*message*/)
-		{
-			while (true)
-				;
-		}
-		static NullStream Out() { return NullStream(); }
-	};
+	void Mcucpp::SysTickTimer::Reload()
+	{
+		mtimer_set_raw_time_cmp(period_cycles);
+	}
 
-#if defined(DEBUG)
-	typedef Mcucpp::SystemDebug Debug;
-#else
-	typedef Mcucpp::NullDebug Debug;
-#endif
-
-#ifndef CONCAT
-#define CONCAT2(First, Second) (First##Second)
-#define CONCAT(First, Second) CONCAT2(First, Second)
-#endif
-
-#ifndef TO_STR
-#define TO_STR2(ARG) #ARG
-#define TO_STR(ARG) TO_STR2(ARG)
-#endif
-
-#if defined(DEBUG)
-#define MCUCPP_ASSERT(COND) Debug::Assert(COND, TO_STR(__FILE__) ":" TO_STR(__LINE__) ":" TO_STR(COND))
-#else
-#define MCUCPP_ASSERT(COND)
-#endif
-
-}
-#endif
+	void Mcucpp::SysTickTimer::EnableInterrupt()
+	{
+		set_csr(mie, (1 << 7));
+	}

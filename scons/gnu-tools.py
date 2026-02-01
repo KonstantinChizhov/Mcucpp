@@ -34,7 +34,7 @@ def setup_gnu_tools(env, prefix):
 		"-Wextra",
 		"-Wpointer-arith",
 		"-Wunused",
-		"-nostdlib"
+		#"-nostdlib"
 	]
 		
 	env['CXXFLAGS'] = [

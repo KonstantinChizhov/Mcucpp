@@ -57,8 +57,62 @@ extensa = {
     'HAS_FPU'    : 0
 }
 
+riscv_fpu = {
+    'name' : 'riscv',
+    'tools' : ['risc-v-gcc'],
+    'REG_WIDTH'  : 32,
+    'HAS_HW_MUL' : 32,
+    'HAS_HW_DIV' : 32,
+    'HAS_FPU'    : 1
+}
+
+riscv = {
+    'name' : 'riscv',
+    'tools' : ['risc-v-gcc'],
+    'REG_WIDTH'  : 32,
+    'HAS_HW_MUL' : 32,
+    'HAS_HW_DIV' : 32,
+    'HAS_FPU'    : 0
+}
+
 
 SupportedDevices = {
+    'MIK32':
+        {
+            'name' : 'MIK32',
+            'manufacturer': 'Micron',
+            'arch': riscv,
+            'flash': 2*1024*1024, 'ram': 16*1024, 'eeprom': 8*1024,
+            'includes': commInc + ['%(MCUCPP_HOME)s/mcucpp/MIK32'],
+            'linkerScript': '%(MCUCPP_HOME)s/linker_scripts/MIK32/eeprom.ld',
+            'clock': 32000000,
+            'defines': ['F_OSC=32000000u'],
+            'cpu': 'risc-v',
+            'startup': ['%(MCUCPP_HOME)s/startups/MIK32/crt0.S.c'],
+            'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp'],
+            'target_arch': "rv32im",
+            "target_abi": "ilp32",
+        },
+    'K1921VG015':
+        {
+            'name' : 'K1921VG015',
+            'manufacturer': 'NIIET',
+            'arch': riscv_fpu,
+            'flash': 1024*1024, 'ram': 256*1024, 'eeprom': 0,
+            'includes': commInc + ['%(MCUCPP_HOME)s/mcucpp/K1921VG015'],
+            'linkerScript': '%(MCUCPP_HOME)s/linker_scripts/k1921vg015_flash.ld',
+            'clock': 50000000,
+            'defines': [],
+            'cpu': 'risc-v',
+            'startup': ['%(MCUCPP_HOME)s/mcucpp/K1921VG015/src/startup.c'],
+            'libSources': [
+                    '%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp',
+                    #'%(MCUCPP_HOME)s/mcucpp/src/K1921VG015/plic.c',
+                    '%(MCUCPP_HOME)s/mcucpp/K1921VG015/src/debug.cpp',
+                    ],
+            'target_arch': "rv32imfc_zba_zbb_zbc_zbs_zicsr",
+            "target_abi": "ilp32f",
+        },
     'atmega8':
         {
             'name' : 'atmega8',
@@ -249,7 +303,21 @@ SupportedDevices = {
             'includes': commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x', '%(MCUCPP_HOME)s/mcucpp/ARM/CortexM4',  '%(MCUCPP_HOME)s/startup', '%(MCUCPP_HOME)s/3rdparty/CMSIS/Include', '%(MCUCPP_HOME)s/3rdparty/CMSIS/Device/ST/STM32F4xx/Include'],
             'linkerScript': '%(MCUCPP_HOME)s/linker_scripts/stm32_411.ld',
             'clock': 100000000,
-            'defines': ['STM32F40_41xxx', 'F_OSC=25000000u', '__FPU_PRESENT=1'],
+            'defines': ['STM32F411xE', 'F_OSC=25000000u', '__FPU_PRESENT=1'],
+            'cpu': 'cortex-m4',
+            'startup': ['%(MCUCPP_HOME)s/startups/startup_stm32_40x.c'],
+            'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
+        },
+        'stm32f401':
+        {
+            'name' : 'stm32f401',
+            'manufacturer': 'ST',
+            'arch': stm32m4,
+            'flash': 128*1024, 'ram': 64*1024, 'eeprom': 0,
+            'includes': commInc + ['%(MCUCPP_HOME)s/mcucpp/ARM/Stm32F40x', '%(MCUCPP_HOME)s/mcucpp/ARM/CortexM4',  '%(MCUCPP_HOME)s/startup', '%(MCUCPP_HOME)s/3rdparty/CMSIS/Include', '%(MCUCPP_HOME)s/3rdparty/CMSIS/Device/ST/STM32F4xx/Include'],
+            'linkerScript': '%(MCUCPP_HOME)s/linker_scripts/stm32_401.ld',
+            'clock': 84000000,
+            'defines': ['STM32F4xx', 'STM32F40_41xxx', 'STM32F401xE', 'F_OSC=25000000u', '__FPU_PRESENT=1'],
             'cpu': 'cortex-m4',
             'startup': ['%(MCUCPP_HOME)s/startups/startup_stm32_40x.c'],
             'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']

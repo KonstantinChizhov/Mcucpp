@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        ".fantomasignore": "ignore",
         "functional": "cpp",
         "tuple": "cpp",
         "type_traits": "cpp",
@@ -69,7 +70,10 @@
         "*.tcc": "cpp",
         "memory_resource": "cpp",
         "optional": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "format": "cpp",
+        "ranges": "cpp",
+        "span": "cpp"
     },
     "editor.tokenColorCustomizations": {
         "textMateRules": [

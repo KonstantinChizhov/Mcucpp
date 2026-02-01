@@ -98,7 +98,7 @@ namespace Mcucpp
             return *this;
         }
 
-        noalloc_function &operator=(const noalloc_function &&rhs)
+        noalloc_function &operator=(noalloc_function &&rhs)
         {
             storage = rhs.storage;
             invoker = rhs.invoker;

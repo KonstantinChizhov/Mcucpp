@@ -28,6 +28,7 @@
 #pragma once
 
 #include <fastdiv10.h>
+#include <char_trates.h>
 
 namespace Mcucpp
 {

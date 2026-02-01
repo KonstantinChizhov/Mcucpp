@@ -2,6 +2,10 @@
 #include "vectors_stm32l471.h"
 #include <stm32l471xx.h>
 
+
+void *__dso_handle = (void *)&__dso_handle;
+
+
 __attribute__((weak, __interrupt__))
 void DefaultIrqHandler(void)
 {

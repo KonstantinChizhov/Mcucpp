@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2012
+// Date			: 2026
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification,
@@ -27,81 +27,26 @@
 
 #pragma once
 
-#ifndef MCUCPP_DEBUG_H
-#define MCUCPP_DEBUG_H
+#include <stdint.h>
+#include <stddef.h>
 
-#if defined(DEBUG_STREAM)
-namespace Mcucpp
-{
-	class SystemDebug
-	{
-		SystemDebug();
-
-	public:
-		static void Assert(bool condition, const char *message)
-		{
-			if (!condition)
-			{
-				DEBUG_STREAM << "Assertion failed: " << message << "\n";
-				while (true)
-					;
-			}
-		}
-		static DebugStream &Out() { return debugOut; }
-	};
-}
-
-#else
-// include platform dependent header
-#include <_debug.h>
-#endif
 
 namespace Mcucpp
 {
-	class NullStream
-	{
-	public:
-		template <class T>
-		NullStream &operator<<(T value) { return *this; }
-	};
-}
+	void SysTickHandler();
 
-namespace Mcucpp
-{
-	class NullDebug
+	class SysTickTimer
 	{
-		NullDebug();
+		static inline uint64_t period_cycles = 0;
 
 	public:
-		static void Assert(bool /*condition*/, const char * /*message*/)
-		{
-			while (true)
-				;
-		}
-		static NullStream Out() { return NullStream(); }
+
+		static void Init(uint32_t periodMilliSec);
+
+		static void Reload();
+
+		static void EnableInterrupt();
 	};
 
-#if defined(DEBUG)
-	typedef Mcucpp::SystemDebug Debug;
-#else
-	typedef Mcucpp::NullDebug Debug;
-#endif
-
-#ifndef CONCAT
-#define CONCAT2(First, Second) (First##Second)
-#define CONCAT(First, Second) CONCAT2(First, Second)
-#endif
-
-#ifndef TO_STR
-#define TO_STR2(ARG) #ARG
-#define TO_STR(ARG) TO_STR2(ARG)
-#endif
-
-#if defined(DEBUG)
-#define MCUCPP_ASSERT(COND) Debug::Assert(COND, TO_STR(__FILE__) ":" TO_STR(__LINE__) ":" TO_STR(COND))
-#else
-#define MCUCPP_ASSERT(COND)
-#endif
-
+	uint32_t GetTickCount();
 }
-#endif

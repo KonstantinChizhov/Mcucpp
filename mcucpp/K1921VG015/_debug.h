@@ -1,7 +1,8 @@
+
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2012
+// Date			: 2025
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification,
@@ -26,82 +27,20 @@
 //*****************************************************************************
 
 #pragma once
-
-#ifndef MCUCPP_DEBUG_H
-#define MCUCPP_DEBUG_H
-
-#if defined(DEBUG_STREAM)
-namespace Mcucpp
-{
-	class SystemDebug
-	{
-		SystemDebug();
-
-	public:
-		static void Assert(bool condition, const char *message)
-		{
-			if (!condition)
-			{
-				DEBUG_STREAM << "Assertion failed: " << message << "\n";
-				while (true)
-					;
-			}
-		}
-		static DebugStream &Out() { return debugOut; }
-	};
-}
-
-#else
-// include platform dependent header
-#include <_debug.h>
-#endif
+#include <string_view>
 
 namespace Mcucpp
 {
-	class NullStream
-	{
-	public:
-		template <class T>
-		NullStream &operator<<(T value) { return *this; }
-	};
-}
+    void trap() noexcept __attribute__((__noreturn__, __cold__));
+#if defined MY_DEBUG && MY_DEBUG
 
-namespace Mcucpp
-{
-	class NullDebug
-	{
-		NullDebug();
+    void debug_init();
+    void debug_out(std::string_view str, unsigned value = 0);
 
-	public:
-		static void Assert(bool /*condition*/, const char * /*message*/)
-		{
-			while (true)
-				;
-		}
-		static NullStream Out() { return NullStream(); }
-	};
-
-#if defined(DEBUG)
-	typedef Mcucpp::SystemDebug Debug;
 #else
-	typedef Mcucpp::NullDebug Debug;
-#endif
+#define debug_init()   /* empty */
+#define debug_out(...) /* empty */
 
-#ifndef CONCAT
-#define CONCAT2(First, Second) (First##Second)
-#define CONCAT(First, Second) CONCAT2(First, Second)
-#endif
-
-#ifndef TO_STR
-#define TO_STR2(ARG) #ARG
-#define TO_STR(ARG) TO_STR2(ARG)
-#endif
-
-#if defined(DEBUG)
-#define MCUCPP_ASSERT(COND) Debug::Assert(COND, TO_STR(__FILE__) ":" TO_STR(__LINE__) ":" TO_STR(COND))
-#else
-#define MCUCPP_ASSERT(COND)
 #endif
 
 }
-#endif

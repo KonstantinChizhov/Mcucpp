@@ -1,7 +1,8 @@
+
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2012
+// Date			: 2025
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification,
@@ -27,81 +28,25 @@
 
 #pragma once
 
-#ifndef MCUCPP_DEBUG_H
-#define MCUCPP_DEBUG_H
-
-#if defined(DEBUG_STREAM)
-namespace Mcucpp
-{
-	class SystemDebug
-	{
-		SystemDebug();
-
-	public:
-		static void Assert(bool condition, const char *message)
-		{
-			if (!condition)
-			{
-				DEBUG_STREAM << "Assertion failed: " << message << "\n";
-				while (true)
-					;
-			}
-		}
-		static DebugStream &Out() { return debugOut; }
-	};
-}
-
-#else
-// include platform dependent header
-#include <_debug.h>
-#endif
+#include <stdint.h>
+#include <stddef.h>
+#include <chrono>
 
 namespace Mcucpp
 {
-	class NullStream
-	{
-	public:
-		template <class T>
-		NullStream &operator<<(T value) { return *this; }
-	};
-}
+    /// @brief A clock that run with fixed CPU frequency. Will overflow in short period. The fastest clock inplementation.
+    struct fast_clock
+    {
+        typedef std::chrono::duration<uint32_t, std::ratio<1, F_CPU>> duration;
+        typedef duration::rep rep;
+        typedef duration::period period;
+        typedef std::chrono::time_point<fast_clock, duration> time_point;
 
-namespace Mcucpp
-{
-	class NullDebug
-	{
-		NullDebug();
+        static constexpr bool is_steady = false;
 
-	public:
-		static void Assert(bool /*condition*/, const char * /*message*/)
-		{
-			while (true)
-				;
-		}
-		static NullStream Out() { return NullStream(); }
-	};
+        static time_point now() noexcept;
+    };
 
-#if defined(DEBUG)
-	typedef Mcucpp::SystemDebug Debug;
-#else
-	typedef Mcucpp::NullDebug Debug;
-#endif
-
-#ifndef CONCAT
-#define CONCAT2(First, Second) (First##Second)
-#define CONCAT(First, Second) CONCAT2(First, Second)
-#endif
-
-#ifndef TO_STR
-#define TO_STR2(ARG) #ARG
-#define TO_STR(ARG) TO_STR2(ARG)
-#endif
-
-#if defined(DEBUG)
-#define MCUCPP_ASSERT(COND) Debug::Assert(COND, TO_STR(__FILE__) ":" TO_STR(__LINE__) ":" TO_STR(COND))
-#else
-#define MCUCPP_ASSERT(COND)
-#endif
+    using sys_clock = std::chrono::steady_clock;
 
 }
-#endif

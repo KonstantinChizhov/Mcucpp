@@ -1,7 +1,7 @@
 //*****************************************************************************
 //
 // Author		: Konstantin Chizhov
-// Date			: 2012
+// Date			: 2025
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without modification,
@@ -27,81 +27,38 @@
 
 #pragma once
 
-#ifndef MCUCPP_DEBUG_H
-#define MCUCPP_DEBUG_H
+#include <stdint.h>
+#include <stddef.h>
+#include <chrono>
 
-#if defined(DEBUG_STREAM)
-namespace Mcucpp
-{
-	class SystemDebug
-	{
-		SystemDebug();
-
-	public:
-		static void Assert(bool condition, const char *message)
-		{
-			if (!condition)
-			{
-				DEBUG_STREAM << "Assertion failed: " << message << "\n";
-				while (true)
-					;
-			}
-		}
-		static DebugStream &Out() { return debugOut; }
-	};
-}
-
-#else
-// include platform dependent header
-#include <_debug.h>
-#endif
+// MCU specific clock
+#include <clock.h>
 
 namespace Mcucpp
 {
-	class NullStream
-	{
-	public:
-		template <class T>
-		NullStream &operator<<(T value) { return *this; }
-	};
+    struct rtc_clock
+    {
+        typedef std::chrono::duration<uint32_t> duration;
+        typedef duration::rep rep;
+        typedef duration::period period;
+        typedef std::chrono::time_point<rtc_clock, duration> time_point;
+
+        static constexpr bool is_steady = false;
+
+        static time_point now() noexcept;
+
+        static void set_time(time_point time)noexcept;
+
+        // Map to C API
+        static std::time_t to_time_t(const time_point &__t) noexcept
+        {
+            return std::time_t(duration_cast<std::chrono::seconds>(__t.time_since_epoch()).count());
+        }
+
+        static time_point from_time_t(std::time_t __t) noexcept
+        {
+            typedef std::chrono::time_point<rtc_clock, duration> __from;
+            return time_point_cast<rtc_clock::duration>(__from(std::chrono::seconds(__t)));
+        }
+    };
 }
-
-namespace Mcucpp
-{
-	class NullDebug
-	{
-		NullDebug();
-
-	public:
-		static void Assert(bool /*condition*/, const char * /*message*/)
-		{
-			while (true)
-				;
-		}
-		static NullStream Out() { return NullStream(); }
-	};
-
-#if defined(DEBUG)
-	typedef Mcucpp::SystemDebug Debug;
-#else
-	typedef Mcucpp::NullDebug Debug;
-#endif
-
-#ifndef CONCAT
-#define CONCAT2(First, Second) (First##Second)
-#define CONCAT(First, Second) CONCAT2(First, Second)
-#endif
-
-#ifndef TO_STR
-#define TO_STR2(ARG) #ARG
-#define TO_STR(ARG) TO_STR2(ARG)
-#endif
-
-#if defined(DEBUG)
-#define MCUCPP_ASSERT(COND) Debug::Assert(COND, TO_STR(__FILE__) ":" TO_STR(__LINE__) ":" TO_STR(COND))
-#else
-#define MCUCPP_ASSERT(COND)
-#endif
-
-}
-#endif
