@@ -13,6 +13,8 @@ static constexpr size_t DmaChannelsNum = 24;
 
 DmaChannel::TransferCompleteCallback callbacks[DmaChannelsNum];
 
+
+
 template <int irq_num>
 void DmaIrqHandler()
 {
@@ -34,19 +36,59 @@ void DmaIrqHandler()
     }
 }
 
+void DmaInt0()
+{
+    DmaIrqHandler<0>();
+}
+void DmaInt1()
+{
+    DmaIrqHandler<1>();
+}
+void DmaInt2()
+{
+    DmaIrqHandler<2>();
+}
+void DmaInt3()
+{
+    DmaIrqHandler<3>();
+}
+void DmaInt4()
+{
+    DmaIrqHandler<4>();
+}
+void DmaInt5()
+{
+    DmaIrqHandler<5>();
+}
+void DmaInt6()
+{
+    DmaIrqHandler<6>();
+}
+void DmaInt7()
+{
+    DmaIrqHandler<7>();
+}
+
+
+
 struct DmaInit
 {
     DmaInit()
     {
         DMA->BASEPTR = reinterpret_cast<uint32_t>(&dma_control_struct[0]);
-        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA0_VECTNUM, DmaIrqHandler<0>);
-        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA1_VECTNUM, DmaIrqHandler<1>);
-        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA2_VECTNUM, DmaIrqHandler<2>);
-        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA3_VECTNUM, DmaIrqHandler<3>);
-        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA4_VECTNUM, DmaIrqHandler<4>);
-        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA5_VECTNUM, DmaIrqHandler<5>);
-        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA6_VECTNUM, DmaIrqHandler<6>);
-        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA7_VECTNUM, DmaIrqHandler<7>);
+        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA0_VECTNUM, DmaInt0);
+        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA1_VECTNUM, DmaInt1);
+        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA2_VECTNUM, DmaInt2);
+        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA3_VECTNUM, DmaInt3);
+        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA4_VECTNUM, DmaInt4);
+        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA5_VECTNUM, DmaInt5);
+        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA6_VECTNUM, DmaInt6);
+        PLIC_SetIrqHandler(Plic_Mach_Target, PLIC_DMA7_VECTNUM, DmaInt7);
+        for (size_t i = 0; i < 8; i++)
+        {
+            PLIC_SetPriority(PLIC_DMA0_VECTNUM + i, 1);
+            PLIC_IntEnable(Plic_Mach_Target, PLIC_DMA0_VECTNUM + i);
+        }
     }
 } dma_init;
 

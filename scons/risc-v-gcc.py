@@ -15,11 +15,12 @@ def openOcdFlashImage(target, source, env):
     command += "-f %(OCD_INTERFACE)s "
     # command += '-c "transport select jtag" '
     command += "-f %(OCD_TARGET)s "
-    command += '-c "reset_config trst_only" '
+    # command += '-c "reset_config trst_only" '
     command += '-c "adapter speed 1500" '
     command += '-c "init" -c "reset init" '
     command += '-c "flash probe 0" '
-    command += f'-c "program {src_path}" -c sw_reset_halt -c reset  -c exit'
+    # command += '-c "k1921vg015 srv_erase" '
+    command += f'-c "program {src_path} verify reset exit"'
 
     command = command % env
     res = env.Execute(command)

@@ -53,10 +53,11 @@ namespace Mcucpp
 
 void Mcucpp::SysTickTimer::Init(uint32_t periodMilliSec)
 	{
-		// set_csr(mstatus, MSTATUS_MIE);
+		set_csr(mstatus, MSTATUS_MIE);
 		period_cycles = Clock::SysClock::ClockFreq() / 1000 * periodMilliSec - 1;
 		Reload();
 		PLIC_SetIrqHandler(Plic_Mach_Target, IsrVect_IRQ_0, SysTickHandler);
+		
 	}
 
 	void Mcucpp::SysTickTimer::Reload()
@@ -66,5 +67,6 @@ void Mcucpp::SysTickTimer::Init(uint32_t periodMilliSec)
 
 	void Mcucpp::SysTickTimer::EnableInterrupt()
 	{
+		PLIC_IntEnable(Plic_Mach_Target, IsrVect_IRQ_0);
 		set_csr(mie, (1 << 7));
 	}
