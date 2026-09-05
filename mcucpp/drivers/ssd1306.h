@@ -155,7 +155,7 @@ constexpr uint8_t init[] =
 
 	for (auto cc : init)
 	{
-		I2c1::WriteU8(I2cAddr, Command, cc);
+       I2c::WriteU8(I2cAddr, Command, cc);
 	}
 	_connected = I2c::GetError() == I2cError::NoError;
 }

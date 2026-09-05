@@ -514,36 +514,34 @@ namespace Mcucpp
 	I2C_TEMPLATE_ARGS
 	bool I2C_TEMPLATE_QUALIFIER::Write(uint16_t devAddr, uint16_t regAddr, const uint8_t *data, int size, I2cOpts opts)
 	{
-		/* if(devAddr > 1023 || !data || size <= 2)
+		_data.error = I2cError::NoError;
+
+		if(devAddr > 1023 || !data || size < 1)
 		{
 			_data.error = I2cError::ArgumentError;
-			return 0xff;
+			return false;
 		}
 
 		if(!WaitWhileBusy()) return false;
 
-		I2Cx()->CR1 |= I2C_CR1_ACK;
+		I2Cx()->ICR = I2Cx()->ISR;
 
+		int totalBytes = size;
+		if(HasAnyFlag(opts, I2cOpts::RegAddr16Bit)) totalBytes += 2;
+		else if(HasAnyFlag(opts, I2cOpts::RegAddr8Bit)) totalBytes += 1;
 
-		I2Cx()->DR = devAddr & 0xfffe;
-		if(!WaitEvent(0x00070082)) return false; // BUSY, MSL, ADDR, TXE TRA
+		if(!WriteDevAddr(devAddr, false, opts, totalBytes)) return false;
 
-		I2Cx()->DR = (uint8_t)regAddr;
-		if(!WaitEvent(0x00070084)) return false;  // TRA, BUSY, MSL, TXE and BTF flags
+		if(!WriteRegAddr(regAddr, opts)) return false;
 
-		WriteRegAddr(regAddr, opts);
-
-		int i = 0;
-
-		for(; i < size; i++)
+		for(int i = 0; i < size; i++)
 		{
-			if(!WaitEvent(0x00030040))return false; // I2C_EVENT_MASTER_BYTE_RECEIVED
-			uint8_t tmp = (uint8_t)I2Cx()->DR;
-			data[i] = tmp;
+			I2Cx()->TXDR = data[i];
+			if(!WaitEvent(I2C_ISR_TXIS)) return false;
 		}
 
-		I2Cx()->CR1 &= ~I2C_CR1_ACK;
-		I2Cx()->CR1 |= I2C_CR1_STOP; */
+		if(!WaitEvent(I2C_ISR_STOPF)) return false;
+
 		return true;
 	}
 
@@ -559,7 +557,7 @@ namespace Mcucpp
 		}
 		while(!result && timer-- > 0);
 
-		if(!result)
+		if(timer == 0)
 		{
 		    //cout << "lastevent = " << hex << i2c_event << "\t"<< lastevent << "\n";
 
