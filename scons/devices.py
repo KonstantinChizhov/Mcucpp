@@ -75,6 +75,10 @@ riscv = {
     'HAS_FPU'    : 0
 }
 
+libSources = [
+    '%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp', 
+    '%(MCUCPP_HOME)s/mcucpp/src/format/ftoa_engine.cpp',
+    '%(MCUCPP_HOME)s/mcucpp/src/format/int_to_str.cpp']
 
 SupportedDevices = {
     'MIK32':
@@ -89,7 +93,7 @@ SupportedDevices = {
             'defines': ['F_OSC=32000000u'],
             'cpu': 'risc-v',
             'startup': ['%(MCUCPP_HOME)s/startups/MIK32/crt0.S.c'],
-            'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp'],
+            'libSources': libSources,
             'target_arch': "rv32im",
             "target_abi": "ilp32",
         },
@@ -105,11 +109,7 @@ SupportedDevices = {
             'defines': [],
             'cpu': 'risc-v',
             'startup': ['%(MCUCPP_HOME)s/mcucpp/K1921VG015/src/startup.c'],
-            'libSources': [
-                    '%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp',
-                    #'%(MCUCPP_HOME)s/mcucpp/src/K1921VG015/plic.c',
-                    '%(MCUCPP_HOME)s/mcucpp/K1921VG015/src/debug.cpp',
-                    ],
+            'libSources':  libSources + ['%(MCUCPP_HOME)s/mcucpp/K1921VG015/src/debug.cpp'],
             'target_arch': "rv32imfc_zba_zbb_zbc_zbs_zicsr",
             "target_abi": "ilp32f",
         },
@@ -120,7 +120,7 @@ SupportedDevices = {
             'arch': atmega,
             'flash': 8*1024, 'ram': 1024, 'eeprom': 512,
             'includes': avrInc + ['%(MCUCPP_HOME)s/mcucpp/AVR/atmega8'],
-            'libSources': ['%(MCUCPP_HOME)s/mcucpp/AVR/src/usart.cpp'],
+            'libSources':  libSources,
             'linkerScript': None,
             'clock': 8000000,
             'defines': [],
@@ -133,7 +133,7 @@ SupportedDevices = {
             'arch': atmega,
             'flash': 16*1024, 'ram': 1024, 'eeprom': 1024,
             'includes': avrInc + ['%(MCUCPP_HOME)s/mcucpp/AVR/atmega16'],
-            'libSources': ['%(MCUCPP_HOME)s/mcucpp/AVR/src/usart.cpp'],
+            'libSources':  libSources + ['%(MCUCPP_HOME)s/mcucpp/AVR/src/usart.cpp'],
             'linkerScript': None,
             'clock': 16000000,
             'defines': [],
@@ -146,7 +146,7 @@ SupportedDevices = {
             'arch': atmega,
             'flash': 128*1024, 'ram': 4*1024, 'eeprom': 1024,
             'includes': avrInc + ['%(MCUCPP_HOME)s/mcucpp/AVR/atmega128'],
-            'libSources': ['%(MCUCPP_HOME)s/mcucpp/AVR/src/usart.cpp'],
+            'libSources':  libSources + ['%(MCUCPP_HOME)s/mcucpp/AVR/src/usart.cpp'],
             'linkerScript': None,
             'clock': 16000000,
             'defines': [],
@@ -159,7 +159,7 @@ SupportedDevices = {
             'arch': atmega,
             'flash': 16*1024, 'ram': 1*1024, 'eeprom': 512,
             'includes': avrInc + ['%(MCUCPP_HOME)s/mcucpp/AVR/atmega168'],
-            'libSources': ['%(MCUCPP_HOME)s/mcucpp/AVR/src/usart.cpp'],
+            'libSources':  libSources + ['%(MCUCPP_HOME)s/mcucpp/AVR/src/usart.cpp'],
             'linkerScript': None,
             'clock': 16000000,
             'defines': [],
@@ -172,7 +172,7 @@ SupportedDevices = {
             'arch': atmega,
             'flash': 128*1024, 'ram': 16*1024, 'eeprom': 4*1024,
             'includes': avrInc + ['%(MCUCPP_HOME)s/mcucpp/AVR/atmega1284p'],
-            'libSources': ['%(MCUCPP_HOME)s/mcucpp/AVR/src/usart.cpp'],
+            'libSources':  libSources + ['%(MCUCPP_HOME)s/mcucpp/AVR/src/usart.cpp'],
             'linkerScript': None,
             'clock': 20000000,
             'defines': [],
@@ -185,7 +185,7 @@ SupportedDevices = {
             'arch': attiny,
             'flash': 2*1024, 'ram': 128, 'eeprom': 128,
             'includes': avrInc + ['%(MCUCPP_HOME)s/mcucpp/AVR/attiny2313'],
-            'libSources': ['%(MCUCPP_HOME)s/mcucpp/AVR/src/usart.cpp'],
+            'libSources':  libSources + ['%(MCUCPP_HOME)s/mcucpp/AVR/src/usart.cpp'],
             'linkerScript': None,
             'clock': 8000000,
             'defines': [],
@@ -229,7 +229,7 @@ SupportedDevices = {
             'defines': ['STM32F100xB', 'STM32F100XB', 'STM32F10X_MD_VL', 'F_OSC=8000000u'],
             'cpu': 'cortex-m3',
             'startup': ['%(MCUCPP_HOME)s/startups/startup_stm32_100xB.c'],
-            'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
+            'libSources':  libSources
         },
 
         'stm32f103':
@@ -248,7 +248,7 @@ SupportedDevices = {
             'defines': ['F_OSC=8000000u', 'STM32F103xB', 'STM32F103XB', 'STM32F10X_MD'],
             'cpu': 'cortex-m3',
             'startup': ['%(MCUCPP_HOME)s/startups/startup_stm32_103.c'],
-            'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
+            'libSources':  libSources
         },
 
         'stm32f407':
@@ -263,7 +263,7 @@ SupportedDevices = {
             'defines': ['STM32F40_41xxx', 'F_OSC=8000000u', '__FPU_PRESENT=1'],
             'cpu': 'cortex-m4',
             'startup': ['%(MCUCPP_HOME)s/startups/startup_stm32_40x.c'],
-            'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
+            'libSources':  libSources
         },
 
         'stm32f429':
@@ -278,7 +278,7 @@ SupportedDevices = {
             'defines': ['STM32F429_439xx', 'F_OSC=8000000u', '__FPU_PRESENT=1'],
             'cpu': 'cortex-m4',
             'startup': ['%(MCUCPP_HOME)s/startups/startup_stm32_40x.c'],
-            'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
+            'libSources':  libSources
         },
         'stm32l471':
         {
@@ -292,7 +292,7 @@ SupportedDevices = {
             'defines': ['STM32L471xx', 'F_OSC=8000000u', '__FPU_PRESENT=1'],
             'cpu': 'cortex-m4',
             'startup': ['%(MCUCPP_HOME)s/startups/startup_stm32l471.c'],
-            'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
+            'libSources': libSources
         },
         'stm32f411':
         {
@@ -306,7 +306,7 @@ SupportedDevices = {
             'defines': ['STM32F411xE', 'F_OSC=25000000u', '__FPU_PRESENT=1'],
             'cpu': 'cortex-m4',
             'startup': ['%(MCUCPP_HOME)s/startups/startup_stm32_40x.c'],
-            'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
+            'libSources': libSources,
         },
         'stm32f401':
         {
@@ -320,7 +320,7 @@ SupportedDevices = {
             'defines': ['STM32F4xx', 'STM32F40_41xxx', 'STM32F401xE', 'F_OSC=25000000u', '__FPU_PRESENT=1'],
             'cpu': 'cortex-m4',
             'startup': ['%(MCUCPP_HOME)s/startups/startup_stm32_40x.c'],
-            'libSources': ['%(MCUCPP_HOME)s/mcucpp/src/memory_management.cpp']
+            'libSources':  libSources,
         },
         'esp8266' : 
         {

@@ -9,7 +9,7 @@ namespace
 	public:
 		DwtInitializer()
 		{
-			if (!(CoreDebug->DEMCR & CoreDebug_DEMCR_TRCENA_Msk)) 
+			if (!(CoreDebug->DEMCR & CoreDebug_DEMCR_TRCENA_Msk))
 			{
 				CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
 				DWT->CYCCNT = 0;
@@ -17,17 +17,18 @@ namespace
 			}
 		}
 	};
-	
+
 	DwtInitializer dwtInitializer;
 }
 
 inline void DelayLoop(uint32_t delayLoops)
 {
 	uint32_t start = DWT->CYCCNT;
-	while(DWT->CYCCNT - start < delayLoops);
+	while (DWT->CYCCNT - start < delayLoops)
+		;
 }
 
-inline void PlatformDelayCycle16(uint16_t delayLoops) 
+inline void PlatformDelayCycle16(uint16_t delayLoops)
 {
 	DelayLoop(delayLoops);
 }
@@ -42,11 +43,6 @@ inline void PlatformDelayCycle32(uint32_t delayLoops)
 	DelayLoop(delayLoops);
 }
 
-enum
-{	
-	PlatformCyslesPerDelayLoop32 = 1,
-	PlatformCyslesPerDelayLoop16 = 1,
-	PlatformCyslesPerDelayLoop8 = 1
-};
-
-
+constexpr int PlatformCyslesPerDelayLoop32 = 1;
+constexpr int PlatformCyslesPerDelayLoop16 = 1;
+constexpr int PlatformCyslesPerDelayLoop8 = 1;

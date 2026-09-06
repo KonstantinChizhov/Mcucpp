@@ -33,81 +33,81 @@
 //////////////////////////////////////////////////////////////////////////
 
 #define DECLARE_ENUM_OPERATIONS(ENUM_NAME)                               \
-inline ENUM_NAME                                                         \
+inline constexpr ENUM_NAME                                                         \
 operator|(ENUM_NAME left, ENUM_NAME right)                               \
 { return ENUM_NAME(static_cast<int>(left) | static_cast<int>(right)); }  \
                                                                          \
-inline ENUM_NAME                                                         \
+inline constexpr ENUM_NAME                                                         \
 operator&(ENUM_NAME left, ENUM_NAME right)                               \
 { return ENUM_NAME(static_cast<int>(left) & static_cast<int>(right)); }  \
                                                                          \
-inline ENUM_NAME                                                         \
+inline constexpr ENUM_NAME                                                         \
 operator^(ENUM_NAME left, ENUM_NAME right)                               \
 { return ENUM_NAME(static_cast<int>(left) ^ static_cast<int>(right)); }  \
                                                                          \
-inline ENUM_NAME                                                         \
+inline constexpr ENUM_NAME                                                         \
 operator~(ENUM_NAME left)                                                \
 { return ENUM_NAME(~static_cast<int>(left)); }                           \
                                                                          \
-inline const ENUM_NAME&                                                  \
+inline constexpr const ENUM_NAME&                                                  \
 operator|=(ENUM_NAME& left, ENUM_NAME right)                             \
 { return left = left | right; }                                          \
                                                                          \
-inline const ENUM_NAME&                                                  \
+inline constexpr const ENUM_NAME&                                                  \
 operator&=(ENUM_NAME& left, ENUM_NAME right)                             \
 { return left = left & right; }                                          \
                                                                          \
-inline const ENUM_NAME&                                                  \
+inline constexpr const ENUM_NAME&                                                  \
 operator^=(ENUM_NAME& left, ENUM_NAME right)                             \
 { return left = left ^ right; }                                          \
 
 
 #define DECLARE_ENUM_OPERATIONS_TAMPLATE(ENUM_NAME, TEMPLATE)            \
 TEMPLATE                                                                 \
-inline ENUM_NAME                                                         \
+inline constexpr ENUM_NAME                                                         \
 operator|(ENUM_NAME left, ENUM_NAME right)                               \
 { return ENUM_NAME(static_cast<int>(left) | static_cast<int>(right)); }  \
                                                                          \
 TEMPLATE                                                                 \
-inline ENUM_NAME                                                         \
+inline constexpr ENUM_NAME                                                         \
 operator&(ENUM_NAME left, ENUM_NAME right)                               \
 { return ENUM_NAME(static_cast<int>(left) & static_cast<int>(right)); }  \
                                                                          \
 TEMPLATE                                                                 \
-inline ENUM_NAME                                                         \
+inline constexpr ENUM_NAME                                                         \
 operator^(ENUM_NAME left, ENUM_NAME right)                               \
 { return ENUM_NAME(static_cast<int>(left) ^ static_cast<int>(right)); }  \
                                                                          \
 TEMPLATE                                                                 \
-inline ENUM_NAME                                                         \
+inline constexpr ENUM_NAME                                                         \
 operator~(ENUM_NAME left)                                                \
 { return ENUM_NAME(~static_cast<int>(left)); }                           \
                                                                          \
 TEMPLATE                                                                 \
-inline const ENUM_NAME&                                                  \
+inline constexpr const ENUM_NAME&                                                  \
 operator|=(ENUM_NAME& left, ENUM_NAME right)                             \
 { return left = left | right; }                                          \
                                                                          \
 TEMPLATE                                                                 \
-inline const ENUM_NAME&                                                  \
+inline constexpr const ENUM_NAME&                                                  \
 operator&=(ENUM_NAME& left, ENUM_NAME right)                             \
 { return left = left & right; }                                          \
                                                                          \
 TEMPLATE                                                                 \
-inline const ENUM_NAME&                                                  \
+inline constexpr const ENUM_NAME&                                                  \
 operator^=(ENUM_NAME& left, ENUM_NAME right)                             \
 { return left = left ^ right; }
 
 namespace Mcucpp
 {
 	template<class Enum>
-	bool HasAllFlags(Enum value, Enum flags)
+	inline constexpr bool HasAllFlags(Enum value, Enum flags)
 	{
 		return (static_cast<int>(value) & static_cast<int>(flags)) == static_cast<int>(flags);
 	}
 	
 	template<class Enum>
-	bool HasAnyFlag(Enum value, Enum flags)
+	inline constexpr bool HasAnyFlag(Enum value, Enum flags)
 	{
 		return (static_cast<int>(value) & static_cast<int>(flags)) != 0;
 	}
